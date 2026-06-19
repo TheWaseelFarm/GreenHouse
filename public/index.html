@@ -816,14 +816,17 @@ function renderMetrics(){
 }
  
 function updateCard(m,v){
-  const mc=$('mc-'+m); if(!mc) return;
+  const idMap={co2:'co2Card',temp:'tempCard',hum:'humidityCard',vpd:'vpdCard'};
+  const valMap={co2:'co2Value',temp:'tempValue',hum:'humidityValue',vpd:'vpdValue'};
+  const badgeMap={co2:'co2Status',temp:'tempStatus',hum:'humidityStatus',vpd:'vpdStatus'};
+  const mc=$(idMap[m]); if(!mc) return;
   const bd=getBadge(m,v);
   const cls=bd.s==='good'?'good':bd.s==='warning'?'warning':'danger';
   const sel=mc.classList.contains('selected');
-  mc.className=`metric ${cls}${sel?' selected':''}`;mc.classList.remove('good','warning','danger');mc.classList.add(cls);
-  $('v-'+m).textContent=m==='vpd'?Number(v).toFixed(2):m==='temp'?Number(v).toFixed(1):Number(v).toFixed(m==='hum'?0:0);
-  $('b-'+m).textContent=bd.t||bd.s;
-  $('bar-'+m).style.width=rangeBar(m,parseFloat(v))+'%';
+  mc.className='metric '+cls+(sel?' selected':'');
+  const valEl=$(valMap[m]); if(valEl) valEl.textContent=m==='vpd'?Number(v).toFixed(2):m==='temp'?Number(v).toFixed(1):Math.round(v);
+  const badgeEl=$(badgeMap[m]); if(badgeEl) badgeEl.textContent=bd.t||bd.s;
+  const barEl=$('bar-'+m); if(barEl) barEl.style.width=rangeBar(m,parseFloat(v))+'%';
 }
  
 function renderZones(){
@@ -866,7 +869,15 @@ function renderDecisions(){
   $('decisionsBody').innerHTML=acts.map(a=>`<div class="dec-item"><span class="ptag ${a.p==='h'?'ph':a.p==='m'?'pm':'pl'}">${a.p==='h'?'HIGH':a.p==='m'?'MED':'OK'}</span><div><div class="dec-en">${a.en}</div><div class="dec-ar">${a.ar}</div></div></div>`).join('');
 }
  
-function showAlert(t,b,ar){$('alertBanner').classList.add('active');$('alertBanner').textContent=t;$('alertDetail').textContent=b;$('alertAr').textContent=ar;}
+function showAlert(t,b,ar){
+  $('alertBanner').classList.add('active');
+  const titleEl=$('alertBanner').querySelector('.alert-title');
+  if(titleEl) titleEl.textContent=t;
+  const arEl=$('alertBanner').querySelector('.alert-ar');
+  if(arEl) arEl.textContent=ar;
+  const detEl=$('alertDetail');
+  if(detEl) detEl.textContent=b;
+}
  
 function checkAlerts(){
   const {tempW,humW,vpd}=S.live;
@@ -876,7 +887,9 @@ function checkAlerts(){
   if(vpd>ALERT_VPD)  {msgs.push(`VPD ${Number(vpd).toFixed(2)} kPa > ${ALERT_VPD} kPa`);arMsgs.push(`عجز ضغط البخار ${Number(vpd).toFixed(2)} تجاوز الحد`);}
   if(humW&&humW>85)  {msgs.push(`Humidity ${humW.toFixed(0)}% Botrytis risk`);arMsgs.push(`الرطوبة ${humW.toFixed(0)}% - خطر فطري`);}
   if(msgs.length){
-    showAlert('Strawberry Alert - تنبيه الفراولة',msgs.join(' | '),arMsgs.join(' | '));
+    const alertTitle = msgs.length===1 ? '⚠️ ' + msgs[0] : '⚠️ ' + msgs.length + ' Critical Conditions';
+    const alertTitleAr = arMsgs.join(' · ');
+    showAlert(alertTitle, msgs.join(' · '), alertTitleAr);
     const now=Date.now();
     if(now-S.lastAlert>30*60*1000){
       S.lastAlert=now;
@@ -963,7 +976,7 @@ function toggleMetric(m){
  
 function setActiveMetric(m){
   S.metric=m;
-  ['co2','temp','hum','vpd'].forEach(k=>{const mc=$('mc-'+k);if(mc)mc.classList.toggle('selected',k===m);});
+  const cardMap={co2:'co2Card',temp:'tempCard',hum:'humidityCard',vpd:'vpdCard'};['co2','temp','hum','vpd'].forEach(k=>{const mc=$(cardMap[k]);if(mc)mc.classList.toggle('selected',k===m);});
   $('sstemp').classList.toggle('visible',m==='temp');
   $('sshum').classList.toggle('visible',m==='hum');
   document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
