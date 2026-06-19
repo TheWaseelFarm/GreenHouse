@@ -275,7 +275,7 @@
 
     async function fetchData() {
       try {
-        const devRes = await fetch('https://api.switch-bot.com/v1.1/devices', { headers: getHeaders() });
+        const devRes = await fetch('/api/devices', { headers: getHeaders() });
         const devData = await devRes.json();
         const devices = devData.body?.deviceList || [];
         const co2Device = devices.find(d =>
@@ -285,7 +285,7 @@
         );
         if (!co2Device) { document.getElementById('timeLabel').textContent = 'No device found'; return; }
 
-        const statusRes = await fetch(`https://api.switch-bot.com/v1.1/devices/${co2Device.deviceId}/status`, { headers: getHeaders() });
+        const statusRes = await fetch(`/api/status?id=${co2Device.deviceId}`, { headers: getHeaders() });
         const statusData = await statusRes.json();
         const b = statusData.body;
 
