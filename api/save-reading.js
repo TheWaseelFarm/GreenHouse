@@ -15,14 +15,21 @@ module.exports = async (req, res) => {
     try {
       const data = JSON.parse(body);
       const payload = JSON.stringify({
-        co2: data.co2,
-        temperature: data.temperature,
-        humidity: data.humidity,
-        vpd: data.vpd,
-        heat_index: data.heat_index,
-        dew_point: data.dew_point,
-        plant_stress_index: data.plant_stress_index,
-        abs_humidity: data.abs_humidity
+        co2:                 data.co2,
+        temperature:         data.temperature,
+        humidity:            data.humidity,
+        vpd:                 data.vpd,
+        hub_temp:            data.hub_temp,
+        hub_humidity:        data.hub_humidity,
+        temp_weighted:       data.temp_weighted,
+        hum_weighted:        data.hum_weighted,
+        cooling_delta:       data.cooling_delta,
+        heat_index:          data.heat_index,
+        dew_point:           data.dew_point,
+        plant_stress_index:  data.plant_stress_index,
+        abs_humidity:        data.abs_humidity,
+        water_leak_1:        data.water_leak_1 ?? false,
+        water_leak_2:        data.water_leak_2 ?? false
       });
 
       const options = {
@@ -30,10 +37,10 @@ module.exports = async (req, res) => {
         path: '/rest/v1/readings',
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY,
+          'Content-Type':  'application/json',
+          'apikey':        SUPABASE_KEY,
           'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Prefer': 'return=minimal',
+          'Prefer':        'return=minimal',
           'Content-Length': Buffer.byteLength(payload)
         }
       };
