@@ -3,861 +3,1537 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Al-Waseel Farm — Greenhouse Monitor</title>
+  <title>Al-Waseel Farm - Greenhouse Monitor</title>
+  <link rel="icon" href="assets/images/al-waseel-logo.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #05070a; --panel: rgba(14,20,29,0.88); --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.16);
-      --text: #f5f7fb; --muted: #7f8da3; --muted-strong: #aeb9c9;
-      --good: #20f584; --warning: #ff9f1c; --danger: #ff3b4f; --blue: #45b9ff; --purple: #a78bfa;
-      --good-soft: rgba(32,245,132,0.14); --warning-soft: rgba(255,159,28,0.16); --danger-soft: rgba(255,59,79,0.16);
-      --radius: 22px; --shadow: 0 24px 80px rgba(0,0,0,0.46);
-      --mono: "SFMono-Regular","Cascadia Code",Consolas,monospace;
-      --sans: Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
-      --arabic: "Segoe UI",Tahoma,Arial,sans-serif;
-    }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: var(--sans); color: var(--text); min-height: 100vh; overflow-x: hidden;
-      background: radial-gradient(circle at 14% 8%,rgba(32,245,132,0.13),transparent 32%),
-        radial-gradient(circle at 84% 0%,rgba(69,185,255,0.11),transparent 34%),
-        radial-gradient(circle at 50% 100%,rgba(167,139,250,0.08),transparent 38%),
-        linear-gradient(180deg,#05070a 0%,#070b10 48%,#030405 100%);
-    }
-    body::before {
-      content:""; position:fixed; inset:0; pointer-events:none;
-      background-image: linear-gradient(rgba(255,255,255,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px);
-      background-size:42px 42px; mask-image:linear-gradient(to bottom,rgba(0,0,0,0.76),transparent 82%);
-    }
-    .wrap { position:relative; z-index:1; width:min(1500px,calc(100% - 32px)); margin:0 auto; padding:24px 0 60px; }
  
-    /* HEADER */
-    .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
-    .brand h1 { font-size:clamp(1.2rem,2.5vw,2rem); font-weight:950; letter-spacing:-0.06em; }
-    .brand .sub { font-family:var(--arabic); color:var(--muted); font-size:0.9rem; margin-top:4px; direction:rtl; text-align:left; }
-    .header-right { display:flex; align-items:center; gap:12px; }
-    .live-pill { display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border:1px solid var(--border); border-radius:999px; background:rgba(255,255,255,0.04); font-size:0.75rem; color:var(--muted-strong); letter-spacing:0.1em; text-transform:uppercase; }
-    .pulse { width:10px; height:10px; border-radius:50%; background:var(--good); box-shadow:0 0 16px var(--good); position:relative; }
-    .pulse::after { content:""; position:absolute; inset:-7px; border-radius:50%; border:1px solid var(--good); animation:pulse 1.6s ease-out infinite; }
-    @keyframes pulse { from{transform:scale(0.5);opacity:0.8} to{transform:scale(1.8);opacity:0} }
-    #clock { font-family:var(--mono); color:var(--muted); font-size:0.78rem; }
-    .refresh-btn { display:inline-flex; align-items:center; gap:7px; border:1px solid rgba(32,245,132,0.3); border-radius:999px; padding:9px 16px; color:var(--text); background:rgba(32,245,132,0.08); font-size:0.8rem; font-weight:700; cursor:pointer; transition:all 0.2s; }
-    .refresh-btn:hover { background:rgba(32,245,132,0.15); border-color:rgba(32,245,132,0.6); }
+    :root {
+      --bg: #05070a;
+      --panel: rgba(14, 20, 29, 0.88);
+      --panel-soft: rgba(18, 26, 37, 0.72);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --text: #f5f7fb;
+      --muted: #7f8da3;
+      --muted-strong: #aeb9c9;
+      --brand-green: #1E2D1A;
+      --brand-gold: #C8A96E;
+      --brand-dark-gold: #8B6914;
+      --brand-cream: #F7F0E3;
+      --brand-sage: #4A6741;
+      --good: #20f584;
+      --warning: #ff9f1c;
+      --danger: #ff3b4f;
+      --good-soft: rgba(32, 245, 132, 0.14);
+      --warning-soft: rgba(255, 159, 28, 0.16);
+      --danger-soft: rgba(255, 59, 79, 0.16);
+      --blue: #45b9ff;
+      --purple: #a78bfa;
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.46);
+      --mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      --arabic: "Segoe UI", Tahoma, Arial, sans-serif;
+    }
+ 
+    * {
+      box-sizing: border-box;
+    }
+ 
+    html {
+      scroll-behavior: smooth;
+    }
+ 
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(circle at 14% 8%, rgba(200, 169, 110, 0.14), transparent 32%),
+        radial-gradient(circle at 84% 0%, rgba(74, 103, 65, 0.18), transparent 34%),
+        radial-gradient(circle at 50% 100%, rgba(167, 139, 250, 0.08), transparent 38%),
+        linear-gradient(180deg, #05070a 0%, #070b10 48%, #030405 100%);
+      overflow-x: hidden;
+    }
+ 
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.76), transparent 82%);
+    }
+ 
+    .dashboard {
+      position: relative;
+      z-index: 1;
+      width: min(1500px, calc(100% - 34px));
+      margin: 0 auto;
+      padding: 28px 0 34px;
+    }
+ 
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 22px;
+      margin-bottom: 18px;
+    }
+ 
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+ 
+    .brand-logo-wrap {
+      width: 74px;
+      height: 74px;
+      border-radius: 24px;
+      padding: 5px;
+      border: 1px solid rgba(200, 169, 110, 0.36);
+      background:
+        linear-gradient(145deg, rgba(247, 240, 227, 0.08), rgba(200, 169, 110, 0.08)),
+        rgba(255, 255, 255, 0.035);
+      box-shadow:
+        0 0 48px rgba(200, 169, 110, 0.16),
+        0 18px 46px rgba(0, 0, 0, 0.32);
+      flex: 0 0 auto;
+    }
+ 
+    .brand-logo {
+      width: 100%;
+      height: 100%;
+      border-radius: 19px;
+      display: block;
+      object-fit: contain;
+      background: var(--brand-cream);
+    }
+ 
+    .brand-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 9px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(200, 169, 110, 0.28);
+      background: rgba(200, 169, 110, 0.08);
+      color: var(--brand-gold);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+ 
+    .brand-kicker::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--brand-gold);
+      box-shadow: 0 0 14px var(--brand-gold);
+    }
+ 
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.35rem, 2.8vw, 2.7rem);
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: -0.065em;
+    }
+ 
+    .brand .subtitle {
+      margin-top: 8px;
+      color: var(--brand-cream);
+      font-family: var(--arabic);
+      font-size: clamp(0.98rem, 1.5vw, 1.18rem);
+      direction: rtl;
+      text-align: left;
+    }
+ 
+    .live-panel {
+      min-width: 230px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+ 
+    .live-status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 11px 15px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(18px);
+      color: var(--muted-strong);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+ 
+    .pulse {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--good);
+      position: relative;
+      box-shadow: 0 0 20px var(--good);
+    }
+ 
+    .pulse::after {
+      content: "";
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 1px solid var(--good);
+      animation: pulse 1.55s ease-out infinite;
+      opacity: 0.72;
+    }
+ 
+    @keyframes pulse {
+      from {
+        transform: scale(0.55);
+        opacity: 0.85;
+      }
+      to {
+        transform: scale(1.9);
+        opacity: 0;
+      }
+    }
+ 
+    .timestamp {
+      font-family: var(--mono);
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+ 
+    .alert-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 18px 0;
+      padding: 15px 18px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 59, 79, 0.4);
+      background:
+        linear-gradient(90deg, rgba(255, 59, 79, 0.2), rgba(255, 159, 28, 0.09)),
+        rgba(24, 9, 14, 0.84);
+      box-shadow: 0 18px 70px rgba(255, 59, 79, 0.13);
+    }
+ 
+    .alert-banner.active {
+      display: flex;
+    }
+ 
+    .alert-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+ 
+    .alert-icon {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: var(--danger-soft);
+      color: var(--danger);
+      font-size: 1.2rem;
+    }
+ 
+    .alert-title {
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+ 
+    .alert-ar {
+      margin-top: 3px;
+      font-family: var(--arabic);
+      color: #ffd6dc;
+      direction: rtl;
+      text-align: left;
+      font-size: 0.92rem;
+    }
+ 
+    .alert-detail {
+      font-family: var(--mono);
+      color: #ffd6dc;
+      font-size: 0.86rem;
+      text-align: right;
+    }
+ 
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+ 
+    .metric-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 202px;
+      padding: 20px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--status);
+      background:
+        radial-gradient(circle at 88% 0%, var(--status-soft), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.022)),
+        var(--panel);
+      box-shadow: var(--shadow);
+      transition:
+        border-color 240ms ease,
+        border-top-color 240ms ease,
+        background 240ms ease,
+        transform 180ms ease;
+    }
+ 
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-strong);
+    }
+ 
+    .metric-card.good {
+      --status: var(--good);
+      --status-soft: var(--good-soft);
+    }
+ 
+    .metric-card.warning {
+      --status: var(--warning);
+      --status-soft: var(--warning-soft);
+    }
+ 
+    .metric-card.danger {
+      --status: var(--danger);
+      --status-soft: var(--danger-soft);
+    }
+ 
+    .metric-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+ 
+    .metric-label-en {
+      color: var(--muted-strong);
+      font-size: 0.8rem;
+      font-weight: 850;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+ 
+    .metric-label-ar {
+      margin-top: 6px;
+      font-family: var(--arabic);
+      color: var(--muted);
+      font-size: 0.95rem;
+      direction: rtl;
+      text-align: left;
+    }
+ 
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--status-soft);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--status);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: color 240ms ease, background 240ms ease, border-color 240ms ease;
+    }
+ 
+    .status-badge::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--status);
+      box-shadow: 0 0 16px var(--status);
+      transition: background 240ms ease, box-shadow 240ms ease;
+    }
+ 
+    .metric-value {
+      display: flex;
+      align-items: baseline;
+      gap: 9px;
+      font-family: var(--mono);
+      letter-spacing: -0.08em;
+      transition: color 240ms ease;
+    }
+ 
+    .metric-number {
+      font-size: clamp(3.1rem, 5vw, 5.65rem);
+      line-height: 0.86;
+      font-weight: 950;
+    }
+ 
+    .metric-unit {
+      color: var(--status);
+      font-size: 1.12rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      transition: color 240ms ease;
+    }
+ 
+    .metric-foot {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+    }
+ 
+    .middle-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+ 
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.022)),
+        var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px);
+    }
+ 
+    .chart-panel {
+      min-height: 430px;
+      padding: 20px;
+    }
+ 
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+ 
+    .panel-title {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 900;
+    }
+ 
+    .panel-title-ar {
+      margin-top: 5px;
+      font-family: var(--arabic);
+      color: var(--muted-strong);
+      direction: rtl;
+      text-align: left;
+      font-size: 0.96rem;
+    }
+ 
+    .chart-shell {
+      height: 342px;
+      border-radius: 22px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.012)),
+        rgba(0, 0, 0, 0.18);
+    }
+ 
+    .gauge-panel {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 430px;
+      --vpd-color: var(--good);
+      --vpd-position: 22%;
+    }
+ 
+    .vpd-display {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 18px 0 28px;
+    }
+ 
+    .vpd-number {
+      font-family: var(--mono);
+      font-size: clamp(4.8rem, 9vw, 8.2rem);
+      line-height: 0.82;
+      font-weight: 950;
+      letter-spacing: -0.12em;
+      color: var(--vpd-color);
+      text-shadow: 0 0 42px rgba(32, 245, 132, 0.18);
+      transition: color 240ms ease, text-shadow 240ms ease;
+    }
+ 
+    .vpd-unit {
+      margin-bottom: 10px;
+      font-family: var(--mono);
+      color: var(--muted-strong);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+ 
+    .gauge-bar {
+      position: relative;
+      height: 18px;
+      border-radius: 999px;
+      background:
+        linear-gradient(90deg,
+          var(--good) 0%,
+          var(--good) 28%,
+          var(--warning) 55%,
+          var(--danger) 100%);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+    }
+ 
+    .gauge-bar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent);
+      opacity: 0.48;
+    }
+ 
+    .gauge-indicator {
+      position: absolute;
+      top: 50%;
+      left: var(--vpd-position);
+      transform: translate(-50%, -50%);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 3px solid #fff;
+      background: #05070a;
+      box-shadow:
+        0 0 0 5px rgba(255, 255, 255, 0.11),
+        0 0 32px var(--vpd-color);
+      transition: left 320ms ease, box-shadow 240ms ease;
+    }
+ 
+    .gauge-scale {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 13px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.76rem;
+    }
+ 
+    .vpd-advice {
+      margin-top: 28px;
+      padding: 17px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.036);
+    }
+ 
+    .advice-en {
+      color: var(--muted-strong);
+      line-height: 1.45;
+      font-size: 0.95rem;
+    }
+ 
+    .advice-ar {
+      margin-top: 10px;
+      font-family: var(--arabic);
+      color: var(--text);
+      line-height: 1.6;
+      direction: rtl;
+      text-align: right;
+      font-size: 1rem;
+    }
+ 
+    .camera-section {
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+ 
+    .camera-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+ 
+    .camera-card {
+      overflow: hidden;
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.22);
+    }
+ 
+    .camera-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.035);
+    }
+ 
+    .camera-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--muted-strong);
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+ 
+    .camera-label i {
+      color: var(--good);
+      font-size: 1.15rem;
+    }
+ 
+    .fullscreen-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+      cursor: pointer;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+ 
+    .fullscreen-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(32, 245, 132, 0.42);
+      background: rgba(32, 245, 132, 0.08);
+    }
+ 
+    .camera-feed {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(200, 169, 110, 0.11), transparent 34%),
+        linear-gradient(145deg, #080d13, #030507);
+      overflow: hidden;
+    }
+ 
+    .camera-feed img.stream-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0;
+      transition: opacity 240ms ease;
+    }
+ 
+    .camera-feed.has-feed img.stream-image {
+      opacity: 1;
+    }
+ 
+    .camera-placeholder {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+      transition: opacity 240ms ease, visibility 240ms ease;
+    }
+ 
+    .camera-placeholder::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url("assets/images/camera-placeholder.svg");
+      background-size: cover;
+      background-position: center;
+      opacity: 0.22;
+    }
+ 
+    .camera-feed.has-feed .camera-placeholder {
+      opacity: 0;
+      visibility: hidden;
+    }
+ 
+    .placeholder-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+    }
+ 
+    .placeholder-inner i {
+      font-size: 2.8rem;
+      color: rgba(174, 185, 201, 0.72);
+    }
+ 
+    .placeholder-title {
+      color: var(--muted-strong);
+      font-weight: 850;
+      letter-spacing: -0.03em;
+    }
+ 
+    .placeholder-subtitle {
+      font-family: var(--arabic);
+      direction: rtl;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+ 
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 20px;
+      border-radius: 22px;
+    }
+ 
+    .footer-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--arabic);
+      direction: rtl;
+      color: var(--text);
+      font-weight: 850;
+    }
+ 
+    .footer-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--brand-cream);
+      border: 1px solid rgba(200, 169, 110, 0.36);
+    }
+ 
+    .refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      border: 1px solid rgba(32, 245, 132, 0.34);
+      border-radius: 999px;
+      padding: 12px 17px;
+      color: var(--text);
+      background:
+        linear-gradient(145deg, rgba(32, 245, 132, 0.16), rgba(69, 185, 255, 0.07)),
+        rgba(5, 7, 10, 0.9);
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 0 34px rgba(32, 245, 132, 0.12);
+      transition: transform 160ms ease, border-color 160ms ease;
+    }
+ 
+    .refresh-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(32, 245, 132, 0.72);
+    }
+ 
+    @media (max-width: 1180px) {
+      .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+ 
+      .middle-row {
+        grid-template-columns: 1fr;
+      }
+ 
+      .gauge-panel {
+        min-height: auto;
+      }
+    }
+ 
+    @media (max-width: 780px) {
+      .dashboard {
+        width: min(100% - 22px, 1500px);
+        padding-top: 18px;
+      }
+ 
+      .header {
+        flex-direction: column;
+      }
+ 
+      .brand {
+        align-items: flex-start;
+      }
+ 
+      .brand-logo-wrap {
+        width: 58px;
+        height: 58px;
+        border-radius: 18px;
+        padding: 4px;
+      }
+ 
+      .brand-logo {
+        border-radius: 14px;
+      }
+ 
+      .live-panel {
+        min-width: 0;
+        width: 100%;
+        align-items: flex-end;
+      }
+ 
+      .alert-banner.active {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+ 
+      .alert-detail {
+        text-align: left;
+      }
+ 
+      .metrics-grid,
+      .camera-grid {
+        grid-template-columns: 1fr;
+      }
+ 
+      .metric-card,
+      .chart-panel,
+      .gauge-panel,
+      .camera-section {
+        border-radius: 22px;
+        padding: 15px;
+      }
+ 
+      .metric-card {
+        min-height: 180px;
+      }
+ 
+      .chart-shell {
+        height: 310px;
+        padding: 10px;
+      }
+ 
+      .panel-head {
+        flex-direction: column;
+      }
+ 
+      .vpd-display {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+ 
+      .footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+ 
+      .refresh-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  
  
     /* STATUS BAR */
-    .status-bar { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.03); margin-bottom:18px; }
+    .status-bar { display:flex; align-items:center; justify-content:space-between; padding:11px 18px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.03); margin-bottom:18px; }
     .status-left { display:flex; align-items:center; gap:12px; }
     .status-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-    .status-en { font-size:0.85rem; color:var(--muted-strong); }
-    .status-ar { font-family:var(--arabic); font-size:0.8rem; color:var(--muted); direction:rtl; }
-    .last-saved { font-family:var(--mono); font-size:0.7rem; color:var(--muted); }
- 
-    /* ALERT */
-    .alert-box { display:none; align-items:center; gap:14px; padding:13px 18px; border-radius:14px; border:1px solid rgba(255,59,79,0.4); background:linear-gradient(90deg,rgba(255,59,79,0.18),rgba(255,159,28,0.08)),rgba(20,5,8,0.9); margin-bottom:18px; }
-    .alert-box.on { display:flex; }
-    .alert-icon { font-size:1.3rem; color:var(--danger); flex-shrink:0; }
-    .alert-title { font-weight:900; font-size:0.9rem; color:var(--danger); }
-    .alert-body { font-size:0.78rem; color:#ffd6dc; margin-top:2px; }
-    .alert-ar { font-family:var(--arabic); font-size:0.75rem; color:#ffb0bc; direction:rtl; margin-top:2px; }
- 
-    /* METRIC CARDS */
-    .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
-    .mc {
-      position:relative; overflow:hidden; padding:18px; border-radius:var(--radius);
-      border:1px solid var(--border); border-top:3px solid var(--c);
-      background:radial-gradient(circle at 88% 0%,var(--cs),transparent 40%),
-        linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.018)),var(--panel);
-      box-shadow:var(--shadow); cursor:pointer; transition:transform 0.18s,border-color 0.2s,box-shadow 0.2s;
-    }
-    .mc:hover { transform:translateY(-3px); border-color:var(--border-strong); }
-    .mc.active { border-color:var(--c)!important; box-shadow:0 0 0 2px var(--c),var(--shadow); }
-    .mc.good   { --c:var(--good);    --cs:var(--good-soft); }
-    .mc.warn   { --c:var(--warning); --cs:var(--warning-soft); }
-    .mc.danger { --c:var(--danger);  --cs:var(--danger-soft); }
-    .mc.neutral{ --c:var(--blue);    --cs:rgba(69,185,255,0.12); }
-    .mc-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
-    .mc-en { font-size:0.72rem; font-weight:850; letter-spacing:0.13em; text-transform:uppercase; color:var(--muted-strong); }
-    .mc-ar { font-family:var(--arabic); font-size:0.8rem; color:var(--muted); margin-top:3px; direction:rtl; text-align:left; }
-    .mc-badge { display:inline-flex; align-items:center; gap:5px; padding:5px 9px; border-radius:999px; background:var(--cs); border:1px solid rgba(255,255,255,0.08); color:var(--c); font-family:var(--mono); font-size:0.6rem; font-weight:900; letter-spacing:0.07em; text-transform:uppercase; white-space:nowrap; }
-    .mc-badge::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--c); box-shadow:0 0 8px var(--c); }
-    .mc-val { display:flex; align-items:baseline; gap:6px; font-family:var(--mono); letter-spacing:-0.08em; }
-    .mc-num { font-size:clamp(2.6rem,4vw,4.6rem); line-height:0.88; font-weight:950; }
-    .mc-unit { color:var(--c); font-size:0.95rem; font-weight:900; }
-    .mc-foot { margin-top:10px; display:flex; justify-content:space-between; color:var(--muted); font-family:var(--mono); font-size:0.65rem; }
-    .mc-bar { margin-top:7px; height:3px; border-radius:2px; background:rgba(255,255,255,0.08); overflow:hidden; }
-    .mc-bar-fill { height:100%; border-radius:2px; background:var(--c); transition:width 0.6s ease; }
-    .mc-hint { font-size:0.6rem; color:var(--muted); margin-top:5px; opacity:0; transition:opacity 0.2s; }
-    .mc:hover .mc-hint,.mc.active .mc-hint { opacity:1; }
-    .mc.active .mc-hint { color:var(--c); }
- 
-    /* SUB-SELECTORS under temp/hum cards */
-    .sub-selectors { display:none; grid-column:span 1; margin-top:-8px; margin-bottom:10px; }
-    .sub-selectors.visible { display:flex; gap:6px; flex-wrap:wrap; padding:0 4px; }
-    .ssBtn { padding:4px 11px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--muted); font-size:0.68rem; font-weight:700; cursor:pointer; font-family:var(--mono); transition:all 0.2s; display:flex; align-items:center; gap:5px; }
-    .ssBtn .dot { width:6px; height:6px; border-radius:50%; }
-    .ssBtn.active { background:rgba(255,255,255,0.1); border-color:var(--border-strong); color:var(--text); }
-    .ss-label { font-size:0.65rem; color:var(--muted); align-self:center; font-family:var(--arabic); direction:rtl; }
- 
-    /* CLIMATE PANEL */
-    .climate-panel { border:1px solid var(--border); border-radius:28px; background:linear-gradient(180deg,rgba(255,255,255,0.052),rgba(255,255,255,0.018)),var(--panel); box-shadow:var(--shadow); backdrop-filter:blur(24px); padding:22px; margin-bottom:18px; }
-    .cp-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
-    .cp-title { font-size:0.75rem; font-weight:900; letter-spacing:0.13em; text-transform:uppercase; color:var(--muted); }
-    .cp-title-ar { font-family:var(--arabic); color:var(--muted-strong); font-size:0.9rem; margin-top:4px; direction:rtl; text-align:left; }
-    .cp-controls { display:flex; flex-direction:column; align-items:flex-end; gap:7px; }
-    .time-btns,.metric-btns { display:flex; gap:5px; flex-wrap:wrap; }
-    .tbtn { padding:5px 12px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--muted); font-size:0.7rem; font-weight:700; cursor:pointer; font-family:var(--mono); transition:all 0.2s; }
-    .tbtn:hover { border-color:var(--border-strong); color:var(--text); }
-    .tbtn.active { background:var(--good); border-color:var(--good); color:#05070a; }
+    .status-en { font-size:0.84rem; color:var(--muted-strong); }
+    .status-ar { font-family:var(--arabic); font-size:0.78rem; color:var(--muted); direction:rtl; }
+    /* SUB-SELECTORS */
+    .sub-row { display:none; margin:-8px 0 14px; padding:0 4px; flex-wrap:wrap; gap:6px; align-items:center; }
+    .sub-row.visible { display:flex; }
+    .sub-label { font-size:0.62rem; color:var(--muted); font-weight:700; letter-spacing:0.08em; text-transform:uppercase; }
+    .sbtn { display:flex; align-items:center; gap:5px; padding:5px 11px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--muted); font-size:0.68rem; font-weight:700; cursor:pointer; font-family:var(--mono); transition:all 0.2s; }
+    .sbtn .sdot { width:6px; height:6px; border-radius:50%; }
+    .sbtn.active { background:rgba(255,255,255,0.1); border-color:var(--border-strong); color:var(--text); }
+    /* METRIC ENHANCEMENTS */
+    .metric-card.selected { border-color:var(--status)!important; box-shadow:0 0 0 2px var(--status),var(--shadow); }
+    .metric-label-sub { margin-top:3px; font-size:0.6rem; color:var(--brand-gold); font-style:italic; }
+    .metric-bar { margin-top:8px; height:3px; border-radius:2px; background:rgba(255,255,255,0.08); overflow:hidden; }
+    .metric-bar-fill { height:100%; border-radius:2px; background:var(--status); transition:width 0.6s ease; }
+    .metric-hint { font-size:0.6rem; color:var(--muted); margin-top:5px; opacity:0; transition:opacity 0.2s; }
+    .metric-card:hover .metric-hint, .metric-card.selected .metric-hint { opacity:1; }
+    .metric-card.selected .metric-hint { color:var(--status); }
+    /* CHART CONTROLS */
+    .chart-controls { display:flex; flex-direction:column; align-items:flex-end; gap:7px; }
+    .time-range { display:flex; gap:5px; }
+    .range-btn { padding:5px 12px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--muted); font-size:0.7rem; font-weight:700; cursor:pointer; font-family:var(--mono); transition:all 0.2s; }
+    .range-btn:hover { border-color:var(--border-strong); color:var(--text); }
+    .range-btn.active { background:var(--brand-gold); border-color:var(--brand-gold); color:#05070a; }
+    .metric-btns { display:flex; gap:5px; flex-wrap:wrap; }
     .mbtn { display:flex; align-items:center; gap:5px; padding:5px 11px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--muted); font-size:0.7rem; font-weight:700; cursor:pointer; font-family:var(--mono); transition:all 0.2s; }
-    .mbtn .dot { width:7px; height:7px; border-radius:50%; }
+    .mbtn .mdot { width:7px; height:7px; border-radius:50%; }
     .mbtn.active { border-color:var(--border-strong); color:var(--text); background:rgba(255,255,255,0.08); }
-    .cp-grid { display:grid; grid-template-columns:2fr 1fr; gap:16px; }
-    .chart-shell { height:290px; border-radius:18px; padding:14px; border:1px solid var(--border); background:linear-gradient(180deg,rgba(255,255,255,0.028),rgba(255,255,255,0.01)),rgba(0,0,0,0.18); }
-    .chart-note { font-size:0.68rem; color:var(--muted); margin-top:8px; font-family:var(--mono); padding:0 4px; }
- 
-    /* VPD GAUGE */
-    .gauge-panel { display:flex; flex-direction:column; justify-content:space-between; }
-    .vpd-big { font-family:var(--mono); font-size:clamp(3.8rem,6vw,6.5rem); font-weight:950; letter-spacing:-0.12em; line-height:0.85; transition:color 0.3s; }
-    .vpd-unit { font-family:var(--mono); color:var(--muted-strong); font-weight:900; margin-top:4px; font-size:0.9rem; }
-    .gauge-track { height:14px; border-radius:999px; background:linear-gradient(90deg,var(--good) 0%,var(--good) 28%,var(--warning) 55%,var(--danger) 100%); position:relative; margin:14px 0 7px; box-shadow:inset 0 0 0 1px rgba(255,255,255,0.15); }
-    .gauge-track::before { content:""; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(180deg,rgba(255,255,255,0.3),transparent); opacity:0.4; }
-    .gauge-thumb { position:absolute; top:50%; transform:translate(-50%,-50%); width:24px; height:24px; border-radius:50%; border:3px solid #fff; background:#05070a; box-shadow:0 0 0 4px rgba(255,255,255,0.1),0 0 20px var(--good); transition:left 0.4s ease,box-shadow 0.3s; }
-    .gauge-scale { display:flex; justify-content:space-between; font-family:var(--mono); font-size:0.65rem; color:var(--muted); }
-    .gauge-zones { display:flex; gap:4px; margin-top:10px; flex-wrap:wrap; }
+    .chart-note { font-size:0.66rem; color:var(--muted); margin-top:8px; font-family:var(--mono); padding:0 2px; }
+    /* VPD ZONES */
+    .gauge-zones { display:flex; gap:5px; margin-top:12px; flex-wrap:wrap; }
     .gz { padding:3px 8px; border-radius:999px; font-size:0.6rem; font-weight:700; }
-    .vpd-advice-box { padding:12px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.03); margin-top:12px; }
-    .adv-en { font-size:0.8rem; color:var(--muted-strong); line-height:1.5; }
-    .adv-ar { font-family:var(--arabic); font-size:0.76rem; color:var(--text); line-height:1.6; direction:rtl; text-align:right; margin-top:7px; }
- 
-    /* ZONE 3 */
-    .zone3 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
-    .panel { border:1px solid var(--border); border-radius:var(--radius); background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015)),var(--panel); box-shadow:var(--shadow); padding:18px; }
-    .sec-lbl { font-size:0.68rem; font-weight:900; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:7px; margin-bottom:12px; }
- 
-    /* GREENHOUSE ZONES */
+    /* ZONES PANEL */
+    .zone3 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px; }
+    .zones-panel { border:1px solid var(--border); border-radius:var(--radius-xl); background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015)),var(--panel); box-shadow:var(--shadow); padding:20px; }
+    .decisions-panel { border:1px solid rgba(200,169,110,0.15); border-radius:var(--radius-xl); background:linear-gradient(135deg,rgba(200,169,110,0.06),rgba(74,103,65,0.04)),var(--panel); box-shadow:var(--shadow); padding:20px; }
+    .sec-lbl { font-size:0.68rem; font-weight:900; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:7px; margin-bottom:14px; }
+    .weighted-row { background:rgba(200,169,110,0.07); border:1px solid rgba(200,169,110,0.2); border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .wt-label { font-size:0.65rem; font-weight:900; letter-spacing:0.08em; text-transform:uppercase; color:var(--brand-gold); }
+    .wt-label-ar { font-family:var(--arabic); font-size:0.68rem; color:var(--muted); direction:rtl; margin-top:2px; }
+    .wt-val { font-family:var(--mono); font-size:1.5rem; font-weight:950; color:var(--brand-gold); letter-spacing:-0.05em; }
+    .wt-sub { font-size:0.6rem; color:var(--muted); text-align:right; margin-top:2px; }
     .zones-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
     .zone-card { border-radius:14px; padding:14px; border:1px solid; }
     .zone-card.wet { background:rgba(69,185,255,0.06); border-color:rgba(69,185,255,0.2); }
     .zone-card.cnp { background:rgba(32,245,132,0.06); border-color:rgba(32,245,132,0.2); }
-    .zn { font-size:0.63rem; font-weight:900; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:3px; }
+    .zn { font-size:0.62rem; font-weight:900; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:3px; }
     .zn.wet { color:var(--blue); } .zn.cnp { color:var(--good); }
     .zn-ar { font-family:var(--arabic); font-size:0.7rem; color:var(--muted); direction:rtl; margin-bottom:10px; }
     .z-readings { display:flex; justify-content:space-between; }
     .z-val { text-align:center; }
-    .z-num { font-family:var(--mono); font-size:1.7rem; font-weight:950; letter-spacing:-0.06em; }
+    .z-num { font-family:var(--mono); font-size:1.7rem; font-weight:950; letter-spacing:-0.05em; }
     .z-lbl { font-size:0.6rem; color:var(--muted); margin-top:2px; }
-    .z-src { font-size:0.6rem; color:var(--muted); margin-top:8px; padding-top:8px; border-top:1px solid var(--border); }
-    .weighted-row { background:rgba(167,139,250,0.07); border:1px solid rgba(167,139,250,0.2); border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-    .wt-label { font-size:0.65rem; font-weight:900; letter-spacing:0.08em; text-transform:uppercase; color:var(--purple); }
-    .wt-label-ar { font-family:var(--arabic); font-size:0.68rem; color:var(--muted); direction:rtl; margin-top:2px; }
-    .wt-val { font-family:var(--mono); font-size:1.5rem; font-weight:950; color:var(--purple); letter-spacing:-0.06em; }
-    .wt-sub { font-size:0.6rem; color:var(--muted); text-align:right; }
+    .z-src { font-size:0.58rem; color:var(--muted); margin-top:8px; padding-top:8px; border-top:1px solid var(--border); }
     .cooling-row { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
     .cl-desc { font-size:0.7rem; color:var(--muted-strong); }
     .cl-desc-ar { font-family:var(--arabic); font-size:0.65rem; color:var(--muted); direction:rtl; margin-top:2px; }
-    .cl-val { font-family:var(--mono); font-size:1.4rem; font-weight:950; letter-spacing:-0.05em; }
+    .cl-val { font-family:var(--mono); font-size:1.4rem; font-weight:950; letter-spacing:-0.04em; }
     .water-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
     .w-card { padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:rgba(255,255,255,0.03); display:flex; justify-content:space-between; align-items:center; }
-    .w-lbl { font-size:0.62rem; color:var(--muted); } .w-lbl-ar { font-family:var(--arabic); font-size:0.6rem; color:var(--muted); direction:rtl; }
+    .w-lbl { font-size:0.62rem; color:var(--muted); }
+    .w-lbl-ar { font-family:var(--arabic); font-size:0.6rem; color:var(--muted); direction:rtl; }
     .w-status { font-size:0.72rem; font-weight:700; }
- 
-    /* DECISIONS */
-    .decisions-panel { border:1px solid rgba(69,185,255,0.18); border-radius:var(--radius); background:linear-gradient(135deg,rgba(69,185,255,0.06),rgba(167,139,250,0.04)),var(--panel); box-shadow:var(--shadow); padding:18px; }
-    .dec-item { display:flex; gap:10px; padding:10px; border-radius:11px; margin-bottom:7px; background:rgba(255,255,255,0.04); border:1px solid var(--border); align-items:flex-start; }
+    .dec-item { display:flex; gap:10px; padding:11px; border-radius:11px; margin-bottom:8px; background:rgba(255,255,255,0.04); border:1px solid var(--border); align-items:flex-start; }
     .dec-item:last-child { margin-bottom:0; }
     .ptag { font-size:0.58rem; font-weight:900; padding:3px 8px; border-radius:999px; white-space:nowrap; margin-top:1px; flex-shrink:0; }
     .ph{background:var(--danger-soft);color:var(--danger)} .pm{background:var(--warning-soft);color:var(--warning)} .pl{background:var(--good-soft);color:var(--good)}
-    .dec-en { font-size:0.8rem; line-height:1.5; color:var(--muted-strong); }
-    .dec-ar { font-family:var(--arabic); font-size:0.73rem; color:var(--muted); direction:rtl; margin-top:3px; line-height:1.5; }
+    .dec-en { font-size:0.82rem; line-height:1.5; color:var(--muted-strong); }
+    .dec-ar { font-family:var(--arabic); font-size:0.75rem; color:var(--muted); direction:rtl; margin-top:3px; line-height:1.5; }
+    /* STATUS BAR */
+    .status-bar { display:flex; align-items:center; justify-content:space-between; padding:11px 18px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.03); margin-bottom:18px; }
+    .status-left { display:flex; align-items:center; gap:12px; }
+    .status-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .status-en { font-size:0.84rem; color:var(--muted-strong); }
+    .status-ar { font-family:var(--arabic); font-size:0.78rem; color:var(--muted); direction:rtl; }
+    @media(max-width:1100px){ .zone3{grid-template-columns:1fr} }
  
-    /* CAMERAS */
-    .cam-section { border:1px solid var(--border); border-radius:28px; background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015)),var(--panel); box-shadow:var(--shadow); padding:20px; margin-bottom:18px; }
-    .cam-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
-    .cam-card { overflow:hidden; border-radius:18px; border:1px solid var(--border); }
-    .cam-top { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.03); }
-    .cam-lbl { display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:800; color:var(--muted-strong); }
-    .cam-lbl i { color:var(--good); }
-    .fs-btn { width:30px; height:30px; border:1px solid var(--border); border-radius:9px; display:grid; place-items:center; color:var(--text); background:rgba(255,255,255,0.04); cursor:pointer; transition:all 0.15s; }
-    .fs-btn:hover { border-color:rgba(32,245,132,0.4); background:rgba(32,245,132,0.08); }
-    .cam-feed { position:relative; aspect-ratio:16/9; background:radial-gradient(circle at 50% 40%,rgba(32,245,132,0.07),transparent 35%),linear-gradient(145deg,#080d13,#030507); overflow:hidden; }
-    .cam-feed img { width:100%; height:100%; object-fit:cover; display:block; opacity:0; transition:opacity 0.3s; }
-    .cam-feed.has-feed img { opacity:1; }
-    .cam-ph { position:absolute; inset:0; display:grid; place-items:center; text-align:center; color:var(--muted); }
-    .cam-feed.has-feed .cam-ph { display:none; }
-    .cam-ph i { font-size:2.2rem; margin-bottom:7px; display:block; color:rgba(174,185,201,0.5); }
-    .cam-ph p { font-size:0.75rem; }
-    .cam-ph small { font-family:var(--arabic); direction:rtl; font-size:0.68rem; color:var(--muted); display:block; margin-top:3px; }
- 
-    /* FOOTER */
-    .footer { display:flex; justify-content:space-between; align-items:center; padding:13px 18px; border-radius:16px; border:1px solid var(--border); background:rgba(255,255,255,0.02); }
-    .footer-brand { font-family:var(--arabic); direction:rtl; color:var(--muted-strong); font-size:0.82rem; font-weight:850; }
-    .footer-meta { font-family:var(--mono); font-size:0.65rem; color:var(--muted); }
- 
-    @media(max-width:1100px) { .metrics{grid-template-columns:repeat(2,1fr)} .cp-grid{grid-template-columns:1fr} .zone3{grid-template-columns:1fr} }
-    @media(max-width:640px)  { .metrics{grid-template-columns:1fr 1fr} .cam-grid{grid-template-columns:1fr} .wrap{padding:14px 0 40px} }
   </style>
 </head>
 <body>
-<div class="wrap">
+  <main class="dashboard" id="alWaseelGreenhouseDashboard">
  
-  <!-- HEADER -->
-  <div class="header">
-    <div class="brand">
-      <h1>Al-Waseel Farm — Greenhouse Monitor</h1>
-      <div class="sub">مزرعة الوصيل — مراقبة البيئة المحمية · إنتاج فراولة مميز</div>
-    </div>
-    <div class="header-right">
-      <div class="live-pill"><span class="pulse"></span> Live Monitoring</div>
-      <div id="clock">--:--:--</div>
-      <button class="refresh-btn" onclick="fetchLive()"><i class="ti ti-refresh"></i> Refresh</button>
-    </div>
-  </div>
- 
-  <!-- STATUS BAR -->
-  <div class="status-bar">
-    <div class="status-left">
-      <div class="status-dot" id="sDot" style="background:var(--muted)"></div>
-      <div class="status-en" id="sEn">Loading farm status...</div>
-      <div class="status-ar" id="sAr">جاري تحميل حالة المزرعة...</div>
-    </div>
-    <div class="last-saved" id="lastSaved">—</div>
-  </div>
- 
-  <!-- ALERT -->
-  <div class="alert-box" id="alertBox">
-    <i class="ti ti-alert-triangle alert-icon"></i>
-    <div>
-      <div class="alert-title" id="aTitle">Alert</div>
-      <div class="alert-body"  id="aBody"></div>
-      <div class="alert-ar"   id="aAr"></div>
-    </div>
-  </div>
- 
-  <!-- ZONE 1: METRIC CARDS -->
-  <div style="font-size:0.68rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:7px"><i class="ti ti-chart-bar"></i> Live Readings — القراءات المباشرة</div>
-  <div style="font-family:var(--arabic);font-size:0.8rem;color:var(--muted-strong);margin-bottom:12px;direction:rtl;text-align:left">انقر على أي بطاقة لتغيير الرسم البياني · درجة الحرارة والرطوبة تعرضان المتوسط الموزون (70% محصول · 30% تبريد)</div>
- 
-  <div class="metrics">
-    <div class="mc neutral active" id="mc-co2" onclick="selectMetric('co2')">
-      <div class="mc-top">
-        <div><div class="mc-en">CO₂</div><div class="mc-ar">ثاني أكسيد الكربون</div></div>
-        <div class="mc-badge" id="b-co2">—</div>
-      </div>
-      <div class="mc-val"><span class="mc-num" id="v-co2">—</span><span class="mc-unit">ppm</span></div>
-      <div class="mc-foot"><span>Optimal</span><span>800–1200 ppm</span></div>
-      <div class="mc-bar"><div class="mc-bar-fill" id="bar-co2" style="width:0%"></div></div>
-      <div class="mc-hint">↑ Showing in chart</div>
-    </div>
- 
-    <div class="mc good" id="mc-temp" onclick="selectMetric('temp')">
-      <div class="mc-top">
-        <div><div class="mc-en">Temperature</div><div class="mc-ar">درجة الحرارة · موزون 70/30</div></div>
-        <div class="mc-badge" id="b-temp">—</div>
-      </div>
-      <div class="mc-val"><span class="mc-num" id="v-temp">—</span><span class="mc-unit">°C</span></div>
-      <div class="mc-foot"><span>Weighted avg</span><span>16–22 °C</span></div>
-      <div class="mc-bar"><div class="mc-bar-fill" id="bar-temp" style="width:0%"></div></div>
-      <div class="mc-hint">↑ Click · use sub-selectors below</div>
-    </div>
- 
-    <div class="mc good" id="mc-hum" onclick="selectMetric('hum')">
-      <div class="mc-top">
-        <div><div class="mc-en">Humidity</div><div class="mc-ar">الرطوبة النسبية · موزون 70/30</div></div>
-        <div class="mc-badge" id="b-hum">—</div>
-      </div>
-      <div class="mc-val"><span class="mc-num" id="v-hum">—</span><span class="mc-unit">%</span></div>
-      <div class="mc-foot"><span>Weighted avg</span><span>60–75 %</span></div>
-      <div class="mc-bar"><div class="mc-bar-fill" id="bar-hum" style="width:0%"></div></div>
-      <div class="mc-hint">↑ Click · use sub-selectors below</div>
-    </div>
- 
-    <div class="mc good" id="mc-vpd" onclick="selectMetric('vpd')">
-      <div class="mc-top">
-        <div><div class="mc-en">VPD</div><div class="mc-ar">عجز ضغط البخار</div></div>
-        <div class="mc-badge" id="b-vpd">—</div>
-      </div>
-      <div class="mc-val"><span class="mc-num" id="v-vpd">—</span><span class="mc-unit">kPa</span></div>
-      <div class="mc-foot"><span>Optimal</span><span>0.5–1.0 kPa</span></div>
-      <div class="mc-bar"><div class="mc-bar-fill" id="bar-vpd" style="width:0%"></div></div>
-      <div class="mc-hint">↑ Click to isolate in chart</div>
-    </div>
-  </div>
- 
-  <!-- SUB-SELECTORS for temp -->
-  <div class="sub-selectors" id="ss-temp">
-    <span class="ss-label">View:</span>
-    <button class="ssBtn active" onclick="setSubView('temp','weighted')" id="ss-temp-weighted"><span class="dot" style="background:var(--purple)"></span> Weighted 70/30</button>
-    <button class="ssBtn" onclick="setSubView('temp','canopy')"   id="ss-temp-canopy"><span class="dot" style="background:var(--good)"></span> Canopy Only</button>
-    <button class="ssBtn" onclick="setSubView('temp','wetwall')"  id="ss-temp-wetwall"><span class="dot" style="background:var(--blue)"></span> Wet Wall Only</button>
-    <button class="ssBtn" onclick="setSubView('temp','compare')"  id="ss-temp-compare"><span class="dot" style="background:#aeb9c9"></span> Compare Both</button>
-  </div>
- 
-  <!-- SUB-SELECTORS for hum -->
-  <div class="sub-selectors" id="ss-hum">
-    <span class="ss-label">View:</span>
-    <button class="ssBtn active" onclick="setSubView('hum','weighted')" id="ss-hum-weighted"><span class="dot" style="background:var(--purple)"></span> Weighted 70/30</button>
-    <button class="ssBtn" onclick="setSubView('hum','canopy')"   id="ss-hum-canopy"><span class="dot" style="background:var(--good)"></span> Canopy Only</button>
-    <button class="ssBtn" onclick="setSubView('hum','wetwall')"  id="ss-hum-wetwall"><span class="dot" style="background:var(--blue)"></span> Wet Wall Only</button>
-    <button class="ssBtn" onclick="setSubView('hum','compare')"  id="ss-hum-compare"><span class="dot" style="background:#aeb9c9"></span> Compare Both</button>
-  </div>
- 
-  <!-- ZONE 2: CLIMATE INTELLIGENCE -->
-  <div style="font-size:0.68rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="ti ti-brain"></i> Climate Intelligence — التحليل المناخي</div>
-  <div class="climate-panel">
-    <div class="cp-head">
-      <div>
-        <div class="cp-title" id="chartTitle">CO₂ Trend</div>
-        <div class="cp-title-ar" id="chartTitleAr">اتجاه ثاني أكسيد الكربون</div>
-      </div>
-      <div class="cp-controls">
-        <div class="time-btns">
-          <button class="tbtn active" onclick="setRange(1)"   id="t-1h">1H</button>
-          <button class="tbtn"        onclick="setRange(6)"   id="t-6h">6H</button>
-          <button class="tbtn"        onclick="setRange(24)"  id="t-24h">24H</button>
-          <button class="tbtn"        onclick="setRange(168)" id="t-7d">7D</button>
+    <!-- HEADER (ChatGPT branded) -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-logo-wrap">
+          <img class="brand-logo" src="assets/images/al-waseel-logo.svg" alt="Al-Waseel Farm logo" onerror="this.style.display='none'" />
         </div>
-        <div class="metric-btns">
-          <button class="mbtn active" onclick="selectMetric('co2')"  id="mb-co2"><span class="dot" style="background:#20f584"></span>CO₂</button>
-          <button class="mbtn"        onclick="selectMetric('temp')" id="mb-temp"><span class="dot" style="background:var(--purple)"></span>Temp</button>
-          <button class="mbtn"        onclick="selectMetric('hum')"  id="mb-hum"><span class="dot" style="background:#a78bfa"></span>Humidity</button>
-          <button class="mbtn"        onclick="selectMetric('vpd')"  id="mb-vpd"><span class="dot" style="background:#ff9f1c"></span>VPD</button>
-          <button class="mbtn"        onclick="selectMetric('all')"  id="mb-all"><span class="dot" style="background:#aeb9c9"></span>All</button>
-        </div>
-      </div>
-    </div>
-    <div class="cp-grid">
-      <div>
-        <div class="chart-shell"><canvas id="mainChart"></canvas></div>
-        <div class="chart-note" id="chartNote">Showing CO₂ readings from Meter Pro sensor</div>
-      </div>
-      <div class="gauge-panel">
         <div>
-          <div style="font-size:0.65rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">VPD — عجز ضغط البخار</div>
-          <div style="display:flex;align-items:baseline;gap:8px">
-            <div class="vpd-big" id="vpdBig">—</div>
+          <div class="brand-kicker">ALWASEEL FARM &middot; &#x645;&#x632;&#x631;&#x639;&#x629; &#x627;&#x644;&#x648;&#x635;&#x64A;&#x644;</div>
+          <h1>Greenhouse Monitor</h1>
+          <div class="subtitle">&#x644;&#x648;&#x62D;&#x629; &#x645;&#x631;&#x627;&#x642;&#x628;&#x629; &#x627;&#x644;&#x628;&#x64A;&#x626;&#x629; &#x627;&#x644;&#x645;&#x62D;&#x645;&#x64A;&#x629; &middot; &#x625;&#x646;&#x62A;&#x627;&#x62C; &#x641;&#x631;&#x627;&#x648;&#x644;&#x629; &#x645;&#x645;&#x64A;&#x632;</div>
+        </div>
+      </div>
+      <div class="live-panel">
+        <div class="live-status"><span class="pulse"></span><span>Live Monitoring</span></div>
+        <div id="timestamp" class="timestamp">--:--:--</div>
+        <div id="lastSaved" style="font-family:var(--mono);font-size:0.7rem;color:var(--muted)">&#x2014;</div>
+      </div>
+    </header>
+ 
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+      <div class="status-left">
+        <div class="status-dot" id="sDot" style="background:var(--muted)"></div>
+        <div class="status-en" id="sEn">Loading farm status...</div>
+        <div class="status-ar" id="sAr">&#x62C;&#x627;&#x631;&#x64A; &#x62A;&#x62D;&#x645;&#x64A;&#x644; &#x62D;&#x627;&#x644;&#x629; &#x627;&#x644;&#x645;&#x632;&#x631;&#x639;&#x629;...</div>
+      </div>
+      <button id="refreshBtn" class="refresh-btn" type="button" onclick="fetchLive()">
+        <i class="ti ti-refresh"></i><span>Refresh &#x2014; &#x62A;&#x62D;&#x62F;&#x64A;&#x62B;</span>
+      </button>
+    </div>
+ 
+    <!-- ALERT -->
+    <section id="alertBanner" class="alert-banner" aria-live="polite">
+      <div class="alert-main">
+        <div class="alert-icon"><i class="ti ti-alert-triangle"></i></div>
+        <div>
+          <div class="alert-title" id="aTitle">Critical Environment Alert</div>
+          <div class="alert-ar" id="aAr">&#x62A;&#x646;&#x628;&#x64A;&#x647; &#x62D;&#x631;&#x62C; &#x641;&#x64A; &#x628;&#x64A;&#x626;&#x629; &#x627;&#x644;&#x645;&#x62D;&#x645;&#x64A;&#x629;</div>
+        </div>
+      </div>
+      <div id="alertDetail" class="alert-detail"></div>
+    </section>
+ 
+    <!-- SECTION LABEL -->
+    <div style="font-size:0.66rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:7px"><i class="ti ti-chart-bar"></i> Live Readings &#x2014; &#x627;&#x644;&#x642;&#x631;&#x627;&#x621;&#x627;&#x62A; &#x627;&#x644;&#x645;&#x628;&#x627;&#x634;&#x631;&#x629;</div>
+    <div style="font-family:var(--arabic);font-size:0.78rem;color:var(--muted-strong);margin-bottom:12px;direction:rtl;text-align:left">&#x627;&#x646;&#x642;&#x631; &#x639;&#x644;&#x649; &#x628;&#x637;&#x627;&#x642;&#x629; &#x644;&#x639;&#x631;&#x636; &#x62A;&#x641;&#x627;&#x635;&#x64A;&#x644;&#x647;&#x627; &middot; &#x627;&#x646;&#x642;&#x631; &#x645;&#x631;&#x629; &#x623;&#x62E;&#x631;&#x649; &#x644;&#x644;&#x631;&#x62C;&#x648;&#x639; &#x644;&#x62C;&#x645;&#x64A;&#x639; &#x627;&#x644;&#x645;&#x624;&#x634;&#x631;&#x627;&#x62A; &middot; &#x62F;&#x631;&#x62C;&#x629; &#x627;&#x644;&#x62D;&#x631;&#x627;&#x631;&#x629; &#x648;&#x627;&#x644;&#x631;&#x637;&#x648;&#x628;&#x629; &#x645;&#x648;&#x632;&#x648;&#x646;&#x627;&#x646; (70% &#x645;&#x62D;&#x635;&#x648;&#x644; &middot; 30% &#x62A;&#x628;&#x631;&#x64A;&#x62F;)</div>
+ 
+    <!-- METRIC CARDS -->
+    <section class="metrics-grid" aria-label="Greenhouse metrics">
+ 
+      <article id="mc-co2" class="metric-card good" onclick="toggleMetric('co2')">
+        <div class="metric-top">
+          <div>
+            <div class="metric-label-en">CO&#x2082;</div>
+            <div class="metric-label-ar">&#x62B;&#x627;&#x646;&#x64A; &#x623;&#x643;&#x633;&#x64A;&#x62F; &#x627;&#x644;&#x643;&#x631;&#x628;&#x648;&#x646;</div>
+          </div>
+          <div id="b-co2" class="status-badge">Normal</div>
+        </div>
+        <div class="metric-value">
+          <span id="v-co2" class="metric-number">&#x2014;</span>
+          <span class="metric-unit">ppm</span>
+        </div>
+        <div class="metric-foot"><span>Baseline</span><span>350&#x2013;500 ppm</span></div>
+        <div class="metric-bar"><div class="metric-bar-fill" id="bar-co2" style="width:0%"></div></div>
+        <div class="metric-hint" id="hint-co2">&#x2191; Click to isolate &middot; click again to return to all</div>
+      </article>
+ 
+      <article id="mc-temp" class="metric-card good" onclick="toggleMetric('temp')">
+        <div class="metric-top">
+          <div>
+            <div class="metric-label-en">Temperature</div>
+            <div class="metric-label-ar">&#x62F;&#x631;&#x62C;&#x629; &#x627;&#x644;&#x62D;&#x631;&#x627;&#x631;&#x629;</div>
+            <div class="metric-label-sub">Weighted 70% canopy &middot; 30% wet wall</div>
+          </div>
+          <div id="b-temp" class="status-badge">Optimal</div>
+        </div>
+        <div class="metric-value">
+          <span id="v-temp" class="metric-number">&#x2014;</span>
+          <span class="metric-unit">&#xB0;C</span>
+        </div>
+        <div class="metric-foot"><span>Optimal</span><span>16&#x2013;22 &#xB0;C</span></div>
+        <div class="metric-bar"><div class="metric-bar-fill" id="bar-temp" style="width:0%"></div></div>
+        <div class="metric-hint" id="hint-temp">&#x2191; Click to drill down &middot; use zone selectors below</div>
+      </article>
+ 
+      <article id="mc-hum" class="metric-card good" onclick="toggleMetric('hum')">
+        <div class="metric-top">
+          <div>
+            <div class="metric-label-en">Humidity</div>
+            <div class="metric-label-ar">&#x627;&#x644;&#x631;&#x637;&#x648;&#x628;&#x629; &#x627;&#x644;&#x646;&#x633;&#x628;&#x64A;&#x629;</div>
+            <div class="metric-label-sub">Weighted 70% canopy &middot; 30% wet wall</div>
+          </div>
+          <div id="b-hum" class="status-badge">Optimal</div>
+        </div>
+        <div class="metric-value">
+          <span id="v-hum" class="metric-number">&#x2014;</span>
+          <span class="metric-unit">%</span>
+        </div>
+        <div class="metric-foot"><span>Optimal</span><span>60&#x2013;75 %</span></div>
+        <div class="metric-bar"><div class="metric-bar-fill" id="bar-hum" style="width:0%"></div></div>
+        <div class="metric-hint" id="hint-hum">&#x2191; Click to drill down &middot; use zone selectors below</div>
+      </article>
+ 
+      <article id="mc-vpd" class="metric-card good" onclick="toggleMetric('vpd')">
+        <div class="metric-top">
+          <div>
+            <div class="metric-label-en">VPD</div>
+            <div class="metric-label-ar">&#x639;&#x62C;&#x632; &#x636;&#x63A;&#x637; &#x627;&#x644;&#x628;&#x62E;&#x627;&#x631;</div>
+          </div>
+          <div id="b-vpd" class="status-badge">Optimal</div>
+        </div>
+        <div class="metric-value">
+          <span id="v-vpd" class="metric-number">&#x2014;</span>
+          <span class="metric-unit">kPa</span>
+        </div>
+        <div class="metric-foot"><span>Optimal</span><span>0.5&#x2013;1.0 kPa</span></div>
+        <div class="metric-bar"><div class="metric-bar-fill" id="bar-vpd" style="width:0%"></div></div>
+        <div class="metric-hint" id="hint-vpd">&#x2191; Click to isolate &middot; click again to return to all</div>
+      </article>
+ 
+    </section>
+ 
+    <!-- SUB SELECTORS TEMP -->
+    <div class="sub-row" id="ss-temp">
+      <span class="sub-label">View:</span>
+      <button class="sbtn active" onclick="setSubView('temp','weighted')" id="ss-temp-weighted"><span class="sdot" style="background:var(--brand-gold)"></span>Weighted 70/30</button>
+      <button class="sbtn" onclick="setSubView('temp','canopy')"   id="ss-temp-canopy"><span class="sdot" style="background:var(--good)"></span>Canopy Only</button>
+      <button class="sbtn" onclick="setSubView('temp','wetwall')"  id="ss-temp-wetwall"><span class="sdot" style="background:var(--blue)"></span>Wet Wall Only</button>
+      <button class="sbtn" onclick="setSubView('temp','compare')"  id="ss-temp-compare"><span class="sdot" style="background:var(--muted-strong)"></span>Compare Both + Weighted</button>
+    </div>
+ 
+    <!-- SUB SELECTORS HUM -->
+    <div class="sub-row" id="ss-hum">
+      <span class="sub-label">View:</span>
+      <button class="sbtn active" onclick="setSubView('hum','weighted')" id="ss-hum-weighted"><span class="sdot" style="background:var(--brand-gold)"></span>Weighted 70/30</button>
+      <button class="sbtn" onclick="setSubView('hum','canopy')"   id="ss-hum-canopy"><span class="sdot" style="background:var(--good)"></span>Canopy Only</button>
+      <button class="sbtn" onclick="setSubView('hum','wetwall')"  id="ss-hum-wetwall"><span class="sdot" style="background:var(--blue)"></span>Wet Wall Only</button>
+      <button class="sbtn" onclick="setSubView('hum','compare')"  id="ss-hum-compare"><span class="sdot" style="background:var(--muted-strong)"></span>Compare Both + Weighted</button>
+    </div>
+ 
+    <!-- CLIMATE PANEL -->
+    <div style="font-size:0.66rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="ti ti-brain"></i> Climate Intelligence &#x2014; &#x627;&#x644;&#x62A;&#x62D;&#x644;&#x64A;&#x644; &#x627;&#x644;&#x645;&#x646;&#x627;&#x62E;&#x64A;</div>
+    <section class="middle-row">
+      <section class="panel chart-panel">
+        <div class="panel-head">
+          <div>
+            <h2 class="panel-title" id="chartTitle">All Metrics Overview</h2>
+            <div class="panel-title-ar" id="chartTitleAr">&#x646;&#x638;&#x631;&#x629; &#x639;&#x627;&#x645;&#x629; &#x639;&#x644;&#x649; &#x62C;&#x645;&#x64A;&#x639; &#x627;&#x644;&#x645;&#x624;&#x634;&#x631;&#x627;&#x62A;</div>
+          </div>
+          <div class="chart-controls">
+            <div class="time-range">
+              <button class="range-btn active" onclick="setRange(1)"   id="t-1h">1H</button>
+              <button class="range-btn"        onclick="setRange(6)"   id="t-6h">6H</button>
+              <button class="range-btn"        onclick="setRange(24)"  id="t-24h">24H</button>
+              <button class="range-btn"        onclick="setRange(168)" id="t-7d">7D</button>
+            </div>
+            <div class="metric-btns">
+              <button class="mbtn active" onclick="selectMetricBtn('all')"  id="mb-all"><span class="mdot" style="background:var(--muted-strong)"></span>All</button>
+              <button class="mbtn"        onclick="selectMetricBtn('co2')"  id="mb-co2"><span class="mdot" style="background:#20f584"></span>CO&#x2082;</button>
+              <button class="mbtn"        onclick="selectMetricBtn('temp')" id="mb-temp"><span class="mdot" style="background:var(--brand-gold)"></span>Temp</button>
+              <button class="mbtn"        onclick="selectMetricBtn('hum')"  id="mb-hum"><span class="mdot" style="background:#a78bfa"></span>Humidity</button>
+              <button class="mbtn"        onclick="selectMetricBtn('vpd')"  id="mb-vpd"><span class="mdot" style="background:#ff9f1c"></span>VPD</button>
+            </div>
+          </div>
+        </div>
+        <div class="chart-shell">
+          <canvas id="trendChart"></canvas>
+        </div>
+        <div class="chart-note" id="chartNote">Showing all metrics &#x2014; Temperature &amp; Humidity use weighted average (70% canopy + 30% wet wall)</div>
+      </section>
+ 
+      <aside id="gaugePanel" class="panel gauge-panel">
+        <div>
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title">VPD Gauge</h2>
+              <div class="panel-title-ar">&#x645;&#x624;&#x634;&#x631; &#x639;&#x62C;&#x632; &#x636;&#x63A;&#x637; &#x627;&#x644;&#x628;&#x62E;&#x627;&#x631;</div>
+            </div>
+          </div>
+          <div class="vpd-display">
+            <div id="vpdGaugeNumber" class="vpd-number">&#x2014;</div>
             <div class="vpd-unit">kPa</div>
           </div>
-          <div class="gauge-track"><div class="gauge-thumb" id="gThumb" style="left:0%"></div></div>
+          <div id="gaugeBar" class="gauge-bar">
+            <div id="gaugeIndicator" class="gauge-indicator"></div>
+          </div>
           <div class="gauge-scale"><span>0</span><span>0.5</span><span>1.0</span><span>1.3</span><span>2.0</span><span>3+</span></div>
           <div class="gauge-zones">
-            <span class="gz" style="background:var(--good-soft);color:var(--good)">0.5–1.0 Optimal</span>
-            <span class="gz" style="background:var(--warning-soft);color:var(--warning)">1.0–1.3 Stress</span>
-            <span class="gz" style="background:var(--danger-soft);color:var(--danger)">>1.3 Critical</span>
+            <span class="gz" style="background:var(--good-soft);color:var(--good)">0.5&#x2013;1.0 Optimal</span>
+            <span class="gz" style="background:var(--warning-soft);color:var(--warning)">1.0&#x2013;1.3 Stress</span>
+            <span class="gz" style="background:var(--danger-soft);color:var(--danger)">&gt;1.3 Critical</span>
           </div>
         </div>
-        <div class="vpd-advice-box">
-          <div class="adv-en" id="advEn">Loading...</div>
-          <div class="adv-ar" id="advAr">جاري التحميل...</div>
+        <div class="vpd-advice">
+          <div id="adviceEn" class="advice-en">Loading sensor data...</div>
+          <div id="adviceAr" class="advice-ar">&#x62C;&#x627;&#x631;&#x64A; &#x62A;&#x62D;&#x645;&#x64A;&#x644; &#x628;&#x64A;&#x627;&#x646;&#x627;&#x62A; &#x627;&#x644;&#x645;&#x633;&#x62A;&#x634;&#x639;&#x631;...</div>
+        </div>
+      </aside>
+    </section>
+ 
+    <!-- ZONES + DECISIONS -->
+    <div style="font-size:0.66rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="ti ti-layout-grid"></i> Operations &#x2014; &#x627;&#x644;&#x639;&#x645;&#x644;&#x64A;&#x627;&#x62A;</div>
+    <div class="zone3">
+      <div class="zones-panel">
+        <div class="sec-lbl"><i class="ti ti-building-warehouse"></i> Greenhouse Zones &#x2014; &#x645;&#x646;&#x627;&#x637;&#x642; &#x627;&#x644;&#x645;&#x62D;&#x645;&#x64A;&#x629;</div>
+        <div class="weighted-row">
+          <div>
+            <div class="wt-label">Weighted Greenhouse Avg</div>
+            <div class="wt-label-ar">&#x645;&#x62A;&#x648;&#x633;&#x637; &#x645;&#x648;&#x632;&#x648;&#x646; &middot; 70% &#x645;&#x62D;&#x635;&#x648;&#x644; + 30% &#x62A;&#x628;&#x631;&#x64A;&#x62F;</div>
+          </div>
+          <div style="text-align:right">
+            <div class="wt-val" id="wt-temp">&#x2014;&#xB0;C</div>
+            <div class="wt-sub" id="wt-hum">Humidity: &#x2014;%</div>
+          </div>
+        </div>
+        <div class="zones-grid">
+          <div class="zone-card wet">
+            <div class="zn wet">&#x1F30A; Wet Wall</div>
+            <div class="zn-ar">&#x627;&#x644;&#x62C;&#x62F;&#x627;&#x631; &#x627;&#x644;&#x645;&#x628;&#x644;&#x644; &middot; 30%</div>
+            <div class="z-readings">
+              <div class="z-val"><div class="z-num" id="hub-t" style="color:var(--blue)">&#x2014;</div><div class="z-lbl">&#xB0;C</div></div>
+              <div class="z-val"><div class="z-num" id="hub-h" style="color:var(--blue)">&#x2014;</div><div class="z-lbl">%</div></div>
+            </div>
+            <div class="z-src">Hub 2 &middot; Near cooling wall</div>
+          </div>
+          <div class="zone-card cnp">
+            <div class="zn cnp">&#x1F33F; Canopy</div>
+            <div class="zn-ar">&#x645;&#x646;&#x637;&#x642;&#x629; &#x627;&#x644;&#x645;&#x62D;&#x635;&#x648;&#x644; &middot; 70%</div>
+            <div class="z-readings">
+              <div class="z-val"><div class="z-num" id="can-t" style="color:var(--good)">&#x2014;</div><div class="z-lbl">&#xB0;C</div></div>
+              <div class="z-val"><div class="z-num" id="can-h" style="color:var(--good)">&#x2014;</div><div class="z-lbl">%</div></div>
+            </div>
+            <div class="z-src">Meter Pro CO2 &middot; Middle zone</div>
+          </div>
+        </div>
+        <div class="cooling-row">
+          <div>
+            <div class="cl-desc">Cooling Gradient</div>
+            <div class="cl-desc-ar" id="clDesc">&#x643;&#x641;&#x627;&#x621;&#x629; &#x627;&#x644;&#x62A;&#x628;&#x631;&#x64A;&#x62F;</div>
+          </div>
+          <div style="text-align:right">
+            <div class="cl-val" id="clVal">&#x2014;</div>
+            <div style="font-size:0.6rem;color:var(--muted)">&#xB0;C canopy vs wet wall</div>
+          </div>
+        </div>
+        <div class="water-row">
+          <div class="w-card">
+            <div><div class="w-lbl">Tank Sensor 1</div><div class="w-lbl-ar">&#x645;&#x633;&#x62A;&#x634;&#x639;&#x631; &#x62E;&#x632;&#x627;&#x646; 1</div></div>
+            <div class="w-status" id="w1">&#x2014;</div>
+          </div>
+          <div class="w-card">
+            <div><div class="w-lbl">Tank Sensor 2</div><div class="w-lbl-ar">&#x645;&#x633;&#x62A;&#x634;&#x639;&#x631; &#x62E;&#x632;&#x627;&#x646; 2</div></div>
+            <div class="w-status" id="w2">&#x2014;</div>
+          </div>
         </div>
       </div>
+ 
+      <div class="decisions-panel">
+        <div class="sec-lbl" style="color:var(--brand-gold)"><i class="ti ti-brain"></i> Farm Recommendations &#x2014; &#x62A;&#x648;&#x635;&#x64A;&#x627;&#x62A; &#x627;&#x644;&#x645;&#x632;&#x631;&#x639;&#x629;</div>
+        <div id="decisions"></div>
+      </div>
     </div>
-  </div>
  
-  <!-- ZONE 3 -->
-  <div style="font-size:0.68rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="ti ti-layout-grid"></i> Operations — العمليات</div>
-  <div class="zone3">
-    <div class="panel">
-      <div class="sec-lbl"><i class="ti ti-building-warehouse"></i> Greenhouse Zones — مناطق المحمية</div>
- 
-      <!-- Weighted row -->
-      <div class="weighted-row">
+    <!-- CAMERAS -->
+    <section class="panel camera-section">
+      <div class="panel-head">
         <div>
-          <div class="wt-label">Weighted Greenhouse Temp</div>
-          <div class="wt-label-ar">متوسط موزون · 70% محصول + 30% تبريد</div>
-        </div>
-        <div style="text-align:right">
-          <div class="wt-val" id="wt-temp">—°C</div>
-          <div class="wt-sub" id="wt-hum-sub">Humidity: —%</div>
+          <h2 class="panel-title">Live Cameras &#x2014; &#x643;&#x627;&#x645;&#x64A;&#x631;&#x627;&#x62A; &#x645;&#x628;&#x627;&#x634;&#x631;&#x629;</h2>
+          <div class="panel-title-ar">Reolink Elite Floodlight WiFi</div>
         </div>
       </div>
- 
-      <div class="zones-grid">
-        <div class="zone-card wet">
-          <div class="zn wet">🌊 Wet Wall</div>
-          <div class="zn-ar">منطقة الجدار المبلل · 30%</div>
-          <div class="z-readings">
-            <div class="z-val"><div class="z-num" id="hub-t" style="color:var(--blue)">—</div><div class="z-lbl">°C</div></div>
-            <div class="z-val"><div class="z-num" id="hub-h" style="color:var(--blue)">—</div><div class="z-lbl">%</div></div>
+      <div class="camera-grid">
+        <article class="camera-card">
+          <div class="camera-top">
+            <div class="camera-label"><i class="ti ti-video"></i><span>Camera 1 &#x2014; &#x643;&#x627;&#x645;&#x64A;&#x631;&#x627; 1</span></div>
+            <button class="fullscreen-btn" type="button" onclick="goFS('feed1')"><i class="ti ti-maximize"></i></button>
           </div>
-          <div class="z-src">Hub 2 · Near cooling wall</div>
-        </div>
-        <div class="zone-card cnp">
-          <div class="zn cnp">🌿 Canopy</div>
-          <div class="zn-ar">منطقة المحصول · 70%</div>
-          <div class="z-readings">
-            <div class="z-val"><div class="z-num" id="can-t" style="color:var(--good)">—</div><div class="z-lbl">°C</div></div>
-            <div class="z-val"><div class="z-num" id="can-h" style="color:var(--good)">—</div><div class="z-lbl">%</div></div>
+          <div id="feed1" class="camera-feed">
+            <img id="cam1" class="stream-image" src="" alt="Camera 1 stream" />
+            <div class="camera-placeholder">
+              <div class="placeholder-inner">
+                <i class="ti ti-camera"></i>
+                <div class="placeholder-title">Stream Loading...</div>
+                <div class="placeholder-subtitle">&#x62C;&#x627;&#x631;&#x64A; &#x62A;&#x62D;&#x645;&#x64A;&#x644; &#x627;&#x644;&#x628;&#x62B; &#x627;&#x644;&#x645;&#x628;&#x627;&#x634;&#x631;</div>
+              </div>
+            </div>
           </div>
-          <div class="z-src">Meter Pro CO2 · Middle zone</div>
-        </div>
+        </article>
+        <article class="camera-card">
+          <div class="camera-top">
+            <div class="camera-label"><i class="ti ti-video"></i><span>Camera 2 &#x2014; &#x643;&#x627;&#x645;&#x64A;&#x631;&#x627; 2</span></div>
+            <button class="fullscreen-btn" type="button" onclick="goFS('feed2')"><i class="ti ti-maximize"></i></button>
+          </div>
+          <div id="feed2" class="camera-feed">
+            <img id="cam2" class="stream-image" src="" alt="Camera 2 stream" />
+            <div class="camera-placeholder">
+              <div class="placeholder-inner">
+                <i class="ti ti-camera"></i>
+                <div class="placeholder-title">Stream Loading...</div>
+                <div class="placeholder-subtitle">&#x62C;&#x627;&#x631;&#x64A; &#x62A;&#x62D;&#x645;&#x64A;&#x644; &#x627;&#x644;&#x628;&#x62B; &#x627;&#x644;&#x645;&#x628;&#x627;&#x634;&#x631;</div>
+              </div>
+            </div>
+          </div>
+        </article>
       </div>
+    </section>
  
-      <div class="cooling-row">
-        <div>
-          <div class="cl-desc">Cooling Gradient</div>
-          <div class="cl-desc-ar" id="clDesc">كفاءة التبريد</div>
-        </div>
-        <div style="text-align:right">
-          <div class="cl-val" id="clVal">—</div>
-          <div style="font-size:0.6rem;color:var(--muted)">°C canopy vs wet wall</div>
-        </div>
+    <!-- FOOTER -->
+    <footer class="panel footer">
+      <div class="footer-brand">
+        <img class="footer-logo" src="assets/images/al-waseel-logo.svg" alt="Al-Waseel Farm logo" onerror="this.style.display='none'" />
+        <div class="footer-text">&#x645;&#x632;&#x631;&#x639;&#x629; &#x627;&#x644;&#x648;&#x635;&#x64A;&#x644; &#x2014; &#x627;&#x644;&#x62F;&#x631;&#x639;&#x64A;&#x629;&#x60C; &#x627;&#x644;&#x631;&#x64A;&#x627;&#x636; &middot; &#x625;&#x646;&#x62A;&#x627;&#x62C; &#x641;&#x631;&#x627;&#x648;&#x644;&#x629; &#x645;&#x645;&#x64A;&#x632;</div>
       </div>
+      <div class="footer-meta">Auto-refresh every 60s &middot; Saved every 5 min &middot; <span id="footerSaved">&#x2014;</span></div>
+    </footer>
  
-      <div class="water-row">
-        <div class="w-card">
-          <div><div class="w-lbl">Tank Sensor 1</div><div class="w-lbl-ar">مستشعر خزان 1</div></div>
-          <div class="w-status" id="w1">—</div>
-        </div>
-        <div class="w-card">
-          <div><div class="w-lbl">Tank Sensor 2</div><div class="w-lbl-ar">مستشعر خزان 2</div></div>
-          <div class="w-status" id="w2">—</div>
-        </div>
-      </div>
-    </div>
+  </main>
  
-    <div class="decisions-panel">
-      <div class="sec-lbl" style="color:var(--blue)"><i class="ti ti-brain"></i> Farm Recommendations — توصيات المزرعة</div>
-      <div id="decisions"></div>
-    </div>
-  </div>
- 
-  <!-- CAMERAS -->
-  <div class="cam-section">
-    <div class="sec-lbl"><i class="ti ti-video"></i> Live Cameras — كاميرات مباشرة · Reolink Elite Floodlight WiFi</div>
-    <div class="cam-grid">
-      <div class="cam-card">
-        <div class="cam-top"><div class="cam-lbl"><i class="ti ti-video"></i>Camera 1 — كاميرا 1</div><button class="fs-btn" onclick="goFS('feed1')"><i class="ti ti-maximize"></i></button></div>
-        <div id="feed1" class="cam-feed"><img id="cam1" src="" alt="Camera 1"><div class="cam-ph"><i class="ti ti-camera"></i><p>Stream Loading...</p><small>جاري تحميل البث</small></div></div>
-      </div>
-      <div class="cam-card">
-        <div class="cam-top"><div class="cam-lbl"><i class="ti ti-video"></i>Camera 2 — كاميرا 2</div><button class="fs-btn" onclick="goFS('feed2')"><i class="ti ti-maximize"></i></button></div>
-        <div id="feed2" class="cam-feed"><img id="cam2" src="" alt="Camera 2"><div class="cam-ph"><i class="ti ti-camera"></i><p>Stream Loading...</p><small>جاري تحميل البث</small></div></div>
-      </div>
-    </div>
-  </div>
- 
-  <div class="footer">
-    <div class="footer-brand">مزرعة الوصيل — الدرعية، الرياض · إنتاج فراولة مميز</div>
-    <div class="footer-meta" id="footerMeta">Auto-refresh every 60s · Saved every 5 min via cron-job.org</div>
-  </div>
-</div>
- 
-<script>
-// ════════════════════════════════════════
+  <script>
 // CONFIG
-// ════════════════════════════════════════
-const CAM1_URL  = '';
-const CAM2_URL  = '';
-const WHATSAPP  = '966505199611';
-const HUB_ID    = 'FDD0AE072D7C';
-const WATER1_ID = 'E65584467069';
-const WATER2_ID = 'E77760186472B';
+const CAM1_URL='', CAM2_URL='', WHATSAPP='966505199611';
+const HUB_ID='FDD0AE072D7C', WATER1_ID='E65584467069', WATER2_ID='E77760186472B';
+const W_CANOPY=0.70, W_WETWALL=0.30, ALERT_TEMP=26, ALERT_VPD=1.3;
  
-// ════════════════════════════════════════
-// STRAWBERRY THRESHOLDS
-// ════════════════════════════════════════
-const T = {
-  co2:  { ok:[800,1200],  warn:[600,1500] },
-  temp: { ok:[16,22],     warn:[14,26]    },
-  hum:  { ok:[60,75],     warn:[50,85]    },
-  vpd:  { ok:[0.5,1.0],   warn:[0,1.3]    }
+// THRESHOLDS
+const T={
+  co2: {ok:[350,500],warn:[300,800]},
+  temp:{ok:[16,22], warn:[14,26]},
+  hum: {ok:[60,75], warn:[50,85]},
+  vpd: {ok:[0.5,1.0],warn:[0,1.3]}
 };
-const ALERT_TEMP=26, ALERT_VPD=1.3, WHATSAPP_COOLDOWN=30*60*1000;
  
-// Weighted average weights
-const W_CANOPY  = 0.70;
-const W_WETWALL = 0.30;
- 
-// ════════════════════════════════════════
 // STATE
-// ════════════════════════════════════════
-const S = {
-  live: { co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,w2:false,
-          tempW:null,humW:null },
-  metric: 'co2',
-  subView: { temp:'weighted', hum:'weighted' },
-  range: 1,
-  lastAlert: 0,
-  localHist: [],
-  chart: null
+const S={
+  live:{co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,w2:false,tempW:null,humW:null},
+  metric:'all', subView:{temp:'weighted',hum:'weighted'},
+  range:1, lastAlert:0, localHist:[], chart:null
 };
  
-// ════════════════════════════════════════
-// HELPERS
-// ════════════════════════════════════════
-const $ = id => document.getElementById(id);
-const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
-function calcVPD(t,rh){ return parseFloat((0.6108*Math.exp((17.27*t)/(t+237.3))*(1-rh/100)).toFixed(2)); }
-function weighted(canopy,wetwall){ return parseFloat((canopy*W_CANOPY + wetwall*W_WETWALL).toFixed(1)); }
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function calcVPD(t,rh){return parseFloat((0.6108*Math.exp((17.27*t)/(t+237.3))*(1-rh/100)).toFixed(2));}
+function weighted(c,w){return parseFloat((c*W_CANOPY+w*W_WETWALL).toFixed(1));}
  
 function getStatus(m,v){
+  if(m==='hum'){
+    if(v>=T.hum.ok[0]&&v<=T.hum.ok[1]) return 'good';
+    return 'warn';
+  }
   if(v>=T[m].ok[0]&&v<=T[m].ok[1]) return 'good';
   if(v>=T[m].warn[0]&&v<=T[m].warn[1]) return 'warn';
   return 'danger';
 }
-const BADGE={ co2:{good:'Normal',warn:'Low',danger:'Critical'}, temp:{good:'Optimal',warn:'Warning',danger:'Danger'}, hum:{good:'Optimal',warn:'Low',danger:'Critical'}, vpd:{good:'Optimal',warn:'Elevated',danger:'Critical'} };
-function col(s){ return s==='good'?'var(--good)':s==='warn'?'var(--warning)':'var(--danger)'; }
-function rangeBar(m,v){ const t=T[m]; return clamp(((v-t.warn[0])/(t.warn[1]-t.warn[0]))*100,0,100); }
+function getHumBadge(v){
+  if(v>=T.hum.ok[0]&&v<=T.hum.ok[1]) return {s:'good',t:'Optimal'};
+  if(v>T.hum.ok[1]) return {s:'warning',t:'High'};
+  if(v>=T.hum.warn[0]) return {s:'warning',t:'Low'};
+  return {s:'danger',t:'Critical'};
+}
+function getBadge(m,v){
+  if(m==='hum') return getHumBadge(v);
+  const s=getStatus(m,v);
+  const map={co2:{good:'Normal',warn:'Monitor',danger:'Check'},temp:{good:'Optimal',warn:'Warning',danger:'Danger'},vpd:{good:'Optimal',warn:'Stress',danger:'Critical'}};
+  return {s,t:(map[m]||{})[s==='good'?'good':s==='warn'?'warn':'danger']||s};
+}
+function col(s){return s==='good'?'var(--good)':s==='warn'?'var(--warning)':'var(--danger)';}
+function rangeBar(m,v){const t=T[m];return clamp(((v-t.warn[0])/(t.warn[1]-t.warn[0]))*100,0,100);}
  
-// ════════════════════════════════════════
-// RENDER METRICS
-// ════════════════════════════════════════
 function renderMetrics(){
-  const {co2,tempW,humW,vpd} = S.live;
+  const {co2,temp,hum,vpd,tempW,humW}=S.live;
   if(co2===null) return;
- 
-  // CO2
-  const co2s=getStatus('co2',co2);
-  updateCard('co2',co2s,co2,'co2');
- 
-  // Temperature — show weighted avg on card
-  if(tempW!==null){
-    const ts=getStatus('temp',tempW);
-    updateCard('temp',ts,tempW.toFixed(1),'temp');
-  }
- 
-  // Humidity — show weighted avg on card
-  if(humW!==null){
-    const hs=getStatus('hum',humW);
-    updateCard('hum',hs,humW.toFixed(0),'hum');
-  }
- 
-  // VPD
+  updateCard('co2',co2); updateCard('vpd',vpd);
+  if(tempW!==null) updateCard('temp',tempW);
+  if(humW!==null)  updateCard('hum',humW);
+  const gp=document.querySelector('.gauge-panel');
   const vs=getStatus('vpd',vpd);
-  updateCard('vpd',vs,Number(vpd).toFixed(2),'vpd');
- 
-  // VPD Gauge
   const vc=col(vs);
-  $('vpdBig').textContent=Number(vpd).toFixed(2);
-  $('vpdBig').style.color=vc;
-  $('gThumb').style.left=clamp((vpd/3)*100,0,100)+'%';
-  $('gThumb').style.boxShadow=`0 0 0 4px rgba(255,255,255,0.1),0 0 20px ${vc}`;
- 
-  const adv={
-    good: {en:`VPD ${Number(vpd).toFixed(2)} kPa — optimal. Stomata open, photosynthesis and sugar development at peak.`, ar:`عجز ضغط البخار مثالي. الثغور مفتوحة وتطور السكر في ذروته.`},
-    warn: {en:`VPD ${Number(vpd).toFixed(2)} kPa — mild stress. Increase humidity 5–10% or reduce temp 2°C.`, ar:`إجهاد خفيف. ارفع الرطوبة 5–10٪ أو اخفض الحرارة 2°م.`},
-    danger:{en:`VPD ${Number(vpd).toFixed(2)} kPa — CRITICAL. Fruit quality at risk. Activate misting now.`, ar:`عجز ضغط البخار حرج. جودة الثمار في خطر. شغّل الرذاذ فوراً.`}
-  };
-  $('advEn').textContent=adv[vs].en;
-  $('advAr').textContent=adv[vs].ar;
- 
-  // Status bar
-  const checks=[getStatus('co2',co2), tempW?getStatus('temp',tempW):'good', humW?getStatus('hum',humW):'good', getStatus('vpd',vpd)];
+  if(gp){gp.style.setProperty('--vpd-position',clamp((vpd/3)*100,0,100)+'%');gp.style.setProperty('--vpd-color',vc);}
+  $('vpdGaugeNumber').textContent=Number(vpd).toFixed(2);
+  const adv={good:{en:`VPD ${Number(vpd).toFixed(2)} kPa optimal. Stomata open, sugar development at peak.`,ar:`&#x639;&#x62C;&#x632; &#x636;&#x63A;&#x637; &#x627;&#x644;&#x628;&#x62E;&#x627;&#x631; &#x645;&#x62B;&#x627;&#x644;&#x64A;. &#x627;&#x644;&#x62B;&#x63A;&#x648;&#x631; &#x645;&#x641;&#x62A;&#x648;&#x62D;&#x629; &#x648;&#x62A;&#x637;&#x648;&#x631; &#x627;&#x644;&#x633;&#x643;&#x631; &#x641;&#x64A; &#x630;&#x631;&#x648;&#x62A;&#x647;.`},warn:{en:`VPD ${Number(vpd).toFixed(2)} kPa mild stress. Increase humidity 5-10% or reduce temp 2C.`,ar:`&#x625;&#x62C;&#x647;&#x627;&#x62F; &#x62E;&#x641;&#x64A;&#x641;. &#x627;&#x631;&#x641;&#x639; &#x627;&#x644;&#x631;&#x637;&#x648;&#x628;&#x629; 5-10% &#x623;&#x648; &#x627;&#x62E;&#x641;&#x636; &#x627;&#x644;&#x62D;&#x631;&#x627;&#x631;&#x629; 2&#xB0;&#x645;.`},danger:{en:`VPD ${Number(vpd).toFixed(2)} kPa CRITICAL. Fruit quality at risk. Activate misting now.`,ar:`&#x639;&#x62C;&#x632; &#x636;&#x63A;&#x637; &#x627;&#x644;&#x628;&#x62E;&#x627;&#x631; &#x62D;&#x631;&#x62C;. &#x62C;&#x648;&#x62F;&#x629; &#x627;&#x644;&#x62B;&#x645;&#x627;&#x631; &#x641;&#x64A; &#x62E;&#x637;&#x631;. &#x634;&#x63A;&#x651;&#x644; &#x646;&#x638;&#x627;&#x645; &#x627;&#x644;&#x631;&#x630;&#x627;&#x630; &#x641;&#x648;&#x631;&#x627;&#x64B;.`}};
+  $('adviceEn').textContent=adv[vs].en; $('adviceAr').textContent=adv[vs].ar;
+  const tw=tempW??temp, hw=humW??hum;
+  const checks=[getStatus('co2',co2),getStatus('temp',tw),getHumBadge(hw).s,vs];
   const overall=checks.includes('danger')?'danger':checks.includes('warn')?'warn':'good';
   $('sDot').style.background=col(overall);
-  const sm={good:{en:'All parameters optimal — strawberry farm healthy ✓',ar:'جميع المؤشرات مثالية — الفراولة بصحة ممتازة ✓'},warn:{en:`Moderate stress — weighted temp ${tempW?.toFixed(1)}°C, humidity ${humW?.toFixed(0)}%, VPD ${Number(vpd).toFixed(2)} kPa`,ar:'إجهاد متوسط — تحقق من التوصيات أدناه'},danger:{en:'Critical conditions — immediate action required',ar:'ظروف حرجة — تدخل فوري مطلوب'}};
-  $('sEn').textContent=sm[overall].en;
-  $('sAr').textContent=sm[overall].ar;
+  const sm={good:{en:'All parameters optimal - strawberry farm healthy',ar:'&#x62C;&#x645;&#x64A;&#x639; &#x627;&#x644;&#x645;&#x624;&#x634;&#x631;&#x627;&#x62A; &#x645;&#x62B;&#x627;&#x644;&#x64A;&#x629; - &#x627;&#x644;&#x641;&#x631;&#x627;&#x648;&#x644;&#x629; &#x628;&#x635;&#x62D;&#x629; &#x645;&#x645;&#x62A;&#x627;&#x632;&#x629;'},warn:{en:`Moderate stress - weighted temp ${tw.toFixed(1)}C, humidity ${hw.toFixed(0)}%, VPD ${Number(vpd).toFixed(2)} kPa`,ar:'&#x625;&#x62C;&#x647;&#x627;&#x62F; &#x645;&#x62A;&#x648;&#x633;&#x637; - &#x62A;&#x62D;&#x642;&#x642; &#x645;&#x646; &#x627;&#x644;&#x62A;&#x648;&#x635;&#x64A;&#x627;&#x62A; &#x623;&#x62F;&#x646;&#x627;&#x647;'},danger:{en:'Critical conditions - immediate action required',ar:'&#x638;&#x631;&#x648;&#x641; &#x62D;&#x631;&#x62C;&#x629; - &#x62A;&#x62F;&#x62E;&#x644; &#x641;&#x648;&#x631;&#x64A; &#x645;&#x637;&#x644;&#x648;&#x628;'}};
+  $('sEn').textContent=sm[overall].en; $('sAr').textContent=sm[overall].ar;
 }
  
-function updateCard(m,status,display,id){
-  const mc=$('mc-'+id);
-  if(!mc) return;
-  const cls=status==='good'?'good':status==='warn'?'warn':'danger';
-  mc.className=`mc ${id==='co2'?'neutral':cls}${S.metric===id?' active':''}`;
-  $('v-'+id).textContent=display;
-  $('b-'+id).textContent=BADGE[id][status];
-  $('bar-'+id).style.width=rangeBar(id,parseFloat(display))+'%';
+function updateCard(m,v){
+  const mc=$('mc-'+m); if(!mc) return;
+  const bd=getBadge(m,v);
+  const cls=bd.s==='good'?'good':bd.s==='warning'?'warning':'danger';
+  const sel=mc.classList.contains('selected');
+  mc.className=`metric-card ${cls}${sel?' selected':''}`;
+  $('v-'+m).textContent=m==='vpd'?Number(v).toFixed(2):m==='temp'?Number(v).toFixed(1):Number(v).toFixed(m==='hum'?0:0);
+  $('b-'+m).textContent=bd.t||bd.s;
+  $('bar-'+m).style.width=rangeBar(m,parseFloat(v))+'%';
 }
  
-// ════════════════════════════════════════
-// RENDER ZONES
-// ════════════════════════════════════════
 function renderZones(){
   const {hubTemp,hubHum,temp,hum,tempW,humW,w1,w2}=S.live;
   if(hubTemp===null) return;
- 
-  $('hub-t').textContent=Number(hubTemp).toFixed(1);
-  $('hub-h').textContent=hubHum;
-  $('can-t').textContent=Number(temp).toFixed(1);
-  $('can-h').textContent=hum;
- 
-  const ts=getStatus('temp',temp);
-  $('can-t').style.color=col(ts);
-  const hs=getStatus('hum',hum);
-  $('can-h').style.color=col(hs);
- 
-  // Weighted display
-  $('wt-temp').textContent=tempW!==null?tempW.toFixed(1)+'°C':'—°C';
-  $('wt-hum-sub').textContent=humW!==null?'Humidity: '+humW.toFixed(0)+'%':'Humidity: —%';
- 
-  // Cooling gradient: canopy warmer than wet wall = normal, shows how air warms
+  $('hub-t').textContent=Number(hubTemp).toFixed(1); $('hub-h').textContent=hubHum;
+  $('can-t').textContent=Number(temp).toFixed(1);    $('can-h').textContent=hum;
+  $('can-t').style.color=col(getStatus('temp',temp));
+  $('can-h').style.color=col(getHumBadge(hum).s);
+  $('wt-temp').textContent=tempW!==null?tempW.toFixed(1)+'C':'--C';
+  $('wt-hum').textContent=humW!==null?'Humidity: '+humW.toFixed(0)+'%':'Humidity: --%';
   const delta=parseFloat((temp-hubTemp).toFixed(1));
-  const clEl=$('clVal');
-  clEl.textContent=(delta>0?'+':'')+delta+'°C';
-  if(delta>=3)      { clEl.style.color='var(--good)';    $('clDesc').textContent='Excellent cooling gradient — wet wall very effective'; }
-  else if(delta>=1) { clEl.style.color='var(--good)';    $('clDesc').textContent='Good cooling gradient — '+delta+'°C across greenhouse'; }
-  else if(delta>=0) { clEl.style.color='var(--warning)'; $('clDesc').textContent='Low gradient — check wet wall water flow'; }
-  else              { clEl.style.color='var(--danger)';  $('clDesc').textContent='Warning — wet wall zone warmer than canopy'; }
- 
-  // Water sensors
-  $('w1').textContent=w1?'🚨 LEAK!':'✓ Normal';
-  $('w2').textContent=w2?'🚨 LEAK!':'✓ Normal';
-  $('w1').style.color=w1?'var(--danger)':'var(--good)';
-  $('w2').style.color=w2?'var(--danger)':'var(--good)';
-  if(w1||w2) showAlert('💧 Water Leak — تسرب مياه!','Tank sensor triggered. Check tank immediately.','تم اكتشاف تسرب في خزان المياه. تحقق فوراً.');
+  const cv=$('clVal');
+  cv.textContent=(delta>0?'+':'')+delta+'C';
+  if(delta>=3)      {cv.style.color='var(--good)';   $('clDesc').textContent='Excellent - wet wall very effective, '+delta+'C gradient';}
+  else if(delta>=1) {cv.style.color='var(--good)';   $('clDesc').textContent='Good cooling gradient - '+delta+'C across greenhouse';}
+  else if(delta>=0) {cv.style.color='var(--warning)';$('clDesc').textContent='Low gradient - check wet wall water flow';}
+  else              {cv.style.color='var(--danger)'; $('clDesc').textContent='Warning - wet wall zone warmer than canopy';}
+  $('w1').textContent=w1?'LEAK!':'Normal'; $('w1').style.color=w1?'var(--danger)':'var(--good)';
+  $('w2').textContent=w2?'LEAK!':'Normal'; $('w2').style.color=w2?'var(--danger)':'var(--good)';
+  if(w1||w2) showAlert('Water Leak','Tank sensor triggered. Check immediately.','&#x62A;&#x633;&#x631;&#x628; &#x645;&#x64A;&#x627;&#x647; &#x641;&#x64A; &#x627;&#x644;&#x62E;&#x632;&#x627;&#x646;. &#x62A;&#x62D;&#x642;&#x642; &#x641;&#x648;&#x631;&#x627;&#x64B;.');
 }
  
-// ════════════════════════════════════════
-// RENDER DECISIONS
-// ════════════════════════════════════════
 function renderDecisions(){
   const {co2,temp,hum,vpd,hubTemp,tempW,humW}=S.live;
   if(co2===null) return;
-  const acts=[];
   const tw=tempW??temp, hw=humW??hum;
+  const acts=[];
   const delta=hubTemp!==null?parseFloat((temp-hubTemp).toFixed(1)):null;
- 
-  if(tw>26)      acts.push({p:'h',en:`🌡 Weighted temp ${tw.toFixed(1)}°C critical. Sugar development stopped. Full cooling immediately.`,ar:`المتوسط الموزون ${tw.toFixed(1)}°م حرج. توقف تطور السكر. شغّل التبريد الكامل فوراً.`});
-  else if(tw>22) acts.push({p:'m',en:`🌡 Weighted temp ${tw.toFixed(1)}°C above optimal. Strawberry sweetness affected. Increase cooling 2–4°C.`,ar:`المتوسط الموزون ${tw.toFixed(1)}°م فوق المثالي. حلاوة الفراولة تتأثر. خفض الحرارة 2–4 درجات.`});
-  if(vpd>1.3)    acts.push({p:'h',en:`💧 VPD ${Number(vpd).toFixed(2)} kPa critical — stomata closed. Activate misting immediately.`,ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} حرج. الثغور مغلقة. شغّل نظام الرذاذ فوراً.`});
-  else if(vpd>1.0)acts.push({p:'m',en:`💧 VPD ${Number(vpd).toFixed(2)} kPa elevated. Increase humidity 5–10% to protect fruit.`,ar:`عجز ضغط البخار مرتفع. ارفع الرطوبة 5–10٪ لحماية الثمار.`});
-  if(hw<50)      acts.push({p:'h',en:`💦 Weighted humidity ${hw.toFixed(0)}% critical. Flower desiccation risk. Mist immediately.`,ar:`الرطوبة الموزونة ${hw.toFixed(0)}٪ حرجة. خطر جفاف الأزهار. رشّ فوراً.`});
-  else if(hw<60) acts.push({p:'m',en:`💦 Weighted humidity ${hw.toFixed(0)}% below optimal. Check irrigation timing.`,ar:`الرطوبة الموزونة ${hw.toFixed(0)}٪ أقل من المثالي. تحقق من توقيت الري.`});
-  else if(hw>85) acts.push({p:'h',en:`🍄 Humidity ${hw.toFixed(0)}% — Botrytis risk critical. Increase ventilation now.`,ar:`الرطوبة ${hw.toFixed(0)}٪ — خطر فطر البوتريتيس حرج. افتح التهوية فوراً.`});
-  if(co2<600)    acts.push({p:'m',en:`🌿 CO₂ ${co2} ppm too low. Enrich to 800–1200 ppm during daylight for peak yield.`,ar:`ثاني أكسيد الكربون ${co2} منخفض. أضف لـ 800–1200 ppm نهاراً لزيادة الإنتاج.`});
-  if(delta!==null&&delta<1) acts.push({p:'m',en:`❄️ Cooling gradient only ${delta}°C — check wet wall pump and pads water supply.`,ar:`تدرج التبريد ${delta}°م فقط — تحقق من مضخة الجدار المبلل وإمدادات المياه.`});
-  if(acts.length===0) acts.push({p:'l',en:`✅ All optimal. Weighted temp ${tw.toFixed(1)}°C, humidity ${hw.toFixed(0)}%, VPD ${Number(vpd).toFixed(2)} kPa. Monitor every 30 min.`,ar:`✅ كل شيء مثالي. المتوسط الموزون: ${tw.toFixed(1)}°م، رطوبة ${hw.toFixed(0)}٪. راقب كل 30 دقيقة.`});
- 
-  $('decisions').innerHTML=acts.map(a=>`
-    <div class="dec-item">
-      <span class="ptag ${a.p==='h'?'ph':a.p==='m'?'pm':'pl'}">${a.p==='h'?'HIGH':a.p==='m'?'MED':'OK'}</span>
-      <div><div class="dec-en">${a.en}</div><div class="dec-ar">${a.ar}</div></div>
-    </div>`).join('');
+  if(tw>26)        acts.push({p:'h',en:`Weighted temp ${tw.toFixed(1)}C critical. Sugar development stopped. Activate full cooling now.`,ar:`&#x627;&#x644;&#x645;&#x62A;&#x648;&#x633;&#x637; &#x627;&#x644;&#x645;&#x648;&#x632;&#x648;&#x646; ${tw.toFixed(1)}&#xB0;&#x645; &#x62D;&#x631;&#x62C;. &#x62A;&#x648;&#x642;&#x641; &#x62A;&#x637;&#x648;&#x631; &#x627;&#x644;&#x633;&#x643;&#x631;. &#x634;&#x63A;&#x651;&#x644; &#x627;&#x644;&#x62A;&#x628;&#x631;&#x64A;&#x62F; &#x627;&#x644;&#x643;&#x627;&#x645;&#x644; &#x641;&#x648;&#x631;&#x627;&#x64B;.`});
+  else if(tw>22)   acts.push({p:'m',en:`Weighted temp ${tw.toFixed(1)}C above optimal. Increase cooling.`,ar:`&#x627;&#x644;&#x645;&#x62A;&#x648;&#x633;&#x637; &#x627;&#x644;&#x645;&#x648;&#x632;&#x648;&#x646; ${tw.toFixed(1)}&#xB0;&#x645; &#x641;&#x648;&#x642; &#x627;&#x644;&#x645;&#x62B;&#x627;&#x644;&#x64A;. &#x632;&#x62F; &#x627;&#x644;&#x62A;&#x628;&#x631;&#x64A;&#x62F;.`});
+  if(vpd>1.3)      acts.push({p:'h',en:`VPD ${Number(vpd).toFixed(2)} kPa critical. Activate misting immediately.`,ar:`&#x639;&#x62C;&#x632; &#x636;&#x63A;&#x637; &#x627;&#x644;&#x628;&#x62E;&#x627;&#x631; ${Number(vpd).toFixed(2)} &#x62D;&#x631;&#x62C;. &#x634;&#x63A;&#x651;&#x644; &#x646;&#x638;&#x627;&#x645; &#x627;&#x644;&#x631;&#x630;&#x627;&#x630; &#x641;&#x648;&#x631;&#x627;&#x64B;.`});
+  else if(vpd>1.0) acts.push({p:'m',en:`VPD ${Number(vpd).toFixed(2)} kPa elevated. Increase humidity 5-10%.`,ar:`&#x639;&#x62C;&#x632; &#x636;&#x63A;&#x637; &#x627;&#x644;&#x628;&#x62E;&#x627;&#x631; &#x645;&#x631;&#x62A;&#x641;&#x639;. &#x627;&#x631;&#x641;&#x639; &#x627;&#x644;&#x631;&#x637;&#x648;&#x628;&#x629; 5-10%.`});
+  if(hw>85)        acts.push({p:'h',en:`Humidity ${hw.toFixed(0)}% - Botrytis risk. Increase ventilation now.`,ar:`&#x627;&#x644;&#x631;&#x637;&#x648;&#x628;&#x629; ${hw.toFixed(0)}% - &#x62E;&#x637;&#x631; &#x641;&#x637;&#x631; &#x627;&#x644;&#x628;&#x648;&#x62A;&#x631;&#x64A;&#x62A;&#x64A;&#x633;. &#x627;&#x641;&#x62A;&#x62D; &#x627;&#x644;&#x62A;&#x647;&#x648;&#x64A;&#x629; &#x641;&#x648;&#x631;&#x627;&#x64B;.`});
+  else if(hw>75)   acts.push({p:'m',en:`Humidity ${hw.toFixed(0)}% above optimal. Monitor for Botrytis.`,ar:`&#x627;&#x644;&#x631;&#x637;&#x648;&#x628;&#x629; ${hw.toFixed(0)}% &#x641;&#x648;&#x642; &#x627;&#x644;&#x645;&#x62B;&#x627;&#x644;&#x64A;. &#x631;&#x627;&#x642;&#x628; &#x627;&#x644;&#x628;&#x648;&#x62A;&#x631;&#x64A;&#x62A;&#x64A;&#x633;.`});
+  else if(hw<50)   acts.push({p:'h',en:`Humidity ${hw.toFixed(0)}% critically low. Mist immediately.`,ar:`&#x627;&#x644;&#x631;&#x637;&#x648;&#x628;&#x629; ${hw.toFixed(0)}% &#x645;&#x646;&#x62E;&#x641;&#x636;&#x629; &#x62C;&#x62F;&#x627;&#x64B;. &#x631;&#x634;&#x651; &#x641;&#x648;&#x631;&#x627;&#x64B;.`});
+  else if(hw<60)   acts.push({p:'m',en:`Humidity ${hw.toFixed(0)}% below optimal. Check irrigation.`,ar:`&#x627;&#x644;&#x631;&#x637;&#x648;&#x628;&#x629; ${hw.toFixed(0)}% &#x623;&#x642;&#x644; &#x645;&#x646; &#x627;&#x644;&#x645;&#x62B;&#x627;&#x644;&#x64A;. &#x62A;&#x62D;&#x642;&#x642; &#x645;&#x646; &#x627;&#x644;&#x631;&#x64A;.`});
+  if(delta!==null&&delta<1) acts.push({p:'m',en:`Cooling gradient only ${delta}C. Check wet wall pump.`,ar:`&#x62A;&#x62F;&#x631;&#x62C; &#x627;&#x644;&#x62A;&#x628;&#x631;&#x64A;&#x62F; ${delta}&#xB0;&#x645; &#x641;&#x642;&#x637;. &#x62A;&#x62D;&#x642;&#x642; &#x645;&#x646; &#x645;&#x636;&#x62E;&#x629; &#x627;&#x644;&#x62C;&#x62F;&#x627;&#x631; &#x627;&#x644;&#x645;&#x628;&#x644;&#x644;.`});
+  if(acts.length===0) acts.push({p:'l',en:`All optimal. Weighted temp ${tw.toFixed(1)}C, humidity ${hw.toFixed(0)}%, VPD ${Number(vpd).toFixed(2)} kPa. Monitor every 30 min.`,ar:`&#x643;&#x644; &#x634;&#x64A;&#x621; &#x645;&#x62B;&#x627;&#x644;&#x64A;. &#x645;&#x648;&#x632;&#x648;&#x646;: ${tw.toFixed(1)}&#xB0;&#x645;&#x60C; &#x631;&#x637;&#x648;&#x628;&#x629; ${hw.toFixed(0)}%&#x60C; VPD ${Number(vpd).toFixed(2)}. &#x631;&#x627;&#x642;&#x628; &#x643;&#x644; 30 &#x62F;&#x642;&#x64A;&#x642;&#x629;.`});
+  $('decisions').innerHTML=acts.map(a=>`<div class="dec-item"><span class="ptag ${a.p==='h'?'ph':a.p==='m'?'pm':'pl'}">${a.p==='h'?'HIGH':a.p==='m'?'MED':'OK'}</span><div><div class="dec-en">${a.en}</div><div class="dec-ar">${a.ar}</div></div></div>`).join('');
 }
  
-// ════════════════════════════════════════
-// ALERT
-// ════════════════════════════════════════
-function showAlert(t,b,ar){ $('alertBox').classList.add('on'); $('aTitle').textContent=t; $('aBody').textContent=b; $('aAr').textContent=ar; }
+function showAlert(t,b,ar){$('alertBanner').classList.add('active');$('aTitle').textContent=t;$('alertDetail').textContent=b;$('aAr').textContent=ar;}
  
 function checkAlerts(){
-  const {tempW,hum,vpd}=S.live;
+  const {tempW,humW,vpd}=S.live;
   if(tempW===null) return;
   const msgs=[],arMsgs=[];
-  if(tempW>ALERT_TEMP){ msgs.push(`Weighted temp ${tempW.toFixed(1)}°C > ${ALERT_TEMP}°C`); arMsgs.push(`المتوسط الموزون ${tempW.toFixed(1)}°م تجاوز الحد`); }
-  if(vpd>ALERT_VPD)  { msgs.push(`VPD ${Number(vpd).toFixed(2)} kPa > ${ALERT_VPD} kPa`); arMsgs.push(`عجز ضغط البخار ${Number(vpd).toFixed(2)} تجاوز الحد`); }
-  if(hum<50)         { msgs.push(`Humidity ${hum}% critically low`); arMsgs.push(`الرطوبة ${hum}٪ منخفضة جداً`); }
+  if(tempW>ALERT_TEMP){msgs.push(`Temp ${tempW.toFixed(1)}C > ${ALERT_TEMP}C`);arMsgs.push(`&#x627;&#x644;&#x62D;&#x631;&#x627;&#x631;&#x629; &#x627;&#x644;&#x645;&#x648;&#x632;&#x648;&#x646;&#x629; ${tempW.toFixed(1)}&#xB0;&#x645; &#x62A;&#x62C;&#x627;&#x648;&#x632;&#x62A; &#x627;&#x644;&#x62D;&#x62F;`);}
+  if(vpd>ALERT_VPD)  {msgs.push(`VPD ${Number(vpd).toFixed(2)} kPa > ${ALERT_VPD} kPa`);arMsgs.push(`&#x639;&#x62C;&#x632; &#x636;&#x63A;&#x637; &#x627;&#x644;&#x628;&#x62E;&#x627;&#x631; ${Number(vpd).toFixed(2)} &#x62A;&#x62C;&#x627;&#x648;&#x632; &#x627;&#x644;&#x62D;&#x62F;`);}
+  if(humW&&humW>85)  {msgs.push(`Humidity ${humW.toFixed(0)}% Botrytis risk`);arMsgs.push(`&#x627;&#x644;&#x631;&#x637;&#x648;&#x628;&#x629; ${humW.toFixed(0)}% - &#x62E;&#x637;&#x631; &#x641;&#x637;&#x631;&#x64A;`);}
   if(msgs.length){
-    showAlert('🍓 Strawberry Alert — تنبيه الفراولة',msgs.join(' · '),arMsgs.join(' · '));
+    showAlert('Strawberry Alert - &#x62A;&#x646;&#x628;&#x64A;&#x647; &#x627;&#x644;&#x641;&#x631;&#x627;&#x648;&#x644;&#x629;',msgs.join(' | '),arMsgs.join(' | '));
     const now=Date.now();
-    if(now-S.lastAlert>WHATSAPP_COOLDOWN){
+    if(now-S.lastAlert>30*60*1000){
       S.lastAlert=now;
       const t=new Date().toLocaleTimeString('ar-SA');
-      const msg=encodeURIComponent(`🍓 تنبيه مزرعة الوصيل\n${t}\n${arMsgs.join('\n')}\nhttps://green-house-iota.vercel.app`);
+      const msg=encodeURIComponent(`&#x1F353; &#x62A;&#x646;&#x628;&#x64A;&#x647; &#x645;&#x632;&#x631;&#x639;&#x629; &#x627;&#x644;&#x648;&#x635;&#x64A;&#x644;\n${t}\n${arMsgs.join('\n')}\nhttps://green-house-iota.vercel.app`);
       window.open(`https://wa.me/${WHATSAPP}?text=${msg}`,'_blank');
     }
-  } else $('alertBox').classList.remove('on');
+  } else $('alertBanner').classList.remove('active');
 }
  
-// ════════════════════════════════════════
 // CHART
-// ════════════════════════════════════════
 function buildChart(){
-  const ctx=$('mainChart');
+  const ctx=$('trendChart');
   if(!ctx) return;
-  if(S.chart){ S.chart.destroy(); S.chart=null; }
+  if(S.chart){S.chart.destroy();S.chart=null;}
   S.chart=new Chart(ctx,{
-    type:'line', data:{labels:[],datasets:[]},
+    type:'line',data:{labels:[],datasets:[]},
     options:{
       responsive:true,maintainAspectRatio:false,
       animation:{duration:350,easing:'easeOutQuart'},
       interaction:{mode:'index',intersect:false},
       plugins:{
-        legend:{position:'top',align:'end',labels:{color:'#aeb9c9',usePointStyle:true,pointStyle:'circle',boxWidth:8,boxHeight:8,padding:14,font:{family:'SFMono-Regular,Consolas,monospace',size:11,weight:'700'}}},
+        legend:{position:'top',align:'end',labels:{color:'#aeb9c9',usePointStyle:true,pointStyle:'circle',boxWidth:8,boxHeight:8,padding:16,font:{family:'SFMono-Regular,Consolas,monospace',size:11,weight:'700'}}},
         tooltip:{backgroundColor:'rgba(5,7,10,0.92)',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,titleColor:'#f5f7fb',bodyColor:'#aeb9c9',padding:11}
       },
       scales:{
         x: {grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#7f8da3',maxTicksLimit:10,font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-        y1:{position:'left', title:{display:true,text:'CO₂ ppm',color:'#7f8da3'},grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#20f584',font:{family:'SFMono-Regular,Consolas,monospace',size:10}},min:300,max:1800},
-        y2:{position:'right',title:{display:true,text:'°C / %',color:'#7f8da3'},grid:{display:false},ticks:{color:'#45b9ff',font:{family:'SFMono-Regular,Consolas,monospace',size:10}},min:0,max:100},
+        y1:{position:'left', min:300,max:1800,title:{display:true,text:'CO2 ppm',color:'#7f8da3'},grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#20f584',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
+        y2:{position:'right',min:0,  max:100, title:{display:true,text:'C / %', color:'#7f8da3'},grid:{display:false},ticks:{color:'#C8A96E',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
         y3:{position:'right',display:false,min:0,max:4}
       }
     }
   });
 }
  
-function getChartDatasets(data,metric,subView){
-  const lbl = r => { const d=new Date(r.recorded_at||r.time||Date.now()); return S.range<=6?d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); };
-  const labels = data.map(lbl);
- 
-  let datasets=[], note='';
- 
+function getDatasets(data,metric,subView){
+  const fmt=r=>{const d=new Date(r.recorded_at||r.time||Date.now());return S.range<=6?d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});};
+  const labels=data.map(fmt);
+  const calcW=(r,type)=>{const c=type==='temp'?(r.temperature??r.temp):r.humidity;const w=type==='temp'?r.hub_temp:r.hub_humidity;return(c!=null&&w!=null)?parseFloat((c*W_CANOPY+w*W_WETWALL).toFixed(1)):c??null;};
+  let datasets=[],note='';
   if(metric==='all'){
     datasets=[
-      {label:'CO₂ ppm',    data:data.map(r=>r.co2),         borderColor:'#20f584',backgroundColor:'rgba(32,245,132,0.06)',tension:0.38,borderWidth:2,pointRadius:0,pointHoverRadius:3,yAxisID:'y1'},
-      {label:'Temp °C (W)',data:data.map(r=>r.temp_weighted??calcWeightedFromRow(r,'temp')), borderColor:'var(--purple)',backgroundColor:'transparent',tension:0.38,borderWidth:2,pointRadius:0,pointHoverRadius:3,yAxisID:'y2',borderDash:[4,2]},
-      {label:'Hum % (W)',  data:data.map(r=>r.hum_weighted??calcWeightedFromRow(r,'hum')),  borderColor:'#a78bfa',backgroundColor:'transparent',tension:0.38,borderWidth:2,pointRadius:0,pointHoverRadius:3,yAxisID:'y2',borderDash:[2,3]},
-      {label:'VPD kPa',    data:data.map(r=>r.vpd),          borderColor:'#ff9f1c',backgroundColor:'transparent',tension:0.38,borderWidth:2,pointRadius:0,pointHoverRadius:3,yAxisID:'y3'}
+      {label:'CO2 ppm',data:data.map(r=>r.co2),borderColor:'#20f584',backgroundColor:'rgba(32,245,132,0.06)',tension:0.38,borderWidth:2,pointRadius:0,pointHoverRadius:3,yAxisID:'y1'},
+      {label:'Temp C (W)',data:data.map(r=>r.temp_weighted??calcW(r,'temp')),borderColor:'#C8A96E',backgroundColor:'transparent',tension:0.38,borderWidth:2,pointRadius:0,pointHoverRadius:3,yAxisID:'y2',borderDash:[4,2]},
+      {label:'Hum % (W)', data:data.map(r=>r.hum_weighted??calcW(r,'hum')), borderColor:'#a78bfa',backgroundColor:'transparent',tension:0.38,borderWidth:2,pointRadius:0,pointHoverRadius:3,yAxisID:'y2',borderDash:[2,3]},
+      {label:'VPD kPa',   data:data.map(r=>r.vpd),borderColor:'#ff9f1c',backgroundColor:'transparent',tension:0.38,borderWidth:2,pointRadius:0,pointHoverRadius:3,yAxisID:'y3'}
     ];
-    note='All metrics — Temperature & Humidity show weighted average (70% canopy + 30% wet wall)';
+    note='All metrics - Temperature & Humidity show weighted average (70% canopy + 30% wet wall)';
   } else if(metric==='co2'){
-    datasets=[{label:'CO₂ ppm',data:data.map(r=>r.co2),borderColor:'#20f584',backgroundColor:'rgba(32,245,132,0.09)',tension:0.38,borderWidth:2.4,pointRadius:0,pointHoverRadius:4,fill:true,yAxisID:'y1'}];
-    note='CO₂ readings from Meter Pro sensor (middle of greenhouse)';
+    datasets=[{label:'CO2 ppm',data:data.map(r=>r.co2),borderColor:'#20f584',backgroundColor:'rgba(32,245,132,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y1'}];
+    note='CO2 from Meter Pro - No enrichment system, baseline 350-500 ppm is normal';
   } else if(metric==='vpd'){
-    datasets=[{label:'VPD kPa',data:data.map(r=>r.vpd),borderColor:'#ff9f1c',backgroundColor:'rgba(255,159,28,0.09)',tension:0.38,borderWidth:2.4,pointRadius:0,pointHoverRadius:4,fill:true,yAxisID:'y3'}];
-    note='VPD calculated from canopy temperature and humidity (Meter Pro)';
+    datasets=[{label:'VPD kPa',data:data.map(r=>r.vpd),borderColor:'#ff9f1c',backgroundColor:'rgba(255,159,28,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y3'}];
+    note='VPD calculated from canopy temperature and humidity - Target: 0.5-1.0 kPa for strawberries';
   } else if(metric==='temp'){
     const sv=subView||S.subView.temp;
-    if(sv==='weighted'){
-      datasets=[{label:'Weighted Temp °C (70/30)',data:data.map(r=>r.temp_weighted??calcWeightedFromRow(r,'temp')),borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,0.09)',tension:0.38,borderWidth:2.4,pointRadius:0,pointHoverRadius:4,fill:true,yAxisID:'y2'}];
-      note='Weighted average: 70% canopy (Meter Pro) + 30% wet wall (Hub 2)';
-    } else if(sv==='canopy'){
-      datasets=[{label:'Canopy Temp °C',data:data.map(r=>r.temperature??r.temp),borderColor:'var(--good)',backgroundColor:'rgba(32,245,132,0.09)',tension:0.38,borderWidth:2.4,pointRadius:0,pointHoverRadius:4,fill:true,yAxisID:'y2'}];
-      note='Canopy temperature — Meter Pro sensor (middle of greenhouse, 70% weight)';
-    } else if(sv==='wetwall'){
-      datasets=[{label:'Wet Wall Temp °C',data:data.map(r=>r.hub_temp),borderColor:'var(--blue)',backgroundColor:'rgba(69,185,255,0.09)',tension:0.38,borderWidth:2.4,pointRadius:0,pointHoverRadius:4,fill:true,yAxisID:'y2'}];
-      note='Wet wall temperature — Hub 2 sensor (near cooling wall, 30% weight)';
-    } else if(sv==='compare'){
-      datasets=[
-        {label:'Canopy Temp °C',  data:data.map(r=>r.temperature??r.temp),borderColor:'var(--good)',backgroundColor:'rgba(32,245,132,0.06)',tension:0.38,borderWidth:2.4,pointRadius:0,pointHoverRadius:4,fill:false,yAxisID:'y2'},
-        {label:'Wet Wall Temp °C',data:data.map(r=>r.hub_temp),           borderColor:'var(--blue)',backgroundColor:'rgba(69,185,255,0.06)',tension:0.38,borderWidth:2,pointRadius:0,borderDash:[5,3],yAxisID:'y2'},
-        {label:'Weighted (70/30)',  data:data.map(r=>r.temp_weighted??calcWeightedFromRow(r,'temp')),borderColor:'#a78bfa',backgroundColor:'transparent',tension:0.38,borderWidth:1.6,pointRadius:0,borderDash:[2,4],yAxisID:'y2'}
-      ];
-      note='Comparing canopy vs wet wall vs weighted average — cooling gradient visible';
-    }
+    if(sv==='weighted'){datasets=[{label:'Weighted Temp C (70/30)',data:data.map(r=>r.temp_weighted??calcW(r,'temp')),borderColor:'#C8A96E',backgroundColor:'rgba(200,169,110,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Weighted: 70% canopy + 30% wet wall - Target 16-22C';}
+    else if(sv==='canopy'){datasets=[{label:'Canopy Temp C',data:data.map(r=>r.temperature??r.temp),borderColor:'#20f584',backgroundColor:'rgba(32,245,132,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Canopy (Meter Pro middle zone, 70% weight) - Where strawberries grow';}
+    else if(sv==='wetwall'){datasets=[{label:'Wet Wall Temp C',data:data.map(r=>r.hub_temp),borderColor:'#45b9ff',backgroundColor:'rgba(69,185,255,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Wet wall (Hub 2 near cooling, 30% weight) - Cooled air input';}
+    else{datasets=[{label:'Canopy Temp',data:data.map(r=>r.temperature??r.temp),borderColor:'#20f584',backgroundColor:'rgba(32,245,132,0.05)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y2'},{label:'Wet Wall Temp',data:data.map(r=>r.hub_temp),borderColor:'#45b9ff',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y2'},{label:'Weighted (70/30)',data:data.map(r=>r.temp_weighted??calcW(r,'temp')),borderColor:'#C8A96E',backgroundColor:'transparent',tension:0.38,borderWidth:1.6,pointRadius:0,borderDash:[2,4],yAxisID:'y2'}];note='Comparison: cooling gradient visible as gap between canopy and wet wall lines';}
   } else if(metric==='hum'){
     const sv=subView||S.subView.hum;
-    if(sv==='weighted'){
-      datasets=[{label:'Weighted Humidity % (70/30)',data:data.map(r=>r.hum_weighted??calcWeightedFromRow(r,'hum')),borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,0.09)',tension:0.38,borderWidth:2.4,pointRadius:0,pointHoverRadius:4,fill:true,yAxisID:'y2'}];
-      note='Weighted average: 70% canopy (Meter Pro) + 30% wet wall (Hub 2)';
-    } else if(sv==='canopy'){
-      datasets=[{label:'Canopy Humidity %',data:data.map(r=>r.humidity),borderColor:'var(--good)',backgroundColor:'rgba(32,245,132,0.09)',tension:0.38,borderWidth:2.4,pointRadius:0,pointHoverRadius:4,fill:true,yAxisID:'y2'}];
-      note='Canopy humidity — Meter Pro sensor (70% weight)';
-    } else if(sv==='wetwall'){
-      datasets=[{label:'Wet Wall Humidity %',data:data.map(r=>r.hub_humidity),borderColor:'var(--blue)',backgroundColor:'rgba(69,185,255,0.09)',tension:0.38,borderWidth:2.4,pointRadius:0,pointHoverRadius:4,fill:true,yAxisID:'y2'}];
-      note='Wet wall humidity — Hub 2 sensor (30% weight)';
-    } else if(sv==='compare'){
-      datasets=[
-        {label:'Canopy Hum %',   data:data.map(r=>r.humidity),    borderColor:'var(--good)',backgroundColor:'rgba(32,245,132,0.06)',tension:0.38,borderWidth:2.4,pointRadius:0,yAxisID:'y2'},
-        {label:'Wet Wall Hum %', data:data.map(r=>r.hub_humidity),borderColor:'var(--blue)',backgroundColor:'rgba(69,185,255,0.06)',tension:0.38,borderWidth:2,borderDash:[5,3],pointRadius:0,yAxisID:'y2'},
-        {label:'Weighted (70/30)',data:data.map(r=>r.hum_weighted??calcWeightedFromRow(r,'hum')),borderColor:'#a78bfa',backgroundColor:'transparent',tension:0.38,borderWidth:1.6,borderDash:[2,4],pointRadius:0,yAxisID:'y2'}
-      ];
-      note='Comparing canopy vs wet wall vs weighted average humidity';
-    }
+    if(sv==='weighted'){datasets=[{label:'Weighted Humidity % (70/30)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C8A96E',backgroundColor:'rgba(200,169,110,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Weighted: 70% canopy + 30% wet wall - Target 60-75%';}
+    else if(sv==='canopy'){datasets=[{label:'Canopy Humidity %',data:data.map(r=>r.humidity),borderColor:'#20f584',backgroundColor:'rgba(32,245,132,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Canopy humidity (Meter Pro, 70% weight)';}
+    else if(sv==='wetwall'){datasets=[{label:'Wet Wall Humidity %',data:data.map(r=>r.hub_humidity),borderColor:'#45b9ff',backgroundColor:'rgba(69,185,255,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Wet wall humidity (Hub 2, 30% weight) - Usually higher near wet wall';}
+    else{datasets=[{label:'Canopy Hum',data:data.map(r=>r.humidity),borderColor:'#20f584',backgroundColor:'rgba(32,245,132,0.05)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y2'},{label:'Wet Wall Hum',data:data.map(r=>r.hub_humidity),borderColor:'#45b9ff',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y2'},{label:'Weighted (70/30)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C8A96E',backgroundColor:'transparent',tension:0.38,borderWidth:1.6,pointRadius:0,borderDash:[2,4],yAxisID:'y2'}];note='Comparison: canopy vs wet wall vs weighted average humidity';}
   }
- 
   return {labels,datasets,note};
 }
  
-function calcWeightedFromRow(r,type){
-  if(type==='temp'){
-    const c=r.temperature??r.temp, w=r.hub_temp;
-    if(c!=null&&w!=null) return parseFloat((c*W_CANOPY+w*W_WETWALL).toFixed(1));
-    return c??null;
-  } else {
-    const c=r.humidity, w=r.hub_humidity;
-    if(c!=null&&w!=null) return parseFloat((c*W_CANOPY+w*W_WETWALL).toFixed(1));
-    return c??null;
-  }
-}
- 
-function applyChartData(data){
+function applyChart(data){
   if(!S.chart) buildChart();
-  const {labels,datasets,note}=getChartDatasets(data,S.metric);
-  S.chart.data.labels=labels;
-  S.chart.data.datasets=datasets;
-  S.chart.update();
+  const {labels,datasets,note}=getDatasets(data,S.metric);
+  S.chart.data.labels=labels; S.chart.data.datasets=datasets; S.chart.update();
   if($('chartNote')) $('chartNote').textContent=note;
 }
  
-// ════════════════════════════════════════
-// METRIC & SUB-VIEW SELECTORS
-// ════════════════════════════════════════
-const CHART_META={
-  co2: {title:'CO₂ Trend',titleAr:'اتجاه ثاني أكسيد الكربون'},
-  temp:{title:'Temperature Analysis',titleAr:'تحليل درجة الحرارة · استخدم المحددات أدناه'},
-  hum: {title:'Humidity Analysis',titleAr:'تحليل الرطوبة النسبية · استخدم المحددات أدناه'},
-  vpd: {title:'VPD Trend',titleAr:'اتجاه عجز ضغط البخار'},
-  all: {title:'All Metrics Overview',titleAr:'نظرة عامة على جميع المؤشرات'}
-};
+const CHART_META={all:{t:'All Metrics Overview',ar:'&#x646;&#x638;&#x631;&#x629; &#x639;&#x627;&#x645;&#x629; &#x639;&#x644;&#x649; &#x62C;&#x645;&#x64A;&#x639; &#x627;&#x644;&#x645;&#x624;&#x634;&#x631;&#x627;&#x62A;'},co2:{t:'CO2 Analysis',ar:'&#x62A;&#x62D;&#x644;&#x64A;&#x644; &#x62B;&#x627;&#x646;&#x64A; &#x623;&#x643;&#x633;&#x64A;&#x62F; &#x627;&#x644;&#x643;&#x631;&#x628;&#x648;&#x646;'},temp:{t:'Temperature Analysis',ar:'&#x62A;&#x62D;&#x644;&#x64A;&#x644; &#x62F;&#x631;&#x62C;&#x629; &#x627;&#x644;&#x62D;&#x631;&#x627;&#x631;&#x629; - &#x627;&#x633;&#x62A;&#x62E;&#x62F;&#x645; &#x627;&#x644;&#x645;&#x62D;&#x62F;&#x62F;&#x627;&#x62A; &#x623;&#x62F;&#x646;&#x627;&#x647;'},hum:{t:'Humidity Analysis',ar:'&#x62A;&#x62D;&#x644;&#x64A;&#x644; &#x627;&#x644;&#x631;&#x637;&#x648;&#x628;&#x629; - &#x627;&#x633;&#x62A;&#x62E;&#x62F;&#x645; &#x627;&#x644;&#x645;&#x62D;&#x62F;&#x62F;&#x627;&#x62A; &#x623;&#x62F;&#x646;&#x627;&#x647;'},vpd:{t:'VPD Analysis',ar:'&#x62A;&#x62D;&#x644;&#x64A;&#x644; &#x639;&#x62C;&#x632; &#x636;&#x63A;&#x637; &#x627;&#x644;&#x628;&#x62E;&#x627;&#x631;'}};
  
-function selectMetric(m){
+function toggleMetric(m){
+  if(S.metric===m) setActiveMetric('all');
+  else setActiveMetric(m);
+}
+ 
+function setActiveMetric(m){
   S.metric=m;
-  // Cards
-  ['co2','temp','hum','vpd'].forEach(k=>{
-    const mc=$('mc-'+k);
-    if(mc){ mc.classList.toggle('active',k===m); }
-  });
-  // Metric buttons
-  document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
-  const mb=$('mb-'+m); if(mb) mb.classList.add('active');
-  // Title
-  const meta=CHART_META[m]||CHART_META.co2;
-  $('chartTitle').textContent=meta.title;
-  $('chartTitleAr').textContent=meta.titleAr;
-  // Sub-selectors
+  ['co2','temp','hum','vpd'].forEach(k=>{const mc=$('mc-'+k);if(mc)mc.classList.toggle('selected',k===m);});
   $('ss-temp').classList.toggle('visible',m==='temp');
   $('ss-hum').classList.toggle('visible',m==='hum');
-  // Refresh chart
+  document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
+  $('mb-'+(m==='all'?'all':m))?.classList.add('active');
+  const meta=CHART_META[m]||CHART_META.all;
+  $('chartTitle').textContent=meta.t; $('chartTitleAr').textContent=meta.ar;
   refreshChart();
 }
  
+function selectMetricBtn(m){setActiveMetric(m);}
+ 
 function setSubView(metric,view){
   S.subView[metric]=view;
-  // Update sub-buttons
-  document.querySelectorAll(`#ss-${metric} .ssBtn`).forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll(`#ss-${metric} .sbtn`).forEach(b=>b.classList.remove('active'));
   $(`ss-${metric}-${view}`)?.classList.add('active');
   refreshChart();
 }
  
 function refreshChart(){
-  if(S.range===1) applyChartData(S.localHist.map(r=>({...r,recorded_at:r.time})));
+  if(S.range===1) applyChart(S.localHist.map(r=>(({...r,recorded_at:r.time})));
   else loadHistory(S.range);
 }
  
-// ════════════════════════════════════════
-// TIME RANGE
-// ════════════════════════════════════════
 function setRange(h){
   S.range=h;
-  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
   const map={1:'1h',6:'6h',24:'24h',168:'7d'};
   $('t-'+map[h])?.classList.add('active');
-  if(h===1) applyChartData(S.localHist.map(r=>({...r,recorded_at:r.time})));
+  if(h===1) applyChart(S.localHist.map(r=>(({...r,recorded_at:r.time})));
   else loadHistory(h);
 }
  
-// ════════════════════════════════════════
-// SUPABASE
-// ════════════════════════════════════════
 async function loadHistory(hours){
-  try{
-    const res=await fetch(`/api/history?hours=${hours}&limit=500`);
-    const data=await res.json();
-    if(Array.isArray(data)&&data.length>0) applyChartData(data);
-  }catch(e){console.warn('History:',e.message);}
-}
- 
-async function saveReading(co2,temp,hum,vpd,hubTemp,hubHum){
-  try{
-    const tempW=hubTemp!=null?weighted(temp,hubTemp):temp;
-    const humW=hubHum!=null?weighted(hum,hubHum):hum;
-    const res=await fetch('/api/save-reading',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({co2,temperature:temp,humidity:hum,vpd,
-        hub_temp:hubTemp,hub_humidity:hubHum,
-        temp_weighted:tempW,hum_weighted:humW,
-        cooling_delta:hubTemp!=null?parseFloat((temp-hubTemp).toFixed(1)):null,
-        heat_index:calcHI(temp,hum),dew_point:calcDP(temp,hum),
-        plant_stress_index:calcPSI(vpd,temp,hum),
-        abs_humidity:parseFloat((0.6108*Math.exp((17.27*temp)/(temp+237.3))*(hum/100)*1000/(0.4615*(273.15+temp))).toFixed(1))
-      })
-    });
-    if(res.ok) $('lastSaved').textContent='Saved '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  }catch(e){}
+  try{const res=await fetch(`/api/history?hours=${hours}&limit=500`);const data=await res.json();if(Array.isArray(data)&&data.length>0) applyChart(data);}catch(e){console.warn('History:',e.message);}
 }
  
 function calcDP(t,rh){const a=17.27,b=237.3,al=(a*t)/(b+t)+Math.log(rh/100);return parseFloat((b*al/(a-al)).toFixed(1));}
 function calcHI(t,rh){if(t<27)return t;return parseFloat((-8.78+1.61*t+2.34*rh-0.15*t*rh-0.012*t*t-0.016*rh*rh+0.002*t*t*rh+0.0007*t*rh*rh).toFixed(1));}
 function calcPSI(v,t,h){let s=0;if(v>1.0&&v<=1.3)s+=2;if(v>1.3)s+=4;if(t>22&&t<=26)s+=2;if(t>26)s+=4;if(h<60&&h>=50)s+=1;if(h<50)s+=3;if(h>85)s+=2;return Math.min(s,10);}
  
-// ════════════════════════════════════════
-// FETCH LIVE
-// ════════════════════════════════════════
+async function saveReading(payload){
+  try{
+    const res=await fetch('/api/save-reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(res.ok){const t=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});$('lastSaved').textContent='Saved '+t;$('footerSaved').textContent='Last saved '+t;}
+  }catch(e){}
+}
+ 
 async function fetchLive(){
   try{
     const devRes=await fetch('/api/devices');
@@ -865,82 +1541,40 @@ async function fetchLive(){
     const devices=devData.body?.deviceList||[];
     const device=devices.find(d=>d.deviceType?.toLowerCase().includes('co2')||d.deviceName?.toLowerCase().includes('co2')||d.deviceName?.toLowerCase().includes('meter pro'));
     if(!device) return;
- 
     const sRes=await fetch(`/api/status?id=${device.deviceId}`);
     const b=(await sRes.json()).body;
-    const co2=b.CO2??b.co2??0;
-    const temp=parseFloat(b.temperature??0);
-    const hum=parseFloat(b.humidity??0);
-    const vpd=calcVPD(temp,hum);
- 
-    S.live.co2=co2; S.live.temp=temp; S.live.hum=hum; S.live.vpd=vpd;
- 
-    // Fetch secondary devices
-    const [hubRes,w1Res,w2Res]=await Promise.all([
-      fetch(`/api/status?id=${HUB_ID}`).then(r=>r.json()),
-      fetch(`/api/status?id=${WATER1_ID}`).then(r=>r.json()),
-      fetch(`/api/status?id=${WATER2_ID}`).then(r=>r.json())
-    ]);
- 
+    const co2=b.CO2??b.co2??0, temp=parseFloat(b.temperature??0), hum=parseFloat(b.humidity??0), vpd=calcVPD(temp,hum);
+    const [hubRes,w1Res,w2Res]=await Promise.all([fetch(`/api/status?id=${HUB_ID}`).then(r=>r.json()),fetch(`/api/status?id=${WATER1_ID}`).then(r=>r.json()),fetch(`/api/status?id=${WATER2_ID}`).then(r=>r.json())]);
     const hub=hubRes.body??{};
-    const hubTemp=parseFloat(hub.temperature??0);
-    const hubHum=parseFloat(hub.humidity??0);
-    S.live.hubTemp=hubTemp;
-    S.live.hubHum=hubHum;
-    S.live.w1=w1Res.body?.status==='leak_detected'||w1Res.body?.detectionState==='detected';
-    S.live.w2=w2Res.body?.status==='leak_detected'||w2Res.body?.detectionState==='detected';
- 
-    // Compute weighted averages
-    S.live.tempW=weighted(temp,hubTemp);
-    S.live.humW=weighted(hum,hubHum);
- 
-    // Save reading with all data
-    saveReading(co2,temp,hum,vpd,hubTemp,hubHum);
- 
-    // Update local history
+    const hubTemp=parseFloat(hub.temperature??0), hubHum=parseFloat(hub.humidity??0);
+    const w1=w1Res.body?.status==='leak_detected'||w1Res.body?.detectionState==='detected';
+    const w2=w2Res.body?.status==='leak_detected'||w2Res.body?.detectionState==='detected';
+    const tempW=weighted(temp,hubTemp), humW=weighted(hum,hubHum);
+    S.live={co2,temp,hum,vpd,hubTemp,hubHum,w1,w2,tempW,humW};
+    saveReading({co2,temperature:temp,humidity:hum,vpd,hub_temp:hubTemp,hub_humidity:hubHum,temp_weighted:tempW,hum_weighted:humW,cooling_delta:parseFloat((temp-hubTemp).toFixed(1)),water_leak_1:w1,water_leak_2:w2,heat_index:calcHI(temp,hum),dew_point:calcDP(temp,hum),plant_stress_index:calcPSI(vpd,temp,hum),abs_humidity:parseFloat((0.6108*Math.exp((17.27*temp)/(temp+237.3))*(hum/100)*1000/(0.4615*(273.15+temp))).toFixed(1))});
     const now=new Date();
-    S.localHist.push({
-      co2,temperature:temp,humidity:hum,vpd,
-      hub_temp:hubTemp,hub_humidity:hubHum,
-      temp_weighted:S.live.tempW,hum_weighted:S.live.humW,
-      time:now.toISOString()
-    });
+    S.localHist.push({co2,temperature:temp,humidity:hum,vpd,hub_temp:hubTemp,hub_humidity:hubHum,temp_weighted:tempW,hum_weighted:humW,time:now.toISOString()});
     if(S.localHist.length>72) S.localHist.shift();
-    if(S.range===1) applyChartData(S.localHist.map(r=>({...r,recorded_at:r.time})));
- 
-    renderMetrics();
-    renderZones();
-    checkAlerts();
-    renderDecisions();
-    $('clock').textContent=now.toLocaleString('en-SA',{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
- 
-  }catch(e){$('clock').textContent='Error: '+e.message;}
+    if(S.range===1) applyChart(S.localHist.map(r=>(({...r,recorded_at:r.time})));
+    renderMetrics(); renderZones(); checkAlerts(); renderDecisions();
+    $('timestamp').textContent=now.toLocaleString('en-SA',{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }catch(e){$('timestamp').textContent='Error: '+e.message;}
 }
  
-// ════════════════════════════════════════
-// CAMERAS
-// ════════════════════════════════════════
-function loadCams(){
-  ['cam1','cam2'].forEach((id,i)=>{
-    const url=i===0?CAM1_URL:CAM2_URL;
-    if(!url)return;
-    const img=$(id);
-    img.src=url+'&t='+Date.now();
-    img.onload=()=>img.closest('.cam-feed').classList.add('has-feed');
-  });
-}
+function loadCams(){['cam1','cam2'].forEach((id,i)=>{const url=i===0?CAM1_URL:CAM2_URL;if(!url)return;const img=$( id);img.src=url+'&t='+Date.now();img.onload=()=>img.closest('.camera-feed').classList.add('has-feed');});}
 function goFS(id){const el=$(id);(el.requestFullscreen||el.webkitRequestFullscreen).call(el);}
  
-// ════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════
-buildChart();
-selectMetric('co2');
-fetchLive();
-loadHistory(1);
-setInterval(fetchLive,60000);
-setInterval(loadCams,5000);
-setInterval(()=>{ const n=new Date(); $('clock').textContent=n.toLocaleString('en-SA',{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}); },1000);
-</script>
+window.AlWaseelFarmDashboard={
+  state:S, refreshData:fetchLive,
+  setCameraUrl(id,url){const img=$(id);if(!img)return;const f=img.closest('.camera-feed');img.onload=()=>f.classList.add('has-feed');img.onerror=()=>f.classList.remove('has-feed');img.src=url;},
+  setCameraUrls(urls){if(urls.cam1)this.setCameraUrl('cam1',urls.cam1);if(urls.cam2)this.setCameraUrl('cam2',urls.cam2);},
+  setData(data){const t=Number(data.temp??S.live.temp),h=Number(data.humidity??S.live.hum);S.live.co2=Number(data.co2??S.live.co2);S.live.temp=t;S.live.hum=h;S.live.vpd=Number(data.vpd??calcVPD(t,h));renderMetrics();renderDecisions();checkAlerts();},
+  simulateAlert(){S.live={co2:420,temp:27,hum:45,vpd:1.8,hubTemp:24,hubHum:52,w1:false,w2:false,tempW:25.5,humW:47.4};renderMetrics();renderZones();checkAlerts();renderDecisions();}
+};
+ 
+buildChart(); setActiveMetric('all'); fetchLive(); loadHistory(1);
+setInterval(fetchLive,60000); setInterval(loadCams,5000);
+setInterval(()=>{const n=new Date();$('timestamp').textContent=n.toLocaleString('en-SA',{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});},1000);
+  </script>
 </body>
 </html>
