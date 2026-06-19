@@ -6,6 +6,6 @@
     { "src": "/api/save-reading", "dest": "/api/save-reading.js" },
     { "src": "/api/history",      "dest": "/api/history.js" },
     { "src": "/api/cron-save",    "dest": "/api/cron-save.js" },
-    { "src": "/(.*)",             "dest": "/public/index.html" }
+    { "src": "/(.*)",             "dest": "/index.html" }
   ]
 }
