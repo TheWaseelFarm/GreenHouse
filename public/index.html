@@ -11,174 +11,181 @@
     :root {
       --bg: #05070a;
       --panel: rgba(14, 20, 29, 0.88);
-      --panel-soft: rgba(18, 26, 37, 0.72);
-      --border: rgba(255, 255, 255, 0.08);
-      --border-strong: rgba(255, 255, 255, 0.16);
+      --border: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.16);
       --text: #f5f7fb;
       --muted: #7f8da3;
       --muted-strong: #aeb9c9;
       --good: #20f584;
       --warning: #ff9f1c;
       --danger: #ff3b4f;
-      --good-soft: rgba(32, 245, 132, 0.14);
-      --warning-soft: rgba(255, 159, 28, 0.16);
-      --danger-soft: rgba(255, 59, 79, 0.16);
+      --good-soft: rgba(32,245,132,0.14);
+      --warning-soft: rgba(255,159,28,0.16);
+      --danger-soft: rgba(255,59,79,0.16);
       --blue: #45b9ff;
       --purple: #a78bfa;
       --radius-xl: 28px;
       --radius-lg: 22px;
       --radius-md: 16px;
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.46);
-      --mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", Consolas, monospace;
-      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-      --arabic: "Segoe UI", Tahoma, Arial, sans-serif;
+      --shadow: 0 24px 80px rgba(0,0,0,0.46);
+      --mono: "SFMono-Regular","Cascadia Code","Roboto Mono",Consolas,monospace;
+      --sans: Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      --arabic: "Segoe UI",Tahoma,Arial,sans-serif;
     }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0; min-height: 100vh; font-family: var(--sans); color: var(--text);
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;min-height:100vh;font-family:var(--sans);color:var(--text);
       background:
-        radial-gradient(circle at 14% 8%, rgba(32,245,132,0.13), transparent 32%),
-        radial-gradient(circle at 84% 0%, rgba(69,185,255,0.11), transparent 34%),
-        radial-gradient(circle at 50% 100%, rgba(167,139,250,0.08), transparent 38%),
-        linear-gradient(180deg, #05070a 0%, #070b10 48%, #030405 100%);
-      overflow-x: hidden;
+        radial-gradient(circle at 14% 8%,rgba(32,245,132,0.13),transparent 32%),
+        radial-gradient(circle at 84% 0%,rgba(69,185,255,0.11),transparent 34%),
+        radial-gradient(circle at 50% 100%,rgba(167,139,250,0.08),transparent 38%),
+        linear-gradient(180deg,#05070a 0%,#070b10 48%,#030405 100%);
+      overflow-x:hidden;
     }
-    body::before {
-      content: ""; position: fixed; inset: 0; pointer-events: none;
-      background-image: linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
-      background-size: 42px 42px;
-      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.76), transparent 82%);
+    body::before{
+      content:"";position:fixed;inset:0;pointer-events:none;
+      background-image:linear-gradient(rgba(255,255,255,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px);
+      background-size:42px 42px;
+      mask-image:linear-gradient(to bottom,rgba(0,0,0,0.76),transparent 82%);
     }
-    .dashboard { position: relative; z-index: 1; width: min(1500px, calc(100% - 34px)); margin: 0 auto; padding: 28px 0 34px; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; gap: 22px; margin-bottom: 18px; }
-    .brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
-    .brand h1 { margin: 0; font-size: clamp(1.35rem, 2.8vw, 2.7rem); line-height: 1; font-weight: 950; letter-spacing: -0.065em; }
-    .brand .subtitle { margin-top: 8px; color: var(--muted-strong); font-family: var(--arabic); font-size: clamp(0.98rem,1.5vw,1.18rem); direction: rtl; text-align: left; }
-    .live-panel { min-width: 230px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-    .live-status { display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 11px 15px; border: 1px solid var(--border); border-radius: 999px; background: rgba(255,255,255,0.04); backdrop-filter: blur(18px); color: var(--muted-strong); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
-    .pulse { width: 11px; height: 11px; border-radius: 50%; background: var(--good); position: relative; box-shadow: 0 0 20px var(--good); }
-    .pulse::after { content: ""; position: absolute; inset: -8px; border-radius: 50%; border: 1px solid var(--good); animation: pulse 1.55s ease-out infinite; opacity: 0.72; }
-    @keyframes pulse { from { transform: scale(0.55); opacity: 0.85; } to { transform: scale(1.9); opacity: 0; } }
-    .timestamp { font-family: var(--mono); color: var(--muted); font-size: 0.8rem; }
+    .dashboard{position:relative;z-index:1;width:min(1500px,calc(100% - 34px));margin:0 auto;padding:28px 0 34px}
+ 
+    /* HEADER */
+    .header{display:flex;justify-content:space-between;align-items:flex-start;gap:22px;margin-bottom:18px}
+    .brand h1{margin:0;font-size:clamp(1.35rem,2.8vw,2.7rem);line-height:1;font-weight:950;letter-spacing:-0.065em}
+    .brand .subtitle{margin-top:8px;color:var(--muted-strong);font-family:var(--arabic);font-size:clamp(0.98rem,1.5vw,1.18rem);direction:rtl;text-align:left}
+    .live-panel{min-width:230px;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+    .live-status{display:inline-flex;align-items:center;justify-content:flex-end;gap:10px;padding:11px 15px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,0.04);backdrop-filter:blur(18px);color:var(--muted-strong);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap}
+    .pulse{width:11px;height:11px;border-radius:50%;background:var(--good);position:relative;box-shadow:0 0 20px var(--good)}
+    .pulse::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:1px solid var(--good);animation:pulse 1.55s ease-out infinite;opacity:0.72}
+    @keyframes pulse{from{transform:scale(0.55);opacity:0.85}to{transform:scale(1.9);opacity:0}}
+    .timestamp{font-family:var(--mono);color:var(--muted);font-size:0.8rem}
  
     /* ALERT */
-    .alert-banner { display: none; align-items: center; justify-content: space-between; gap: 18px; margin: 18px 0; padding: 15px 18px; border-radius: var(--radius-md); border: 1px solid rgba(255,59,79,0.4); background: linear-gradient(90deg, rgba(255,59,79,0.2), rgba(255,159,28,0.09)), rgba(24,9,14,0.84); box-shadow: 0 18px 70px rgba(255,59,79,0.13); }
-    .alert-banner.active { display: flex; }
-    .alert-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
-    .alert-icon { width: 34px; height: 34px; flex: 0 0 auto; border-radius: 12px; display: grid; place-items: center; background: var(--danger-soft); color: var(--danger); font-size: 1.2rem; }
-    .alert-title { font-weight: 900; letter-spacing: -0.04em; }
-    .alert-ar { margin-top: 3px; font-family: var(--arabic); color: #ffd6dc; direction: rtl; text-align: left; font-size: 0.92rem; }
-    .alert-detail { font-family: var(--mono); color: #ffd6dc; font-size: 0.86rem; text-align: right; }
- 
-    /* METRICS */
-    .metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 16px; margin-bottom: 18px; }
-    .metric-card {
-      position: relative; overflow: hidden; min-height: 202px; padding: 20px;
-      border-radius: var(--radius-lg); border: 1px solid var(--border); border-top: 3px solid var(--status);
-      background: radial-gradient(circle at 88% 0%, var(--status-soft), transparent 38%), linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.022)), var(--panel);
-      box-shadow: var(--shadow); transition: border-color 240ms ease, border-top-color 240ms ease, background 240ms ease, transform 180ms ease;
-      cursor: pointer;
-    }
-    .metric-card:hover { transform: translateY(-2px); border-color: var(--border-strong); }
-    .metric-card.selected { border-color: var(--status) !important; box-shadow: 0 0 0 2px var(--status), var(--shadow); }
-    .metric-card.good { --status: var(--good); --status-soft: var(--good-soft); }
-    .metric-card.warning { --status: var(--warning); --status-soft: var(--warning-soft); }
-    .metric-card.danger { --status: var(--danger); --status-soft: var(--danger-soft); }
-    .metric-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 28px; }
-    .metric-label-en { color: var(--muted-strong); font-size: 0.8rem; font-weight: 850; letter-spacing: 0.13em; text-transform: uppercase; }
-    .metric-label-ar { margin-top: 6px; font-family: var(--arabic); color: var(--muted); font-size: 0.95rem; direction: rtl; text-align: left; }
-    .status-badge { display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; border-radius: 999px; background: var(--status-soft); border: 1px solid rgba(255,255,255,0.08); color: var(--status); font-family: var(--mono); font-size: 0.68rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; transition: color 240ms, background 240ms, border-color 240ms; }
-    .status-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--status); box-shadow: 0 0 16px var(--status); transition: background 240ms, box-shadow 240ms; }
-    .metric-value { display: flex; align-items: baseline; gap: 9px; font-family: var(--mono); letter-spacing: -0.08em; transition: color 240ms; }
-    .metric-number { font-size: clamp(3.1rem, 5vw, 5.65rem); line-height: 0.86; font-weight: 950; }
-    .metric-unit { color: var(--status); font-size: 1.12rem; font-weight: 900; letter-spacing: -0.02em; transition: color 240ms; }
-    .metric-foot { margin-top: 18px; display: flex; justify-content: space-between; color: var(--muted); font-family: var(--mono); font-size: 0.72rem; }
-    .select-hint { margin-top: 8px; font-size: 0.68rem; color: var(--muted); opacity: 0; transition: opacity 0.2s; }
-    .metric-card:hover .select-hint { opacity: 1; }
-    .metric-card.selected .select-hint { opacity: 1; color: var(--status); }
- 
-    /* MIDDLE ROW */
-    .middle-row { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-bottom: 18px; }
-    .panel { border: 1px solid var(--border); border-radius: var(--radius-xl); background: linear-gradient(180deg, rgba(255,255,255,0.052), rgba(255,255,255,0.022)), var(--panel); box-shadow: var(--shadow); backdrop-filter: blur(24px); }
-    .chart-panel { min-height: 430px; padding: 20px; }
-    .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
-    .panel-title { margin: 0; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 900; }
-    .panel-title-ar { margin-top: 5px; font-family: var(--arabic); color: var(--muted-strong); direction: rtl; text-align: left; font-size: 0.96rem; }
- 
-    /* TIME RANGE BUTTONS */
-    .time-range { display: flex; gap: 6px; }
-    .range-btn { padding: 5px 13px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); color: var(--muted); font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: var(--mono); }
-    .range-btn:hover { border-color: var(--border-strong); color: var(--text); }
-    .range-btn.active { background: var(--good); border-color: var(--good); color: #05070a; }
- 
-    /* METRIC SELECTOR INSIDE CHART */
-    .metric-selector { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-    .metric-btn { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); color: var(--muted); font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: var(--mono); display: flex; align-items: center; gap: 6px; }
-    .metric-btn .dot { width: 7px; height: 7px; border-radius: 50%; }
-    .metric-btn.active { border-color: var(--border-strong); color: var(--text); background: rgba(255,255,255,0.08); }
- 
-    .chart-shell { height: 300px; border-radius: 22px; padding: 16px; border: 1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,0.032), rgba(255,255,255,0.012)), rgba(0,0,0,0.18); }
-    .loading-overlay { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--muted); font-size: 0.85rem; font-family: var(--mono); }
- 
-    /* GAUGE */
-    .gauge-panel { padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-height: 430px; --vpd-color: var(--good); --vpd-position: 22%; }
-    .vpd-display { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin: 18px 0 28px; }
-    .vpd-number { font-family: var(--mono); font-size: clamp(4.8rem,9vw,8.2rem); line-height: 0.82; font-weight: 950; letter-spacing: -0.12em; color: var(--vpd-color); text-shadow: 0 0 42px rgba(32,245,132,0.18); transition: color 240ms, text-shadow 240ms; }
-    .vpd-unit { margin-bottom: 10px; font-family: var(--mono); color: var(--muted-strong); font-weight: 900; letter-spacing: -0.03em; }
-    .gauge-bar { position: relative; height: 18px; border-radius: 999px; background: linear-gradient(90deg, var(--good) 0%, var(--good) 28%, var(--warning) 55%, var(--danger) 100%); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18); }
-    .gauge-bar::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,0.34), transparent); opacity: 0.48; }
-    .gauge-indicator { position: absolute; top: 50%; left: var(--vpd-position); transform: translate(-50%,-50%); width: 30px; height: 30px; border-radius: 50%; border: 3px solid #fff; background: #05070a; box-shadow: 0 0 0 5px rgba(255,255,255,0.11), 0 0 32px var(--vpd-color); transition: left 320ms ease, box-shadow 240ms; }
-    .gauge-scale { display: flex; justify-content: space-between; margin-top: 13px; color: var(--muted); font-family: var(--mono); font-size: 0.76rem; }
-    .vpd-advice { margin-top: 28px; padding: 17px; border-radius: 18px; border: 1px solid var(--border); background: rgba(255,255,255,0.036); }
-    .advice-en { color: var(--muted-strong); line-height: 1.45; font-size: 0.95rem; }
-    .advice-ar { margin-top: 10px; font-family: var(--arabic); color: var(--text); line-height: 1.6; direction: rtl; text-align: right; font-size: 1rem; }
- 
-    /* CAMERAS */
-    .camera-section { padding: 20px; margin-bottom: 18px; }
-    .camera-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
-    .camera-card { overflow: hidden; border-radius: 24px; border: 1px solid var(--border); background: rgba(0,0,0,0.22); }
-    .camera-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 14px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.035); }
-    .camera-label { display: flex; align-items: center; gap: 9px; color: var(--muted-strong); font-size: 0.92rem; font-weight: 800; letter-spacing: -0.02em; }
-    .camera-label i { color: var(--good); font-size: 1.15rem; }
-    .fullscreen-btn { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 12px; display: grid; place-items: center; color: var(--text); background: rgba(255,255,255,0.04); cursor: pointer; transition: transform 160ms, border-color 160ms, background 160ms; }
-    .fullscreen-btn:hover { transform: translateY(-1px); border-color: rgba(32,245,132,0.42); background: rgba(32,245,132,0.08); }
-    .camera-feed { position: relative; aspect-ratio: 16/9; background: radial-gradient(circle at 50% 40%, rgba(32,245,132,0.08), transparent 34%), linear-gradient(145deg,#080d13,#030507); overflow: hidden; }
-    .camera-feed img.stream-image { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity 240ms; }
-    .camera-feed.has-feed img.stream-image { opacity: 1; }
-    .camera-placeholder { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 20px; color: var(--muted); transition: opacity 240ms, visibility 240ms; }
-    .camera-feed.has-feed .camera-placeholder { opacity: 0; visibility: hidden; }
-    .placeholder-inner { position: relative; z-index: 1; display: grid; justify-items: center; gap: 10px; }
-    .placeholder-inner i { font-size: 2.8rem; color: rgba(174,185,201,0.72); }
-    .placeholder-title { color: var(--muted-strong); font-weight: 850; letter-spacing: -0.03em; }
-    .placeholder-subtitle { font-family: var(--arabic); direction: rtl; color: var(--muted); font-size: 0.92rem; }
- 
-    /* FOOTER */
-    .footer { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 18px 20px; border-radius: 22px; }
-    .footer-brand { font-family: var(--arabic); direction: rtl; color: var(--text); font-weight: 850; }
-    .refresh-btn { display: inline-flex; align-items: center; gap: 9px; border: 1px solid rgba(32,245,132,0.34); border-radius: 999px; padding: 12px 17px; color: var(--text); background: linear-gradient(145deg, rgba(32,245,132,0.16), rgba(69,185,255,0.07)), rgba(5,7,10,0.9); font-weight: 900; cursor: pointer; box-shadow: 0 0 34px rgba(32,245,132,0.12); transition: transform 160ms, border-color 160ms; }
-    .refresh-btn:hover { transform: translateY(-1px); border-color: rgba(32,245,132,0.72); }
+    .alert-banner{display:none;align-items:center;justify-content:space-between;gap:18px;margin:18px 0;padding:15px 18px;border-radius:var(--radius-md);border:1px solid rgba(255,59,79,0.4);background:linear-gradient(90deg,rgba(255,59,79,0.2),rgba(255,159,28,0.09)),rgba(24,9,14,0.84);box-shadow:0 18px 70px rgba(255,59,79,0.13)}
+    .alert-banner.active{display:flex}
+    .alert-main{display:flex;align-items:center;gap:12px;min-width:0}
+    .alert-icon{width:34px;height:34px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;background:var(--danger-soft);color:var(--danger);font-size:1.2rem}
+    .alert-title{font-weight:900;letter-spacing:-0.04em}
+    .alert-ar{margin-top:3px;font-family:var(--arabic);color:#ffd6dc;direction:rtl;text-align:left;font-size:0.92rem}
+    .alert-detail{font-family:var(--mono);color:#ffd6dc;font-size:0.86rem;text-align:right}
  
     /* DECISION BOX */
-    .decision-box { margin-bottom: 18px; padding: 20px; border-radius: var(--radius-lg); border: 1px solid rgba(69,185,255,0.25); background: linear-gradient(135deg, rgba(69,185,255,0.08), rgba(167,139,250,0.06)), var(--panel); }
-    .decision-header { font-size: 0.78rem; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-    .decision-item { display: flex; gap: 12px; padding: 12px; border-radius: 12px; margin-bottom: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); align-items: flex-start; }
-    .decision-item:last-child { margin-bottom: 0; }
-    .priority-tag { font-size: 0.65rem; font-weight: 900; padding: 3px 9px; border-radius: 999px; white-space: nowrap; margin-top: 2px; }
-    .p-high { background: var(--danger-soft); color: var(--danger); }
-    .p-medium { background: var(--warning-soft); color: var(--warning); }
-    .p-low { background: var(--good-soft); color: var(--good); }
-    .decision-text { font-size: 0.88rem; line-height: 1.5; color: var(--muted-strong); }
-    .decision-ar { font-size: 0.82rem; color: var(--muted); direction: rtl; margin-top: 4px; font-family: var(--arabic); line-height: 1.5; }
+    .decision-box{margin-bottom:18px;padding:20px;border-radius:var(--radius-lg);border:1px solid rgba(69,185,255,0.25);background:linear-gradient(135deg,rgba(69,185,255,0.08),rgba(167,139,250,0.06)),var(--panel)}
+    .decision-header{font-size:0.78rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .decision-item{display:flex;gap:12px;padding:12px;border-radius:12px;margin-bottom:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);align-items:flex-start}
+    .decision-item:last-child{margin-bottom:0}
+    .priority-tag{font-size:0.65rem;font-weight:900;padding:3px 9px;border-radius:999px;white-space:nowrap;margin-top:2px}
+    .p-high{background:var(--danger-soft);color:var(--danger)}
+    .p-medium{background:var(--warning-soft);color:var(--warning)}
+    .p-low{background:var(--good-soft);color:var(--good)}
+    .decision-text{font-size:0.88rem;line-height:1.5;color:var(--muted-strong)}
+    .decision-ar{font-size:0.82rem;color:var(--muted);direction:rtl;margin-top:4px;font-family:var(--arabic);line-height:1.5}
  
-    @media (max-width: 1180px) { .metrics-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .middle-row { grid-template-columns: 1fr; } .gauge-panel { min-height: auto; } }
-    @media (max-width: 780px) { .dashboard { width: min(100% - 22px, 1500px); padding-top: 18px; } .header { flex-direction: column; } .live-panel { min-width: 0; width: 100%; align-items: flex-end; } .metrics-grid, .camera-grid { grid-template-columns: 1fr; } .metric-card, .chart-panel, .gauge-panel, .camera-section { border-radius: 22px; padding: 15px; } .chart-shell { height: 260px; } .footer { flex-direction: column; align-items: flex-start; } .refresh-btn { width: 100%; justify-content: center; } .time-range { flex-wrap: wrap; } }
+    /* METRICS */
+    .metrics-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:18px}
+    .metric-card{
+      position:relative;overflow:hidden;min-height:210px;padding:20px;
+      border-radius:var(--radius-lg);border:1px solid var(--border);border-top:3px solid var(--status);
+      background:radial-gradient(circle at 88% 0%,var(--status-soft),transparent 38%),linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.022)),var(--panel);
+      box-shadow:var(--shadow);transition:border-color 240ms,border-top-color 240ms,background 240ms,transform 180ms;
+      cursor:pointer;
+    }
+    .metric-card:hover{transform:translateY(-2px);border-color:var(--border-strong)}
+    .metric-card.selected{border-color:var(--status)!important;box-shadow:0 0 0 2px var(--status),var(--shadow)}
+    .metric-card.good{--status:var(--good);--status-soft:var(--good-soft)}
+    .metric-card.warning{--status:var(--warning);--status-soft:var(--warning-soft)}
+    .metric-card.danger{--status:var(--danger);--status-soft:var(--danger-soft)}
+    .metric-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:24px}
+    .metric-label-en{color:var(--muted-strong);font-size:0.8rem;font-weight:850;letter-spacing:0.13em;text-transform:uppercase}
+    .metric-label-ar{margin-top:6px;font-family:var(--arabic);color:var(--muted);font-size:0.95rem;direction:rtl;text-align:left}
+    .status-badge{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;background:var(--status-soft);border:1px solid rgba(255,255,255,0.08);color:var(--status);font-family:var(--mono);font-size:0.68rem;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;transition:color 240ms,background 240ms}
+    .status-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--status);box-shadow:0 0 16px var(--status);transition:background 240ms,box-shadow 240ms}
+    .metric-value{display:flex;align-items:baseline;gap:9px;font-family:var(--mono);letter-spacing:-0.08em}
+    .metric-number{font-size:clamp(3.1rem,5vw,5.65rem);line-height:0.86;font-weight:950}
+    .metric-unit{color:var(--status);font-size:1.12rem;font-weight:900;letter-spacing:-0.02em;transition:color 240ms}
+    .metric-foot{margin-top:14px;display:flex;justify-content:space-between;color:var(--muted);font-family:var(--mono);font-size:0.72rem}
+    .metric-range{margin-top:8px;height:3px;border-radius:2px;background:rgba(255,255,255,0.08);overflow:hidden}
+    .metric-range-fill{height:100%;border-radius:2px;background:var(--status);transition:width 0.6s ease,background 0.4s}
+    .select-hint{margin-top:8px;font-size:0.65rem;color:var(--muted);opacity:0;transition:opacity 0.2s}
+    .metric-card:hover .select-hint{opacity:1}
+    .metric-card.selected .select-hint{opacity:1;color:var(--status)}
+ 
+    /* CHART */
+    .middle-row{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px}
+    .panel{border:1px solid var(--border);border-radius:var(--radius-xl);background:linear-gradient(180deg,rgba(255,255,255,0.052),rgba(255,255,255,0.022)),var(--panel);box-shadow:var(--shadow);backdrop-filter:blur(24px)}
+    .chart-panel{min-height:460px;padding:20px}
+    .panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}
+    .panel-title{margin:0;font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.14em;font-weight:900}
+    .panel-title-ar{margin-top:5px;font-family:var(--arabic);color:var(--muted-strong);direction:rtl;text-align:left;font-size:0.96rem}
+ 
+    /* TIME RANGE */
+    .time-range{display:flex;gap:6px}
+    .range-btn{padding:5px 13px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--muted);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:var(--mono)}
+    .range-btn:hover{border-color:var(--border-strong);color:var(--text)}
+    .range-btn.active{background:var(--good);border-color:var(--good);color:#05070a}
+ 
+    /* METRIC SELECTOR */
+    .metric-selector{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+    .metric-btn{padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--muted);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:var(--mono);display:flex;align-items:center;gap:6px}
+    .metric-btn .dot{width:7px;height:7px;border-radius:50%}
+    .metric-btn.active{border-color:var(--border-strong);color:var(--text);background:rgba(255,255,255,0.08)}
+ 
+    .chart-shell{height:320px;border-radius:22px;padding:16px;border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,0.032),rgba(255,255,255,0.012)),rgba(0,0,0,0.18)}
+ 
+    /* GAUGE */
+    .gauge-panel{padding:20px;display:flex;flex-direction:column;justify-content:space-between;min-height:460px;--vpd-color:var(--good);--vpd-position:22%}
+    .vpd-display{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:18px 0 24px}
+    .vpd-number{font-family:var(--mono);font-size:clamp(4.8rem,9vw,8.2rem);line-height:0.82;font-weight:950;letter-spacing:-0.12em;color:var(--vpd-color);text-shadow:0 0 42px rgba(32,245,132,0.18);transition:color 240ms,text-shadow 240ms}
+    .vpd-unit{margin-bottom:10px;font-family:var(--mono);color:var(--muted-strong);font-weight:900;letter-spacing:-0.03em}
+    .gauge-bar{position:relative;height:18px;border-radius:999px;background:linear-gradient(90deg,var(--good) 0%,var(--good) 28%,var(--warning) 55%,var(--danger) 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18)}
+    .gauge-bar::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,0.34),transparent);opacity:0.48}
+    .gauge-indicator{position:absolute;top:50%;left:var(--vpd-position);transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;border:3px solid #fff;background:#05070a;box-shadow:0 0 0 5px rgba(255,255,255,0.11),0 0 32px var(--vpd-color);transition:left 320ms ease,box-shadow 240ms}
+    .gauge-scale{display:flex;justify-content:space-between;margin-top:13px;color:var(--muted);font-family:var(--mono);font-size:0.76rem}
+    .vpd-zones{display:flex;gap:6px;margin-top:14px;font-size:0.68rem}
+    .vpd-zone{padding:3px 9px;border-radius:999px;font-weight:700}
+    .vpd-advice{margin-top:18px;padding:17px;border-radius:18px;border:1px solid var(--border);background:rgba(255,255,255,0.036)}
+    .advice-en{color:var(--muted-strong);line-height:1.45;font-size:0.95rem}
+    .advice-ar{margin-top:10px;font-family:var(--arabic);color:var(--text);line-height:1.6;direction:rtl;text-align:right;font-size:1rem}
+ 
+    /* CAMERAS */
+    .camera-section{padding:20px;margin-bottom:18px}
+    .camera-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .camera-card{overflow:hidden;border-radius:24px;border:1px solid var(--border);background:rgba(0,0,0,0.22)}
+    .camera-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.035)}
+    .camera-label{display:flex;align-items:center;gap:9px;color:var(--muted-strong);font-size:0.92rem;font-weight:800;letter-spacing:-0.02em}
+    .camera-label i{color:var(--good);font-size:1.15rem}
+    .fullscreen-btn{width:36px;height:36px;border:1px solid var(--border);border-radius:12px;display:grid;place-items:center;color:var(--text);background:rgba(255,255,255,0.04);cursor:pointer;transition:transform 160ms,border-color 160ms,background 160ms}
+    .fullscreen-btn:hover{transform:translateY(-1px);border-color:rgba(32,245,132,0.42);background:rgba(32,245,132,0.08)}
+    .camera-feed{position:relative;aspect-ratio:16/9;background:radial-gradient(circle at 50% 40%,rgba(32,245,132,0.08),transparent 34%),linear-gradient(145deg,#080d13,#030507);overflow:hidden}
+    .camera-feed img.stream-image{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity 240ms}
+    .camera-feed.has-feed img.stream-image{opacity:1}
+    .camera-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--muted);transition:opacity 240ms,visibility 240ms}
+    .camera-feed.has-feed .camera-placeholder{opacity:0;visibility:hidden}
+    .placeholder-inner{position:relative;z-index:1;display:grid;justify-items:center;gap:10px}
+    .placeholder-inner i{font-size:2.8rem;color:rgba(174,185,201,0.72)}
+    .placeholder-title{color:var(--muted-strong);font-weight:850;letter-spacing:-0.03em}
+    .placeholder-subtitle{font-family:var(--arabic);direction:rtl;color:var(--muted);font-size:0.92rem}
+ 
+    /* FOOTER */
+    .footer{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:18px 20px;border-radius:22px}
+    .footer-brand{font-family:var(--arabic);direction:rtl;color:var(--text);font-weight:850}
+    .footer-right{display:flex;align-items:center;gap:12px}
+    .refresh-btn{display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(32,245,132,0.34);border-radius:999px;padding:12px 17px;color:var(--text);background:linear-gradient(145deg,rgba(32,245,132,0.16),rgba(69,185,255,0.07)),rgba(5,7,10,0.9);font-weight:900;cursor:pointer;box-shadow:0 0 34px rgba(32,245,132,0.12);transition:transform 160ms,border-color 160ms}
+    .refresh-btn:hover{transform:translateY(-1px);border-color:rgba(32,245,132,0.72)}
+    .last-saved{font-family:var(--mono);font-size:0.72rem;color:var(--muted)}
+ 
+    /* LOADING SPINNER */
+    .chart-loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-family:var(--mono);font-size:0.82rem;gap:8px}
+ 
+    @media(max-width:1180px){.metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.middle-row{grid-template-columns:1fr}.gauge-panel{min-height:auto}}
+    @media(max-width:780px){.dashboard{width:min(100% - 22px,1500px);padding-top:18px}.header{flex-direction:column}.live-panel{min-width:0;width:100%;align-items:flex-end}.metrics-grid,.camera-grid{grid-template-columns:1fr}.chart-panel,.gauge-panel,.camera-section{border-radius:22px;padding:15px}.chart-shell{height:260px}.footer{flex-direction:column;align-items:flex-start}.refresh-btn{width:100%;justify-content:center}.time-range{flex-wrap:wrap}}
   </style>
 </head>
 <body>
 <main class="dashboard">
  
-  <!-- HEADER -->
   <header class="header">
     <div class="brand">
       <div>
@@ -192,68 +199,68 @@
     </div>
   </header>
  
-  <!-- ALERT -->
   <section id="alertBanner" class="alert-banner" aria-live="polite">
     <div class="alert-main">
       <div class="alert-icon"><i class="ti ti-alert-triangle"></i></div>
       <div>
-        <div class="alert-title">Critical Environment Alert</div>
-        <div class="alert-ar">تنبيه حرج في بيئة المحمية</div>
+        <div class="alert-title" id="alertTitle">Critical Environment Alert</div>
+        <div class="alert-ar" id="alertAr">تنبيه حرج في بيئة المحمية</div>
       </div>
     </div>
     <div id="alertDetail" class="alert-detail"></div>
   </section>
  
-  <!-- DECISION SUPPORT -->
   <div class="decision-box" id="decisionBox" style="display:none">
-    <div class="decision-header"><i class="ti ti-brain"></i> Farm Recommendations — التوصيات الزراعية</div>
+    <div class="decision-header"><i class="ti ti-brain"></i> Strawberry Farm Recommendations — توصيات مزرعة الفراولة</div>
     <div id="decisionItems"></div>
   </div>
  
-  <!-- METRICS -->
-  <section class="metrics-grid" aria-label="Greenhouse metrics">
-    <article id="co2Card" class="metric-card good" onclick="selectMetric('co2')" title="Click to view CO₂ chart">
+  <section class="metrics-grid">
+    <article id="co2Card" class="metric-card good" onclick="selectMetric('co2')" title="Click to chart CO₂">
       <div class="metric-top">
         <div><div class="metric-label-en">CO₂</div><div class="metric-label-ar">ثاني أكسيد الكربون</div></div>
-        <div id="co2Status" class="status-badge">Good</div>
+        <div id="co2Status" class="status-badge">—</div>
       </div>
       <div class="metric-value"><span id="co2Value" class="metric-number">—</span><span class="metric-unit">ppm</span></div>
-      <div class="metric-foot"><span>Target</span><span>700–1200 ppm</span></div>
-      <div class="select-hint">↑ Click to chart this metric</div>
+      <div class="metric-foot"><span>Optimal</span><span>800–1200 ppm</span></div>
+      <div class="metric-range"><div class="metric-range-fill" id="co2Fill" style="width:0%"></div></div>
+      <div class="select-hint">↑ Click to isolate in chart</div>
     </article>
  
-    <article id="tempCard" class="metric-card good" onclick="selectMetric('temp')" title="Click to view Temperature chart">
+    <article id="tempCard" class="metric-card good" onclick="selectMetric('temp')" title="Click to chart Temperature">
       <div class="metric-top">
         <div><div class="metric-label-en">Temperature</div><div class="metric-label-ar">درجة الحرارة</div></div>
-        <div id="tempStatus" class="status-badge">Good</div>
+        <div id="tempStatus" class="status-badge">—</div>
       </div>
       <div class="metric-value"><span id="tempValue" class="metric-number">—</span><span class="metric-unit">°C</span></div>
-      <div class="metric-foot"><span>Target</span><span>20–32 °C</span></div>
-      <div class="select-hint">↑ Click to chart this metric</div>
+      <div class="metric-foot"><span>Optimal</span><span>16–22 °C</span></div>
+      <div class="metric-range"><div class="metric-range-fill" id="tempFill" style="width:0%"></div></div>
+      <div class="select-hint">↑ Click to isolate in chart</div>
     </article>
  
-    <article id="humidityCard" class="metric-card good" onclick="selectMetric('humidity')" title="Click to view Humidity chart">
+    <article id="humidityCard" class="metric-card good" onclick="selectMetric('humidity')" title="Click to chart Humidity">
       <div class="metric-top">
         <div><div class="metric-label-en">Humidity</div><div class="metric-label-ar">الرطوبة النسبية</div></div>
-        <div id="humidityStatus" class="status-badge">Good</div>
+        <div id="humidityStatus" class="status-badge">—</div>
       </div>
       <div class="metric-value"><span id="humidityValue" class="metric-number">—</span><span class="metric-unit">%</span></div>
-      <div class="metric-foot"><span>Target</span><span>55–75%</span></div>
-      <div class="select-hint">↑ Click to chart this metric</div>
+      <div class="metric-foot"><span>Optimal</span><span>60–75 %</span></div>
+      <div class="metric-range"><div class="metric-range-fill" id="humFill" style="width:0%"></div></div>
+      <div class="select-hint">↑ Click to isolate in chart</div>
     </article>
  
-    <article id="vpdCard" class="metric-card good" onclick="selectMetric('vpd')" title="Click to view VPD chart">
+    <article id="vpdCard" class="metric-card good" onclick="selectMetric('vpd')" title="Click to chart VPD">
       <div class="metric-top">
         <div><div class="metric-label-en">VPD</div><div class="metric-label-ar">عجز ضغط البخار</div></div>
-        <div id="vpdStatus" class="status-badge">Good</div>
+        <div id="vpdStatus" class="status-badge">—</div>
       </div>
       <div class="metric-value"><span id="vpdValue" class="metric-number">—</span><span class="metric-unit">kPa</span></div>
-      <div class="metric-foot"><span>Target</span><span>0.8–1.6 kPa</span></div>
-      <div class="select-hint">↑ Click to chart this metric</div>
+      <div class="metric-foot"><span>Optimal</span><span>0.5–1.0 kPa</span></div>
+      <div class="metric-range"><div class="metric-range-fill" id="vpdFill" style="width:0%"></div></div>
+      <div class="select-hint">↑ Click to isolate in chart</div>
     </article>
   </section>
  
-  <!-- CHART + GAUGE -->
   <section class="middle-row">
     <section class="panel chart-panel">
       <div class="panel-head">
@@ -270,14 +277,14 @@
           </div>
         </div>
       </div>
-      <div class="metric-selector" id="metricSelector">
-        <button class="metric-btn active" onclick="selectMetric('all')"      id="btn-all"><span class="dot" style="background:#aeb9c9"></span> All</button>
-        <button class="metric-btn"        onclick="selectMetric('co2')"      id="btn-co2"><span class="dot" style="background:#20f584"></span> CO₂</button>
-        <button class="metric-btn"        onclick="selectMetric('temp')"     id="btn-temp"><span class="dot" style="background:#45b9ff"></span> Temp</button>
-        <button class="metric-btn"        onclick="selectMetric('humidity')" id="btn-humidity"><span class="dot" style="background:#a78bfa"></span> Humidity</button>
-        <button class="metric-btn"        onclick="selectMetric('vpd')"      id="btn-vpd"><span class="dot" style="background:#ff9f1c"></span> VPD</button>
+      <div class="metric-selector">
+        <button class="metric-btn active" onclick="selectMetric('all')"      id="btn-all"><span class="dot" style="background:#aeb9c9"></span>All</button>
+        <button class="metric-btn"        onclick="selectMetric('co2')"      id="btn-co2"><span class="dot" style="background:#20f584"></span>CO₂</button>
+        <button class="metric-btn"        onclick="selectMetric('temp')"     id="btn-temp"><span class="dot" style="background:#45b9ff"></span>Temp</button>
+        <button class="metric-btn"        onclick="selectMetric('humidity')" id="btn-humidity"><span class="dot" style="background:#a78bfa"></span>Humidity</button>
+        <button class="metric-btn"        onclick="selectMetric('vpd')"      id="btn-vpd"><span class="dot" style="background:#ff9f1c"></span>VPD</button>
       </div>
-      <div class="chart-shell">
+      <div class="chart-shell" id="chartShell">
         <canvas id="trendChart"></canvas>
       </div>
     </section>
@@ -291,8 +298,13 @@
           <div id="vpdGaugeNumber" class="vpd-number">—</div>
           <div class="vpd-unit">kPa</div>
         </div>
-        <div id="gaugeBar" class="gauge-bar"><div id="gaugeIndicator" class="gauge-indicator"></div></div>
-        <div class="gauge-scale"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6+</span></div>
+        <div class="gauge-bar"><div id="gaugeIndicator" class="gauge-indicator"></div></div>
+        <div class="gauge-scale"><span>0</span><span>0.5</span><span>1.0</span><span>1.3</span><span>2.0</span><span>3+</span></div>
+        <div class="vpd-zones">
+          <span class="vpd-zone" style="background:var(--good-soft);color:var(--good)">0.5–1.0 Optimal</span>
+          <span class="vpd-zone" style="background:var(--warning-soft);color:var(--warning)">1.0–1.3 Stress</span>
+          <span class="vpd-zone" style="background:var(--danger-soft);color:var(--danger)">>1.3 Critical</span>
+        </div>
       </div>
       <div class="vpd-advice">
         <div id="adviceEn" class="advice-en">Loading sensor data...</div>
@@ -301,7 +313,6 @@
     </aside>
   </section>
  
-  <!-- CAMERAS -->
   <section class="panel camera-section">
     <div class="panel-head">
       <div><h2 class="panel-title">Live Cameras — كاميرات مباشرة</h2><div class="panel-title-ar">Reolink Elite Floodlight WiFi</div></div>
@@ -313,7 +324,7 @@
           <button class="fullscreen-btn" type="button" data-fullscreen="feed1"><i class="ti ti-maximize"></i></button>
         </div>
         <div id="feed1" class="camera-feed">
-          <img id="cam1" class="stream-image" src="" alt="Camera 1 stream" />
+          <img id="cam1" class="stream-image" src="" alt="Camera 1" />
           <div class="camera-placeholder"><div class="placeholder-inner"><i class="ti ti-camera"></i><div class="placeholder-title">Stream Loading...</div><div class="placeholder-subtitle">جاري تحميل البث المباشر</div></div></div>
         </div>
       </article>
@@ -323,434 +334,493 @@
           <button class="fullscreen-btn" type="button" data-fullscreen="feed2"><i class="ti ti-maximize"></i></button>
         </div>
         <div id="feed2" class="camera-feed">
-          <img id="cam2" class="stream-image" src="" alt="Camera 2 stream" />
+          <img id="cam2" class="stream-image" src="" alt="Camera 2" />
           <div class="camera-placeholder"><div class="placeholder-inner"><i class="ti ti-camera"></i><div class="placeholder-title">Stream Loading...</div><div class="placeholder-subtitle">جاري تحميل البث المباشر</div></div></div>
         </div>
       </article>
     </div>
   </section>
  
-  <!-- FOOTER -->
   <footer class="panel footer">
-    <div class="footer-brand">مزرعة الوصيل — Diriyah, Riyadh</div>
-    <button id="refreshBtn" class="refresh-btn" type="button">
-      <i class="ti ti-refresh"></i><span>Refresh — تحديث</span>
-    </button>
+    <div class="footer-brand">مزرعة الوصيل — Diriyah, Riyadh · Premium Strawberry Production</div>
+    <div class="footer-right">
+      <span class="last-saved" id="lastSaved">—</span>
+      <button id="refreshBtn" class="refresh-btn" type="button"><i class="ti ti-refresh"></i><span>Refresh — تحديث</span></button>
+    </div>
   </footer>
  
 </main>
- 
 <script>
-// ═══════════════════════════════════════════════
-// CONFIG — update these values
-// ═══════════════════════════════════════════════
-const CAM1_URL   = '';
-const CAM2_URL   = '';
-const WHATSAPP   = '966XXXXXXXXX';
+// ═══════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════
+const CAM1_URL = '';
+const CAM2_URL = '';
+const WHATSAPP = '966XXXXXXXXX';
  
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
+// STRAWBERRY THRESHOLDS — Riyadh premium production
+// ═══════════════════════════════════════════
+const THRESHOLDS = {
+  co2:  { goodMin:800,  goodMax:1200, warnMin:600,  warnMax:1500, unit:'ppm',  label:'CO₂',         labelAr:'ثاني أكسيد الكربون' },
+  temp: { goodMin:16,   goodMax:22,   warnMin:14,   warnMax:26,   unit:'°C',   label:'Temperature',  labelAr:'درجة الحرارة' },
+  hum:  { goodMin:60,   goodMax:75,   warnMin:50,   warnMax:85,   unit:'%',    label:'Humidity',     labelAr:'الرطوبة النسبية' },
+  vpd:  { goodMin:0.5,  goodMax:1.0,  warnMin:0,    warnMax:1.3,  unit:'kPa',  label:'VPD',          labelAr:'عجز ضغط البخار' }
+};
+ 
+// Alert triggers — strict for premium strawberry
+const ALERT_TEMP = 26;
+const ALERT_VPD  = 1.3;
+ 
+// ═══════════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 const state = {
   current: { co2: null, temp: null, humidity: null, vpd: null },
-  history: [],
   selectedMetric: 'all',
   selectedRange: 1,
-  lastAlert: 0
+  lastAlert: 0,
+  lastSaved: null
 };
  
-// ═══════════════════════════════════════════════
-// DOM REFS
-// ═══════════════════════════════════════════════
-const el = {
-  timestamp:     document.getElementById('timestamp'),
-  alertBanner:   document.getElementById('alertBanner'),
-  alertDetail:   document.getElementById('alertDetail'),
-  co2Card:       document.getElementById('co2Card'),
-  tempCard:      document.getElementById('tempCard'),
-  humidityCard:  document.getElementById('humidityCard'),
-  vpdCard:       document.getElementById('vpdCard'),
-  co2Value:      document.getElementById('co2Value'),
-  tempValue:     document.getElementById('tempValue'),
-  humidityValue: document.getElementById('humidityValue'),
-  vpdValue:      document.getElementById('vpdValue'),
-  co2Status:     document.getElementById('co2Status'),
-  tempStatus:    document.getElementById('tempStatus'),
-  humidityStatus:document.getElementById('humidityStatus'),
-  vpdStatus:     document.getElementById('vpdStatus'),
-  gaugePanel:    document.getElementById('gaugePanel'),
-  vpdGaugeNumber:document.getElementById('vpdGaugeNumber'),
-  adviceEn:      document.getElementById('adviceEn'),
-  adviceAr:      document.getElementById('adviceAr'),
-  cam1:          document.getElementById('cam1'),
-  cam2:          document.getElementById('cam2'),
-  decisionBox:   document.getElementById('decisionBox'),
-  decisionItems: document.getElementById('decisionItems'),
-  chartTitle:    document.getElementById('chartTitle'),
-  chartTitleAr:  document.getElementById('chartTitleAr')
-};
- 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // HELPERS
-// ═══════════════════════════════════════════════
-function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+// ═══════════════════════════════════════════
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
  
-function getStatus(type, value) {
-  if (type === 'co2')      return (value>=700&&value<=1200)?'good':(value>=500||value<=1500)?'warning':'danger';
-  if (type === 'temp')     return (value>=20&&value<=32)?'good':(value>=16&&value<=40)?'warning':'danger';
-  if (type === 'humidity') return (value>=55&&value<=75)?'good':(value>=40&&value<=85)?'warning':'danger';
-  if (type === 'vpd')      return (value>=0.8&&value<=1.6)?'good':(value<=3.0)?'warning':'danger';
-  return 'good';
+function getStatus(metric, value) {
+  const t = THRESHOLDS[metric];
+  if(!t) return 'good';
+  if(value >= t.goodMin && value <= t.goodMax) return 'good';
+  if(value >= t.warnMin && value <= t.warnMax) return 'warning';
+  return 'danger';
 }
  
-function statusText(s) { return s==='good'?'Good':s==='warning'?'Warning':'Danger'; }
-function statusColor(s) { return s==='good'?'var(--good)':s==='warning'?'var(--warning)':'var(--danger)'; }
+function statusText(s){return s==='good'?'Good':s==='warning'?'Warning':'Danger'}
+function statusColor(s){return s==='good'?'var(--good)':s==='warning'?'var(--warning)':'var(--danger)'}
  
-function setCardStatus(card, badge, status) {
+function setCardStatus(cardId, badgeId, status) {
+  const card  = document.getElementById(cardId);
+  const badge = document.getElementById(badgeId);
   card.classList.remove('good','warning','danger');
   card.classList.add(status);
   badge.textContent = statusText(status);
 }
  
-function calculateVpd(temp, humidity) {
+function calcVPD(temp, hum) {
   const svp = 0.6108 * Math.exp((17.27*temp)/(temp+237.3));
-  return Number(clamp(svp*(1-humidity/100), 0, 6.5).toFixed(2));
+  return Number(clamp(svp*(1-hum/100),0,6.5).toFixed(2));
 }
  
-// ═══════════════════════════════════════════════
+function calcRangePercent(metric, value) {
+  const t = THRESHOLDS[metric];
+  if(!t) return 0;
+  const range = t.warnMax - t.warnMin;
+  return Math.min(100, Math.max(0, ((value - t.warnMin) / range) * 100));
+}
+ 
+// ═══════════════════════════════════════════
 // CHART
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 const trendChart = new Chart(document.getElementById('trendChart'), {
   type: 'line',
   data: {
     labels: [],
     datasets: [
-      { label: 'CO₂ ppm',       data: [], borderColor: '#20f584', backgroundColor: 'rgba(32,245,132,0.08)', yAxisID: 'y',  borderWidth: 2.4, tension: 0.38, pointRadius: 0, pointHoverRadius: 4 },
-      { label: 'Temperature °C', data: [], borderColor: '#45b9ff', backgroundColor: 'rgba(69,185,255,0.08)', yAxisID: 'y1', borderWidth: 2.4, tension: 0.38, pointRadius: 0, pointHoverRadius: 4 },
-      { label: 'Humidity %',     data: [], borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,0.08)',yAxisID: 'y1', borderWidth: 2.4, tension: 0.38, pointRadius: 0, pointHoverRadius: 4 },
-      { label: 'VPD kPa',        data: [], borderColor: '#ff9f1c', backgroundColor: 'rgba(255,159,28,0.08)', yAxisID: 'y2', borderWidth: 2.4, tension: 0.38, pointRadius: 0, pointHoverRadius: 4 }
+      { label:'CO₂ ppm',        data:[], borderColor:'#20f584', backgroundColor:'rgba(32,245,132,0.08)',  yAxisID:'y',  borderWidth:2.4, tension:0.38, pointRadius:0, pointHoverRadius:4 },
+      { label:'Temperature °C', data:[], borderColor:'#45b9ff', backgroundColor:'rgba(69,185,255,0.08)',  yAxisID:'y1', borderWidth:2.4, tension:0.38, pointRadius:0, pointHoverRadius:4 },
+      { label:'Humidity %',     data:[], borderColor:'#a78bfa', backgroundColor:'rgba(167,139,250,0.08)', yAxisID:'y1', borderWidth:2.4, tension:0.38, pointRadius:0, pointHoverRadius:4 },
+      { label:'VPD kPa',        data:[], borderColor:'#ff9f1c', backgroundColor:'rgba(255,159,28,0.08)',  yAxisID:'y2', borderWidth:2.4, tension:0.38, pointRadius:0, pointHoverRadius:4 }
     ]
   },
   options: {
-    responsive: true, maintainAspectRatio: false,
-    animation: { duration: 450, easing: 'easeOutQuart' },
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: { position: 'top', align: 'end', labels: { color: '#aeb9c9', usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, padding: 18, font: { family: 'SFMono-Regular,Consolas,monospace', size: 11, weight: '700' } } },
-      tooltip: { backgroundColor: 'rgba(5,7,10,0.92)', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1, titleColor: '#f5f7fb', bodyColor: '#aeb9c9', padding: 12, displayColors: true }
+    responsive:true, maintainAspectRatio:false,
+    animation:{duration:450,easing:'easeOutQuart'},
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{position:'top',align:'end',labels:{color:'#aeb9c9',usePointStyle:true,pointStyle:'circle',boxWidth:8,boxHeight:8,padding:18,font:{family:'SFMono-Regular,Consolas,monospace',size:11,weight:'700'}}},
+      tooltip:{backgroundColor:'rgba(5,7,10,0.92)',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,titleColor:'#f5f7fb',bodyColor:'#aeb9c9',padding:12,displayColors:true}
     },
-    scales: {
-      x:  { grid: { color: 'rgba(255,255,255,0.045)', drawBorder: false }, ticks: { color: '#7f8da3', maxTicksLimit: 8, font: { family: 'SFMono-Regular,Consolas,monospace', size: 10 } } },
-      y:  { position: 'left',  min: 300, max: 2000, title: { display: true, text: 'CO₂ ppm', color: '#7f8da3' }, grid: { color: 'rgba(255,255,255,0.055)', drawBorder: false }, ticks: { color: '#7f8da3', font: { family: 'SFMono-Regular,Consolas,monospace', size: 10 } } },
-      y1: { position: 'right', min: 0,   max: 100,  title: { display: true, text: '°C / %',  color: '#7f8da3' }, grid: { drawOnChartArea: false, drawBorder: false }, ticks: { color: '#7f8da3', font: { family: 'SFMono-Regular,Consolas,monospace', size: 10 } } },
-      y2: { position: 'right', min: 0,   max: 7,    display: false }
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,0.045)',drawBorder:false},ticks:{color:'#7f8da3',maxTicksLimit:10,font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
+      y: {position:'left',  title:{display:true,text:'CO₂ ppm',color:'#7f8da3'},grid:{color:'rgba(255,255,255,0.055)',drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
+      y1:{position:'right', title:{display:true,text:'°C / %',color:'#7f8da3'}, grid:{drawOnChartArea:false,drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
+      y2:{position:'right', display:false, min:0, max:4}
     }
   }
 });
  
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // METRIC SELECTOR
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 const metricConfig = {
-  all:      { title: 'All Metrics',  titleAr: 'جميع المؤشرات',        datasets: [0,1,2,3] },
-  co2:      { title: 'CO₂',          titleAr: 'ثاني أكسيد الكربون',   datasets: [0] },
-  temp:     { title: 'Temperature',  titleAr: 'درجة الحرارة',          datasets: [1] },
-  humidity: { title: 'Humidity',     titleAr: 'الرطوبة النسبية',       datasets: [2] },
-  vpd:      { title: 'VPD',          titleAr: 'عجز ضغط البخار',        datasets: [3] }
+  all:      {title:'All Metrics',  titleAr:'جميع المؤشرات',      datasets:[0,1,2,3]},
+  co2:      {title:'CO₂',          titleAr:'ثاني أكسيد الكربون', datasets:[0]},
+  temp:     {title:'Temperature',  titleAr:'درجة الحرارة',        datasets:[1]},
+  humidity: {title:'Humidity',     titleAr:'الرطوبة النسبية',     datasets:[2]},
+  vpd:      {title:'VPD',          titleAr:'عجز ضغط البخار',      datasets:[3]}
 };
  
 function selectMetric(metric) {
   state.selectedMetric = metric;
-  // Update card selected state
+  // Card highlight
   ['co2','temp','humidity','vpd'].forEach(m => {
-    const card = document.getElementById(m+'Card');
-    if(card) card.classList.toggle('selected', m===metric);
+    const c = document.getElementById(m+'Card');
+    if(c) c.classList.toggle('selected', m===metric);
   });
-  // Update metric buttons
+  // Metric buttons
   document.querySelectorAll('.metric-btn').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('btn-'+metric);
-  if(btn) btn.classList.add('active');
-  // Update chart visibility
-  const cfg = metricConfig[metric] || metricConfig.all;
-  trendChart.data.datasets.forEach((ds, i) => {
-    ds.hidden = !cfg.datasets.includes(i);
-  });
+  const mb = document.getElementById('btn-'+metric);
+  if(mb) mb.classList.add('active');
+  // Chart datasets
+  const cfg = metricConfig[metric]||metricConfig.all;
+  trendChart.data.datasets.forEach((ds,i)=>{ ds.hidden = !cfg.datasets.includes(i); });
   trendChart.update();
-  // Update chart title
-  el.chartTitle.textContent = cfg.title;
-  el.chartTitleAr.textContent = cfg.titleAr;
+  document.getElementById('chartTitle').textContent   = cfg.title;
+  document.getElementById('chartTitleAr').textContent = cfg.titleAr;
 }
  
-// ═══════════════════════════════════════════════
-// TIME RANGE
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
+// TIME RANGE — fixed: reload from Supabase on every click
+// ═══════════════════════════════════════════
 function setRange(hours) {
   state.selectedRange = hours;
-  ['1h','6h','24h','7d'].forEach(id => document.getElementById('btn-'+id).classList.remove('active'));
-  const map = { 1:'1h', 6:'6h', 24:'24h', 168:'7d' };
-  const btn = document.getElementById('btn-'+map[hours]);
-  if(btn) btn.classList.add('active');
-  loadHistory(hours);
+  // Update button states
+  document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+  const map = {1:'1h',6:'6h',24:'24h',168:'7d'};
+  const rb = document.getElementById('btn-'+map[hours]);
+  if(rb) rb.classList.add('active');
+  // Show loading state
+  const shell = document.getElementById('chartShell');
+  if(shell) shell.innerHTML = '<div class="chart-loading"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Loading history...</div>';
+  // Re-init chart after clearing
+  setTimeout(() => {
+    shell.innerHTML = '<canvas id="trendChart"></canvas>';
+    rebuildChart();
+    loadHistory(hours);
+  }, 100);
 }
  
-// ═══════════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════════
+function rebuildChart() {
+  // Recreate chart instance on the new canvas
+  const ctx = document.getElementById('trendChart');
+  if(!ctx) return;
+  const newChart = new Chart(ctx, {
+    type:'line',
+    data:{labels:[],datasets:[
+      {label:'CO₂ ppm',        data:[],borderColor:'#20f584',backgroundColor:'rgba(32,245,132,0.08)', yAxisID:'y',  borderWidth:2.4,tension:0.38,pointRadius:0,pointHoverRadius:4},
+      {label:'Temperature °C', data:[],borderColor:'#45b9ff',backgroundColor:'rgba(69,185,255,0.08)', yAxisID:'y1', borderWidth:2.4,tension:0.38,pointRadius:0,pointHoverRadius:4},
+      {label:'Humidity %',     data:[],borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,0.08)',yAxisID:'y1', borderWidth:2.4,tension:0.38,pointRadius:0,pointHoverRadius:4},
+      {label:'VPD kPa',        data:[],borderColor:'#ff9f1c',backgroundColor:'rgba(255,159,28,0.08)', yAxisID:'y2', borderWidth:2.4,tension:0.38,pointRadius:0,pointHoverRadius:4}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      animation:{duration:450,easing:'easeOutQuart'},
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{position:'top',align:'end',labels:{color:'#aeb9c9',usePointStyle:true,pointStyle:'circle',boxWidth:8,boxHeight:8,padding:18,font:{family:'SFMono-Regular,Consolas,monospace',size:11,weight:'700'}}},
+        tooltip:{backgroundColor:'rgba(5,7,10,0.92)',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,titleColor:'#f5f7fb',bodyColor:'#aeb9c9',padding:12,displayColors:true}
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.045)',drawBorder:false},ticks:{color:'#7f8da3',maxTicksLimit:10,font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
+        y: {position:'left',  title:{display:true,text:'CO₂ ppm',color:'#7f8da3'},grid:{color:'rgba(255,255,255,0.055)',drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
+        y1:{position:'right', title:{display:true,text:'°C / %',color:'#7f8da3'}, grid:{drawOnChartArea:false,drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
+        y2:{position:'right', display:false, min:0, max:4}
+      }
+    }
+  });
+  window._activeChart = newChart;
+  // Re-apply metric visibility
+  const cfg = metricConfig[state.selectedMetric]||metricConfig.all;
+  newChart.data.datasets.forEach((ds,i)=>{ ds.hidden=!cfg.datasets.includes(i); });
+  newChart.update();
+}
+ 
+function getActiveChart() {
+  return window._activeChart || trendChart;
+}
+ 
+// ═══════════════════════════════════════════
+// UPDATE CHART DATA
+// ═══════════════════════════════════════════
+function updateChartData(data) {
+  const chart = getActiveChart();
+  if(!chart) return;
+  const labels = data.map(r => {
+    const d = new Date(r.recorded_at || r.time || Date.now());
+    return state.selectedRange <= 6
+      ? d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
+      : d.toLocaleDateString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  });
+  chart.data.labels           = labels;
+  chart.data.datasets[0].data = data.map(r => r.co2);
+  chart.data.datasets[1].data = data.map(r => r.temperature ?? r.temp);
+  chart.data.datasets[2].data = data.map(r => r.humidity);
+  chart.data.datasets[3].data = data.map(r => r.vpd);
+  chart.update();
+}
+ 
+// ═══════════════════════════════════════════
+// RENDER METRICS
+// ═══════════════════════════════════════════
 function renderMetrics() {
   const { co2, temp, humidity, vpd } = state.current;
-  if(co2===null) return;
+  if(co2 === null) return;
  
-  el.co2Value.textContent      = co2;
-  el.tempValue.textContent     = Number(temp).toFixed(1);
-  el.humidityValue.textContent = humidity;
-  el.vpdValue.textContent      = Number(vpd).toFixed(2);
+  // Values
+  document.getElementById('co2Value').textContent      = co2;
+  document.getElementById('tempValue').textContent     = Number(temp).toFixed(1);
+  document.getElementById('humidityValue').textContent = humidity;
+  document.getElementById('vpdValue').textContent      = Number(vpd).toFixed(2);
  
-  setCardStatus(el.co2Card,       el.co2Status,      getStatus('co2',      co2));
-  setCardStatus(el.tempCard,      el.tempStatus,     getStatus('temp',     temp));
-  setCardStatus(el.humidityCard,  el.humidityStatus, getStatus('humidity', humidity));
-  setCardStatus(el.vpdCard,       el.vpdStatus,      getStatus('vpd',      vpd));
+  // Status
+  setCardStatus('co2Card',      'co2Status',      getStatus('co2',  co2));
+  setCardStatus('tempCard',     'tempStatus',     getStatus('temp', temp));
+  setCardStatus('humidityCard', 'humidityStatus', getStatus('hum',  humidity));
+  setCardStatus('vpdCard',      'vpdStatus',      getStatus('vpd',  vpd));
  
+  // Range bars
+  document.getElementById('co2Fill').style.width  = calcRangePercent('co2',  co2)+'%';
+  document.getElementById('tempFill').style.width = calcRangePercent('temp', temp)+'%';
+  document.getElementById('humFill').style.width  = calcRangePercent('hum',  humidity)+'%';
+  document.getElementById('vpdFill').style.width  = calcRangePercent('vpd',  vpd)+'%';
+ 
+  // VPD gauge — scaled to 0–3 kPa max
   const vpdStatus   = getStatus('vpd', vpd);
-  const vpdPosition = `${clamp((vpd/6)*100, 0, 100)}%`;
+  const vpdPosition = `${clamp((vpd/3)*100,0,100)}%`;
   const vpdColor    = statusColor(vpdStatus);
+  const gaugePanel  = document.getElementById('gaugePanel');
+  gaugePanel.style.setProperty('--vpd-position', vpdPosition);
+  gaugePanel.style.setProperty('--vpd-color', vpdColor);
+  document.getElementById('vpdGaugeNumber').textContent = Number(vpd).toFixed(2);
+  document.getElementById('vpdGaugeNumber').style.color = vpdColor;
  
-  el.gaugePanel.style.setProperty('--vpd-position', vpdPosition);
-  el.gaugePanel.style.setProperty('--vpd-color', vpdColor);
-  el.vpdGaugeNumber.textContent = Number(vpd).toFixed(2);
- 
-  const vpdAdvice = {
-    good:    { en: 'VPD is optimal (0.8–1.6 kPa). Plants are transpiring efficiently. Ideal for nutrient uptake and active growth.', ar: 'عجز ضغط البخار مثالي. النباتات تتنفس بكفاءة. مثالي لامتصاص العناصر والنمو.' },
-    warning: { en: 'VPD is elevated. Stomata beginning to close, reducing photosynthesis. Increase humidity or reduce temperature.', ar: 'عجز ضغط البخار مرتفع. الثغور تبدأ بالإغلاق. ارفع الرطوبة أو خفض الحرارة.' },
-    danger:  { en: 'Critical VPD — severe stomatal closure. Plants wilting risk. Activate misting or cooling immediately.', ar: 'عجز ضغط البخار حرج — إغلاق شديد للثغور. خطر ذبول. شغّل الرذاذ أو التبريد فوراً.' }
+  // VPD advice — strawberry specific
+  const advice = {
+    good:    {en:`VPD ${Number(vpd).toFixed(2)} kPa — optimal for strawberries. Stomata open, photosynthesis and sugar development at peak. Maintain current conditions.`, ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} — مثالي للفراولة. الثغور مفتوحة وتطور السكر في ذروته. حافظ على الوضع الحالي.`},
+    warning: {en:`VPD ${Number(vpd).toFixed(2)} kPa — mild stress. Strawberry fruit development may slow. Increase humidity by 5–10% or reduce temperature by 2°C.`, ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} — إجهاد خفيف. نمو الفراولة قد يتباطأ. ارفع الرطوبة 5–10٪ أو اخفض الحرارة 2°م.`},
+    danger:  {en:`VPD ${Number(vpd).toFixed(2)} kPa — CRITICAL. Severe strawberry stress. Fruit quality and yield at risk. Activate misting immediately.`, ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} — حرج. إجهاد شديد على الفراولة. جودة المحصول في خطر. شغّل الرذاذ فوراً.`}
   };
-  el.adviceEn.textContent = vpdAdvice[vpdStatus].en;
-  el.adviceAr.textContent = vpdAdvice[vpdStatus].ar;
+  document.getElementById('adviceEn').textContent = advice[vpdStatus].en;
+  document.getElementById('adviceAr').textContent = advice[vpdStatus].ar;
 }
  
+// ═══════════════════════════════════════════
+// ALERT
+// ═══════════════════════════════════════════
 function renderAlert() {
   const { co2, temp, humidity, vpd } = state.current;
   if(co2===null) return;
-  const alerts = [];
-  if(vpd  > 3.0) alerts.push(`VPD ${Number(vpd).toFixed(2)} kPa`);
-  if(temp > 40)  alerts.push(`Temperature ${Number(temp).toFixed(1)}°C`);
+  const alerts=[], alertsAr=[];
+  if(temp > ALERT_TEMP) { alerts.push(`Temp ${Number(temp).toFixed(1)}°C > ${ALERT_TEMP}°C limit`); alertsAr.push(`الحرارة ${Number(temp).toFixed(1)}°م تجاوزت الحد`); }
+  if(vpd  > ALERT_VPD)  { alerts.push(`VPD ${Number(vpd).toFixed(2)} kPa > ${ALERT_VPD} kPa limit`); alertsAr.push(`عجز ضغط البخار ${Number(vpd).toFixed(2)} تجاوز الحد`); }
+  if(humidity < 50)      { alerts.push(`Humidity ${humidity}% critically low`); alertsAr.push(`الرطوبة ${humidity}٪ منخفضة جداً`); }
   if(alerts.length) {
-    el.alertBanner.classList.add('active');
-    el.alertDetail.textContent = alerts.join(' · ');
-    const now = Date.now();
-    if(now - state.lastAlert > 30*60*1000) {
-      state.lastAlert = now;
-      const t = new Date().toLocaleTimeString('ar-SA');
-      const msg = encodeURIComponent(`🚨 تنبيه مزرعة الوصيل\n${t}\n${alerts.join(' · ')}\nhttps://green-house-iota.vercel.app`);
-      window.open(`https://wa.me/${WHATSAPP}?text=${msg}`, '_blank');
+    document.getElementById('alertBanner').classList.add('active');
+    document.getElementById('alertTitle').textContent  = `🍓 Strawberry Alert — تنبيه الفراولة`;
+    document.getElementById('alertAr').textContent     = alertsAr.join(' · ');
+    document.getElementById('alertDetail').textContent = alerts.join(' · ');
+    const now=Date.now();
+    if(now-state.lastAlert > 30*60*1000) {
+      state.lastAlert=now;
+      const t=new Date().toLocaleTimeString('ar-SA');
+      const msg=encodeURIComponent(`🍓 تنبيه مزرعة الوصيل\n${t}\n${alertsAr.join('\n')}\nhttps://green-house-iota.vercel.app`);
+      window.open(`https://wa.me/${WHATSAPP}?text=${msg}`,'_blank');
     }
   } else {
-    el.alertBanner.classList.remove('active');
-    el.alertDetail.textContent = '';
+    document.getElementById('alertBanner').classList.remove('active');
   }
 }
  
+// ═══════════════════════════════════════════
+// DECISION SUPPORT — strawberry specific
+// ═══════════════════════════════════════════
 function renderDecisions() {
   const { co2, temp, humidity, vpd } = state.current;
   if(co2===null) return;
-  const actions = [];
+  const actions=[];
  
-  if(vpd > 3.0)        actions.push({ p:'high',   en:`VPD critically high at ${Number(vpd).toFixed(2)} kPa. Activate misting immediately. Target: raise humidity above 65%.`, ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} — شغّل نظام الرذاذ فوراً. الهدف: رطوبة فوق 65%.` });
-  else if(vpd > 1.6)   actions.push({ p:'medium', en:`VPD elevated at ${Number(vpd).toFixed(2)} kPa. Increase humidity or reduce temperature by 2–3°C.`, ar:`عجز ضغط البخار مرتفع — ارفع الرطوبة أو اخفض الحرارة 2–3 درجات.` });
-  if(temp > 40)        actions.push({ p:'high',   en:`Temperature ${Number(temp).toFixed(1)}°C exceeds safe limit. Open vents and activate cooling now.`, ar:`الحرارة ${Number(temp).toFixed(1)}°م تتجاوز الحد الآمن — افتح التهوية وشغّل التبريد.` });
-  else if(temp > 35)   actions.push({ p:'medium', en:`Temperature ${Number(temp).toFixed(1)}°C above optimal. Increase ventilation to reduce heat stress.`, ar:`الحرارة ${Number(temp).toFixed(1)}°م فوق المثالي — زد التهوية لتقليل إجهاد الحرارة.` });
-  if(humidity < 40)    actions.push({ p:'high',   en:`Humidity critically low at ${humidity}%. Plants losing water faster than roots supply. Mist immediately.`, ar:`الرطوبة ${humidity}٪ منخفضة جداً — النباتات تفقد الماء. رشّ فوراً.` });
-  else if(humidity<55) actions.push({ p:'medium', en:`Humidity ${humidity}% below optimal. Check irrigation schedule and consider misting.`, ar:`الرطوبة ${humidity}٪ أقل من المثالي — تحقق من جدول الري وفكر في الرذاذ.` });
-  else if(humidity>80) actions.push({ p:'medium', en:`Humidity ${humidity}% too high. Increase air circulation to prevent fungal disease.`, ar:`الرطوبة ${humidity}٪ مرتفعة — زد تداول الهواء لمنع الأمراض الفطرية.` });
-  if(co2 < 600)        actions.push({ p:'medium', en:`CO₂ at ${co2} ppm is low for photosynthesis. Consider CO₂ enrichment during daylight.`, ar:`ثاني أكسيد الكربون ${co2} منخفض — فكر في إضافة CO₂ أثناء ساعات النهار.` });
-  else if(co2 > 1500)  actions.push({ p:'medium', en:`CO₂ at ${co2} ppm is above optimal. Increase ventilation to flush excess.`, ar:`ثاني أكسيد الكربون ${co2} مرتفع — افتح التهوية لتصريف الزائد.` });
+  // Temperature — most critical for strawberries
+  if(temp > 26)        actions.push({p:'high',   en:`🌡 Temperature ${Number(temp).toFixed(1)}°C is above critical limit (26°C) for strawberries. Sugar content dropping rapidly. Activate full cooling and ventilation immediately.`,          ar:`الحرارة ${Number(temp).toFixed(1)}°م فوق الحد الحرج. محتوى السكر في الفراولة ينخفض. شغّل التبريد الكامل فوراً.`});
+  else if(temp > 22)   actions.push({p:'medium', en:`🌡 Temperature ${Number(temp).toFixed(1)}°C is above optimal range (16–22°C). Strawberry sweetness and shelf life affected. Increase cooling by 2–4°C.`,                              ar:`الحرارة ${Number(temp).toFixed(1)}°م فوق المثالي. حلاوة الفراولة وصلاحيتها تتأثر. خفض الحرارة 2–4 درجات.`});
+  else if(temp < 14)   actions.push({p:'high',   en:`🌡 Temperature ${Number(temp).toFixed(1)}°C is too cold. Strawberry growth will stall below 14°C. Activate heating.`,                                                                   ar:`الحرارة ${Number(temp).toFixed(1)}°م منخفضة جداً. نمو الفراولة سيتوقف. شغّل التدفئة.`});
+  else if(temp < 16)   actions.push({p:'medium', en:`🌡 Temperature ${Number(temp).toFixed(1)}°C slightly below optimal. Strawberry growth is slow. Consider mild heating.`,                                                                 ar:`الحرارة ${Number(temp).toFixed(1)}°م أقل من المثالي قليلاً. النمو بطيء. فكر في التدفئة الخفيفة.`});
  
-  if(actions.length === 0) actions.push({ p:'low', en:'All parameters within optimal range. Maintain current climate settings.', ar:'جميع المؤشرات ضمن النطاق المثالي. حافظ على الإعدادات الحالية.' });
+  // VPD
+  if(vpd > 1.3)        actions.push({p:'high',   en:`💧 VPD ${Number(vpd).toFixed(2)} kPa critical — stomata closed, no photosynthesis, wilting risk. Activate misting system immediately.`,                                                   ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} حرج — الثغور مغلقة. شغّل نظام الرذاذ فوراً.`});
+  else if(vpd > 1.0)   actions.push({p:'medium', en:`💧 VPD ${Number(vpd).toFixed(2)} kPa elevated for strawberries. Increase humidity by 5–10% to protect fruit quality.`,                                                                   ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} مرتفع للفراولة. ارفع الرطوبة 5–10٪ لحماية جودة الثمار.`});
  
-  el.decisionBox.style.display = 'block';
-  el.decisionItems.innerHTML = actions.map(a => `
+  // Humidity
+  if(humidity < 50)    actions.push({p:'high',   en:`💦 Humidity ${humidity}% critically low. Strawberry flowers and fruit at risk of desiccation. Activate misting immediately.`,                                                              ar:`الرطوبة ${humidity}٪ منخفضة جداً. أزهار الفراولة في خطر. شغّل الرذاذ فوراً.`});
+  else if(humidity<60) actions.push({p:'medium', en:`💦 Humidity ${humidity}% below optimal (60–75%). Strawberry transpiration stress building. Check irrigation timing and consider misting.`,                                                 ar:`الرطوبة ${humidity}٪ أقل من المثالي. إجهاد تعرق يتصاعد. تحقق من الري وفكر في الرذاذ.`});
+  else if(humidity>85) actions.push({p:'high',   en:`💦 Humidity ${humidity}% too high — Botrytis (grey mould) risk is critical for strawberries at this level. Increase ventilation immediately.`,                                          ar:`الرطوبة ${humidity}٪ مرتفعة جداً — خطر فطر البوتريتيس على الفراولة حرج. افتح التهوية فوراً.`});
+  else if(humidity>75) actions.push({p:'medium', en:`💦 Humidity ${humidity}% above optimal. Monitor for Botrytis signs. Increase air circulation.`,                                                                                        ar:`الرطوبة ${humidity}٪ فوق المثالي. راقب علامات البوتريتيس. زد تداول الهواء.`});
+ 
+  // CO2
+  if(co2 < 600)        actions.push({p:'medium', en:`🌿 CO₂ ${co2} ppm too low for peak photosynthesis. Consider CO₂ enrichment to 800–1200 ppm during daylight hours for maximum strawberry yield.`,                                        ar:`ثاني أكسيد الكربون ${co2} منخفض. فكر في إضافة CO₂ لبلوغ 800–1200 ppm أثناء ساعات النهار لزيادة المحصول.`});
+  else if(co2 > 1500)  actions.push({p:'medium', en:`🌿 CO₂ ${co2} ppm above optimal. Open vents to bring levels down to 1200 ppm.`,                                                                                                       ar:`ثاني أكسيد الكربون ${co2} مرتفع فوق المثالي. افتح التهوية لإعادته لـ 1200 ppm.`});
+ 
+  if(actions.length===0) actions.push({p:'low', en:`✅ All parameters within optimal range for premium strawberry production. Maintain current conditions. Monitor every 30 minutes.`,                                                          ar:`✅ جميع المؤشرات ضمن النطاق المثالي لإنتاج فراولة مميزة. حافظ على الوضع الحالي. راقب كل 30 دقيقة.`});
+ 
+  document.getElementById('decisionBox').style.display='block';
+  document.getElementById('decisionItems').innerHTML=actions.map(a=>`
     <div class="decision-item">
       <span class="priority-tag ${a.p==='high'?'p-high':a.p==='medium'?'p-medium':'p-low'}">${a.p.toUpperCase()}</span>
       <div><div class="decision-text">${a.en}</div><div class="decision-ar">${a.ar}</div></div>
     </div>`).join('');
 }
  
-function updateChart(data) {
-  const labels = data.map(r => {
-    const d = new Date(r.recorded_at||r.time||Date.now());
-    return state.selectedRange <= 6
-      ? d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
-      : d.toLocaleDateString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-  });
-  trendChart.data.labels           = labels;
-  trendChart.data.datasets[0].data = data.map(r => r.co2);
-  trendChart.data.datasets[1].data = data.map(r => r.temperature??r.temp);
-  trendChart.data.datasets[2].data = data.map(r => r.humidity);
-  trendChart.data.datasets[3].data = data.map(r => r.vpd);
-  trendChart.update();
-}
- 
-function updateTimestamp() {
-  el.timestamp.textContent = new Date().toLocaleString('en-SA',{ year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
-}
- 
-function render() {
-  renderMetrics();
-  renderAlert();
-  renderDecisions();
-}
- 
-// ═══════════════════════════════════════════════
-// SUPABASE — SAVE READING
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
+// SUPABASE
+// ═══════════════════════════════════════════
 async function saveReading(co2, temp, humidity, vpd) {
   try {
-    await fetch('/api/save-reading', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        co2, temperature: temp, humidity, vpd,
-        heat_index: calcHeatIndex(temp, humidity),
-        dew_point:  calcDewPoint(temp, humidity),
-        abs_humidity: calcAbsHumidity(temp, humidity),
-        plant_stress_index: calcPSI(vpd, temp, humidity)
+    const res = await fetch('/api/save-reading', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        co2, temperature:temp, humidity, vpd,
+        heat_index: calcHeatIndex(temp,humidity),
+        dew_point:  calcDewPoint(temp,humidity),
+        abs_humidity: parseFloat((0.6108*Math.exp((17.27*temp)/(temp+237.3))*(humidity/100)*1000/(0.4615*(273.15+temp))).toFixed(1)),
+        plant_stress_index: calcPSI(vpd,temp,humidity)
       })
     });
-  } catch(e) { console.warn('Save reading failed:', e.message); }
+    if(res.ok) {
+      state.lastSaved = new Date();
+      const el = document.getElementById('lastSaved');
+      if(el) el.textContent = 'Saved ' + state.lastSaved.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    }
+  } catch(e){console.warn('Save failed:',e.message)}
 }
  
-// ═══════════════════════════════════════════════
-// SUPABASE — LOAD HISTORY
-// ═══════════════════════════════════════════════
 async function loadHistory(hours) {
   try {
     const res  = await fetch(`/api/history?hours=${hours}&limit=500`);
     const data = await res.json();
     if(Array.isArray(data) && data.length > 0) {
-      updateChart(data);
-      // Also update the state history with last 30
-      state.history = data.slice(-30).map(r => ({
-        co2: r.co2, temp: r.temperature, humidity: r.humidity, vpd: r.vpd, time: r.recorded_at
-      }));
+      updateChartData(data);
+    } else {
+      // No data yet — show live session data if range is 1H
+      const chart = getActiveChart();
+      if(chart && chart.data.labels.length===0) {
+        chart.data.labels = ['No historical data yet'];
+        chart.update();
+      }
     }
-  } catch(e) { console.warn('Load history failed:', e.message); }
+  } catch(e){console.warn('History load failed:',e.message)}
 }
  
-// ═══════════════════════════════════════════════
-// DERIVED METRICS
-// ═══════════════════════════════════════════════
-function calcDewPoint(t, rh) { const a=17.27,b=237.3; const alpha=(a*t)/(b+t)+Math.log(rh/100); return parseFloat((b*alpha/(a-alpha)).toFixed(1)); }
-function calcHeatIndex(t, rh) { if(t<27) return t; return parseFloat((-8.78+1.61*t+2.34*rh-0.15*t*rh-0.012*t*t-0.016*rh*rh+0.002*t*t*rh+0.0007*t*rh*rh).toFixed(1)); }
-function calcAbsHumidity(t, rh) { const svp=0.6108*Math.exp((17.27*t)/(t+237.3)); return parseFloat((216.7*(rh/100*svp*1000)/(273.15+t)/1000).toFixed(1)); }
-function calcPSI(vpd, temp, hum) { let s=0; if(vpd>1.6&&vpd<=3)s+=2; if(vpd>3)s+=4; if(temp>35&&temp<=40)s+=2; if(temp>40)s+=3; if(hum<50&&hum>=30)s+=1; if(hum<30)s+=2; return Math.min(s,10); }
+// ═══════════════════════════════════════════
+// DERIVED CALCS
+// ═══════════════════════════════════════════
+function calcDewPoint(t,rh){const a=17.27,b=237.3;const al=(a*t)/(b+t)+Math.log(rh/100);return parseFloat((b*al/(a-al)).toFixed(1))}
+function calcHeatIndex(t,rh){if(t<27)return t;return parseFloat((-8.78+1.61*t+2.34*rh-0.15*t*rh-0.012*t*t-0.016*rh*rh+0.002*t*t*rh+0.0007*t*rh*rh).toFixed(1))}
+function calcPSI(vpd,temp,hum){let s=0;if(vpd>1.0&&vpd<=1.3)s+=2;if(vpd>1.3)s+=4;if(temp>22&&temp<=26)s+=2;if(temp>26)s+=4;if(hum<60&&hum>=50)s+=1;if(hum<50)s+=3;if(hum>85)s+=2;return Math.min(s,10)}
  
-// ═══════════════════════════════════════════════
-// SWITCHBOT FETCH
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
+// FETCH LIVE DATA
+// ═══════════════════════════════════════════
+let localHistory = [];
+ 
 async function fetchData() {
   try {
     const devRes  = await fetch('/api/devices');
     const devData = await devRes.json();
-    const devices = devData.body?.deviceList || [];
-    const device  = devices.find(d =>
-      d.deviceType?.toLowerCase().includes('co2') ||
-      d.deviceName?.toLowerCase().includes('co2') ||
+    const devices = devData.body?.deviceList||[];
+    const device  = devices.find(d=>
+      d.deviceType?.toLowerCase().includes('co2')||
+      d.deviceName?.toLowerCase().includes('co2')||
       d.deviceName?.toLowerCase().includes('meter pro')
     );
-    if(!device) { el.timestamp.textContent = 'No CO2 device found'; return; }
+    if(!device){document.getElementById('timestamp').textContent='No CO2 device found';return}
  
     const sRes  = await fetch(`/api/status?id=${device.deviceId}`);
     const sData = await sRes.json();
     const b     = sData.body;
  
-    const co2      = b.CO2 ?? b.co2 ?? 0;
-    const temp     = parseFloat(b.temperature ?? 0);
-    const humidity = parseFloat(b.humidity ?? 0);
-    const vpd      = calculateVpd(temp, humidity);
+    const co2      = b.CO2??b.co2??0;
+    const temp     = parseFloat(b.temperature??0);
+    const humidity = parseFloat(b.humidity??0);
+    const vpd      = calcVPD(temp,humidity);
  
-    state.current = { co2, temp, humidity, vpd };
+    state.current = {co2,temp,humidity,vpd};
  
     // Save to Supabase
-    saveReading(co2, temp, humidity, vpd);
+    saveReading(co2,temp,humidity,vpd);
  
-    // Add to local history for chart
-    const now = new Date();
+    // Local 1H chart update
+    const now   = new Date();
     const label = now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-    state.history.push({ co2, temp, humidity, vpd, time: now.toISOString() });
-    if(state.history.length > 60) state.history.shift();
+    localHistory.push({co2,temperature:temp,humidity,vpd,recorded_at:now.toISOString()});
+    if(localHistory.length>60) localHistory.shift();
+    if(state.selectedRange===1) updateChartData(localHistory);
  
-    // Only update chart from local if range is 1H
-    if(state.selectedRange === 1) updateChart(state.history.map(r=>({...r, recorded_at:r.time})));
- 
-    render();
+    renderMetrics();
+    renderAlert();
+    renderDecisions();
     loadCameras();
  
-  } catch(e) {
-    el.timestamp.textContent = 'Error: ' + e.message;
-  }
+    document.getElementById('timestamp').textContent = now.toLocaleString('en-SA',{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+ 
+  } catch(e){document.getElementById('timestamp').textContent='Error: '+e.message}
 }
  
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // CAMERAS
-// ═══════════════════════════════════════════════
-function setupCamera(img, url) {
-  const feed = img.closest('.camera-feed');
-  if(!url) { img.removeAttribute('src'); feed.classList.remove('has-feed'); return; }
-  img.onload  = () => feed.classList.add('has-feed');
-  img.onerror = () => feed.classList.remove('has-feed');
-  img.src = url;
+// ═══════════════════════════════════════════
+function loadCameras(){
+  ['cam1','cam2'].forEach((id,i)=>{
+    const url=i===0?CAM1_URL:CAM2_URL;
+    if(!url)return;
+    const img=document.getElementById(id);
+    img.src=url+'&t='+Date.now();
+    img.onload=()=>img.closest('.camera-feed').classList.add('has-feed');
+  });
 }
  
-function loadCameras() {
-  if(CAM1_URL) { el.cam1.src = CAM1_URL + '&t=' + Date.now(); el.cam1.onload=()=>el.cam1.closest('.camera-feed').classList.add('has-feed'); }
-  if(CAM2_URL) { el.cam2.src = CAM2_URL + '&t=' + Date.now(); el.cam2.onload=()=>el.cam2.closest('.camera-feed').classList.add('has-feed'); }
-}
- 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // FULLSCREEN
-// ═══════════════════════════════════════════════
-document.querySelectorAll('[data-fullscreen]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const target = document.getElementById(btn.dataset.fullscreen);
-    if(!target) return;
-    (target.requestFullscreen || target.webkitRequestFullscreen || target.msRequestFullscreen).call(target);
+// ═══════════════════════════════════════════
+document.querySelectorAll('[data-fullscreen]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const t=document.getElementById(btn.dataset.fullscreen);
+    if(!t)return;
+    (t.requestFullscreen||t.webkitRequestFullscreen||t.msRequestFullscreen).call(t);
   });
 });
  
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // REFRESH BUTTON
-// ═══════════════════════════════════════════════
-document.getElementById('refreshBtn').addEventListener('click', fetchData);
+// ═══════════════════════════════════════════
+document.getElementById('refreshBtn').addEventListener('click',fetchData);
  
-// ═══════════════════════════════════════════════
-// PUBLIC API (from ChatGPT integration notes)
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
+// SPIN ANIMATION
+// ═══════════════════════════════════════════
+const style=document.createElement('style');
+style.textContent='@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+document.head.appendChild(style);
+ 
+// ═══════════════════════════════════════════
+// PUBLIC API
+// ═══════════════════════════════════════════
 window.AlWaseelFarmDashboard = {
   state,
   refreshData: fetchData,
-  setCameraUrl(id, url) { setupCamera(document.getElementById(id), url); },
-  setCameraUrls(urls) { if(urls.cam1) setupCamera(el.cam1, urls.cam1); if(urls.cam2) setupCamera(el.cam2, urls.cam2); },
-  setData(data) {
-    const t=Number(data.temp??state.current.temp), h=Number(data.humidity??state.current.humidity);
-    state.current = { co2:Number(data.co2??state.current.co2), temp:t, humidity:h, vpd:Number(data.vpd??calculateVpd(t,h)) };
-    render();
-  },
-  setHistory(history) {
-    if(!Array.isArray(history)) return;
-    state.history = history.slice(-60).map(r=>({ co2:Number(r.co2), temp:Number(r.temp), humidity:Number(r.humidity), vpd:Number(r.vpd??calculateVpd(Number(r.temp),Number(r.humidity))), time:r.time||new Date().toISOString() }));
-    if(state.history.length>0) state.current=state.history[state.history.length-1];
-    updateChart(state.history.map(r=>({...r, recorded_at:r.time})));
-    render();
-  },
-  simulateAlert() { state.current={co2:1320,temp:41.2,humidity:38,vpd:3.7}; render(); }
+  setCameraUrl(id,url){const img=document.getElementById(id);if(img){const f=img.closest('.camera-feed');img.onload=()=>f.classList.add('has-feed');img.onerror=()=>f.classList.remove('has-feed');img.src=url;}},
+  setCameraUrls(urls){if(urls.cam1)this.setCameraUrl('cam1',urls.cam1);if(urls.cam2)this.setCameraUrl('cam2',urls.cam2);},
+  setData(data){const t=Number(data.temp??state.current.temp),h=Number(data.humidity??state.current.humidity);state.current={co2:Number(data.co2??state.current.co2),temp:t,humidity:h,vpd:Number(data.vpd??calcVPD(t,h))};renderMetrics();renderAlert();renderDecisions();},
+  simulateAlert(){state.current={co2:450,temp:28,humidity:42,vpd:1.8};renderMetrics();renderAlert();renderDecisions();}
 };
  
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // INIT
-// ═══════════════════════════════════════════════
-setInterval(updateTimestamp, 1000);
-setInterval(fetchData, 60000);
-setInterval(loadCameras, 5000);
-updateTimestamp();
+// ═══════════════════════════════════════════
+window._activeChart = trendChart;
+setInterval(()=>document.getElementById('timestamp').textContent=new Date().toLocaleString('en-SA',{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}),1000);
+setInterval(fetchData,   60000);
+setInterval(loadCameras,  5000);
 fetchData();
 loadHistory(1);
 </script>
