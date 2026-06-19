@@ -1,11 +1,5 @@
 {
   "version": 2,
-  "crons": [
-    {
-      "path": "/api/cron-save",
-    "schedule": "0 * * * *"
-    }
-  ],
   "routes": [
     { "src": "/api/devices",      "dest": "/api/devices.js" },
     { "src": "/api/status",       "dest": "/api/status.js" },
@@ -15,4 +9,3 @@
     { "src": "/(.*)",             "dest": "/index.html" }
   ]
 }
-
