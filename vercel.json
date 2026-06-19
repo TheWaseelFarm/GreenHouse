@@ -1,17 +1,8 @@
 {
   "version": 2,
   "routes": [
-    {
-      "src": "/api/devices",
-      "dest": "/api/devices.js"
-    },
-    {
-      "src": "/api/status",
-      "dest": "/api/status.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    { "src": "/api/devices", "dest": "/api/devices.js" },
+    { "src": "/api/status", "dest": "/api/status.js" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
