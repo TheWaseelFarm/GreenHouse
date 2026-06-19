@@ -6,7 +6,6 @@
   <title>Al-Waseel Farm — Greenhouse Monitor</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0a0f0a; font-family: 'Segoe UI', sans-serif; color: #c0d0c0; padding: 20px; }
@@ -169,26 +168,9 @@
   </div>
 
   <script>
-    const TOKEN = 'bb77244495df0915c2aea5ada08e47e41b000169bd7f9196a42ea36ab3d487ef3c4ca8510e11d557ffe77e275ab8f2da';
-    const SECRET = 'eae4e50e44663c4e99091f26f781774d';
-    const PROXY = 'https://corsproxy.io/?';
-
     const history = { labels: [], co2: [], temp: [], hum: [] };
     const MAX = 30;
     let trendChart;
-
-    function getHeaders() {
-      const nonce = Math.random().toString(36).substring(2);
-      const timestamp = Date.now().toString();
-      const sign = CryptoJS.HmacSHA256(TOKEN + timestamp + nonce, SECRET).toString(CryptoJS.enc.Base64);
-      return {
-        'Authorization': TOKEN,
-        'sign': sign,
-        'nonce': nonce,
-        't': timestamp,
-        'Content-Type': 'application/json'
-      };
-    }
 
     function classify(metric, val) {
       if (metric === 'vpd')  return val <= 1.6 ? 'good' : val <= 3.0 ? 'warn' : 'danger';
@@ -199,10 +181,10 @@
     }
 
     const statusLabels = {
-      vpd:  { good: 'Optimal — مثالي',  warn: 'High — مرتفع',     danger: 'Critical — حرج جداً' },
-      temp: { good: 'Normal — طبيعية',  warn: 'High — مرتفعة',    danger: 'Danger — خطرة' },
-      hum:  { good: 'Optimal — مثالي',  warn: 'Low — منخفضة',     danger: 'Critical — حرجة' },
-      co2:  { good: 'Normal — طبيعي',   warn: 'High — مرتفع',     danger: 'Danger — خطر' }
+      vpd:  { good: 'Optimal — مثالي',  warn: 'High — مرتفع',  danger: 'Critical — حرج جداً' },
+      temp: { good: 'Normal — طبيعية',  warn: 'High — مرتفعة', danger: 'Danger — خطرة' },
+      hum:  { good: 'Optimal — مثالي',  warn: 'Low — منخفضة',  danger: 'Critical — حرجة' },
+      co2:  { good: 'Normal — طبيعي',   warn: 'High — مرتفع',  danger: 'Danger — خطر' }
     };
 
     function colorHex(cls) {
@@ -213,7 +195,7 @@
       const cls = classify(metric, val);
       const cardCls = metric === 'co2' ? 'neutral' : cls;
       document.getElementById('card-' + id).className = 'metric-card ' + cardCls;
-      document.getElementById('val-'  + id).className = 'metric-value ' + cardCls;
+      document.getElementById('val-' + id).className = 'metric-value ' + cardCls;
       document.getElementById('status-' + id).className = 'metric-status ' + cardCls;
       document.getElementById('status-' + id).textContent = statusLabels[metric][cls];
     }
@@ -281,15 +263,11 @@
 
     async function fetchData() {
       try {
-        // Fetch device list via CORS proxy
-        const devRes = await fetch(
-          PROXY + encodeURIComponent('https://api.switch-bot.com/v1.1/devices'),
-          { headers: getHeaders() }
-        );
+        // Call our Vercel serverless function — no CORS issues
+        const devRes = await fetch('/api/devices');
         const devData = await devRes.json();
         const devices = devData.body?.deviceList || [];
 
-        // Find the CO2 meter
         const co2Device = devices.find(d =>
           d.deviceType?.toLowerCase().includes('co2') ||
           d.deviceName?.toLowerCase().includes('co2') ||
@@ -300,11 +278,8 @@
           return;
         }
 
-        // Fetch device status via CORS proxy
-        const statusRes = await fetch(
-          PROXY + encodeURIComponent(`https://api.switch-bot.com/v1.1/devices/${co2Device.deviceId}/status`),
-          { headers: getHeaders() }
-        );
+        // Get live status from our serverless function
+        const statusRes = await fetch(`/api/status?id=${co2Device.deviceId}`);
         const statusData = await statusRes.json();
         const b = statusData.body;
 
@@ -313,7 +288,6 @@
         const hum  = parseFloat(b.humidity ?? 0);
         const vpd  = calcVPD(temp, hum);
 
-        // Update metric cards
         document.getElementById('val-co2').textContent  = co2;
         document.getElementById('val-temp').textContent = temp.toFixed(1);
         document.getElementById('val-hum').textContent  = hum;
@@ -326,12 +300,10 @@
         updateVPDGauge(vpd);
         showAlert(vpd, temp);
 
-        // Update timestamp
         const now = new Date();
         document.getElementById('timeLabel').textContent =
           now.toLocaleTimeString('ar-SA') + ' — ' + now.toLocaleDateString('en-GB');
 
-        // Update trend chart
         const label = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
         history.labels.push(label);
         history.co2.push(co2);
