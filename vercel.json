@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/cron-save",
-      "schedule": "*/5 * * * *"
+    "schedule": "0 * * * *"
     }
   ],
   "routes": [
