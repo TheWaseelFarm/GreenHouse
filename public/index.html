@@ -1,5 +1,3 @@
-
-Index · HTML
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -366,9 +364,29 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
   .foot-item{border-right:none;border-bottom:1px solid var(--border);min-height:74px}
   .foot-item:last-child{justify-content:flex-start;border-bottom:none}
 }
+ 
+/* LOADING BAR */
+#loadingBar{
+  position:fixed;top:0;left:0;right:0;height:3px;z-index:9999;
+  background:linear-gradient(90deg,var(--deep),var(--gold),var(--sage));
+  background-size:200% 100%;
+  transform:scaleX(0);transform-origin:left;
+  transition:transform 0.3s ease;
+  animation:none;
+}
+#loadingBar.running{
+  transform:scaleX(0.85);
+  animation:loadpulse 1.2s ease-in-out infinite alternate;
+}
+#loadingBar.done{transform:scaleX(1);transition:transform 0.2s ease;}
+@keyframes loadpulse{
+  from{background-position:0% 0%}
+  to{background-position:100% 0%}
+}
 </style>
 </head>
 <body>
+<div id="loadingBar"></div>
 <div class="app">
  
 <aside class="sidebar">
@@ -660,7 +678,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
     </div>
     <div class="chart-box"><canvas id="trendChart"></canvas></div>
     <div class="chart-note" id="chartNote">All metrics · Temperature & Humidity show weighted average (70% canopy + 30% wet wall)</div>
-    <button class="refresh-btn" id="refreshBtn" style="margin-top:14px" onclick="this.style.opacity='0.6';fetchLive().finally(()=>this.style.opacity='1')">
+    <button class="refresh-btn" id="refreshBtn" style="margin-top:14px" id="refreshBtn" onclick="doRefresh(this)">
       <i class="ti ti-refresh"></i>Refresh — تحديث
     </button>
   </section>
@@ -796,16 +814,35 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
 </div>
  
 <script>
+ 
+ 
+// SIDEBAR NAV
+ 
+function showLoadingBar(){
+  const b=document.getElementById('loadingBar');
+  b.classList.remove('done');
+  b.classList.add('running');
+}
+function hideLoadingBar(){
+  const b=document.getElementById('loadingBar');
+  b.classList.remove('running');
+  b.classList.add('done');
+  setTimeout(()=>{b.classList.remove('done');b.style.transform='';},400);
+}
 function sbClick(el){
   document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
   el.classList.add('active');
 }
  
- 
-// SIDEBAR NAV
-function sbClick(el){
-  document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
-  el.classList.add('active');
+function doRefresh(btn){
+  btn.disabled=true;
+  btn.style.opacity='0.6';
+  showLoadingBar();
+  fetchLive().finally(()=>{
+    btn.disabled=false;
+    btn.style.opacity='1';
+    hideLoadingBar();
+  });
 }
  
  
@@ -979,12 +1016,7 @@ function checkAlerts(){
     if(now-S.lastAlert>30*60*1000){
       S.lastAlert=now;
       const t=new Date().toLocaleTimeString('ar-SA');
-      const msg=encodeURIComponent(`⚠️ تنبيه مزرعة الوصيل
-${t}
-${issuesAr.join('
-')}
-${actions.join(' · ')}
-https://green-house-iota.vercel.app`);
+      const msg=encodeURIComponent('⚠️ تنبيه مزرعة الوصيل\n'+t+'\n'+issuesAr.join('\n')+'\n'+actions.join(' · ')+'\nhttps://green-house-iota.vercel.app');
       window.open(`https://wa.me/${WHATSAPP}?text=${msg}`,'_blank');
     }
   } else $('alertBanner').classList.remove('active');
@@ -1119,10 +1151,21 @@ async function fetchLive(){
     const devRes=await fetch('/api/devices');
     const devData=await devRes.json();
     const devices=devData.body?.deviceList||[];
-    const device=devices.find(d=>d.deviceType?.toLowerCase().includes('co2')||d.deviceName?.toLowerCase().includes('co2')||d.deviceName?.toLowerCase().includes('meter pro'));
+    // Try strict match first, then any meter/sensor
+let device=devices.find(d=>{
+  const t=(d.deviceType||'').toLowerCase();
+  const n=(d.deviceName||'').toLowerCase();
+  return t.includes('co2')||n.includes('co2')||n.includes('meter pro')||t.includes('meter');
+});
+// Fallback: first non-hub, non-leak device
+if(!device) device=devices.find(d=>{
+  const t=(d.deviceType||'').toLowerCase();
+  return !t.includes('hub')&&!t.includes('leak')&&!t.includes('remote');
+});
+console.log('Using device:', device?.deviceName, '/', device?.deviceType, '| All devices:', devices.map(d=>d.deviceName+'('+d.deviceType+')'));
     if(!device){
-      $('statusEn').textContent='Error: CO2 sensor not found in device list';
-      console.error('Devices found:', devices.map(d=>d.deviceName+'/'+d.deviceType));
+      const names=devices.map(d=>d.deviceName||d.deviceType).join(', ');
+      $('statusEn').textContent='No sensor found. Devices: '+(names||'none');
       return;
     }
     const sRes=await fetch(`/api/status?id=${device.deviceId}`);
@@ -1159,54 +1202,6 @@ window.AlWaseelFarmDashboard={
   setData(data){const t=Number(data.temp??S.live.temp),h=Number(data.humidity??S.live.hum);S.live.co2=Number(data.co2??S.live.co2);S.live.temp=t;S.live.hum=h;S.live.vpd=Number(data.vpd??calcVPD(t,h));renderMetrics();renderDecisions();checkAlerts();},
   simulateAlert(){S.live={co2:420,temp:27,hum:45,vpd:1.8,hubTemp:24,hubHum:52,w1:false,w2:false,tempW:25.5,humW:47.4};renderMetrics();renderZones();checkAlerts();renderDecisions();}
 };
- 
-// SIDEBAR NAVIGATION
-const SB_TARGETS = {
-  overview:    null,                    // top of page
-  environment: '.metrics-grid',
-  climate:     '.climate-grid',
-  alerts:      '#alertBanner',
-  cameras:     '.cam-panel',
-  reports:     null,
-  settings:    null
-};
- 
-function sbNav(key) {
-  // Update active state
-  document.querySelectorAll('.sb-item').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('sbn-' + key);
-  if (btn) btn.classList.add('active');
- 
-  // Scroll to section
-  const target = SB_TARGETS[key];
-  if (!target) {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    return;
-  }
-  const el = document.querySelector(target);
-  if (el) {
-    const offset = el.getBoundingClientRect().top + window.scrollY - 80;
-    window.scrollTo({ top: offset, behavior: 'smooth' });
-  }
- 
-  // Special actions
-  if (key === 'cameras') {
-    const cam = document.querySelector('.cam-panel');
-    if (cam) { cam.style.outline = '2px solid var(--gold)'; setTimeout(() => cam.style.outline = '', 1500); }
-  }
-  if (key === 'alerts') {
-    const ab = document.getElementById('alertBanner');
-    if (ab && !ab.classList.contains('active')) {
-      // Flash the status bar to show alert state
-      const dot = document.getElementById('sDot');
-      if (dot) { dot.style.background = 'var(--warn)'; setTimeout(() => renderMetrics(), 1200); }
-    }
-  }
-  if (key === 'climate') {
-    // Switch to all metrics view and scroll to chart
-    setActiveMetric('all');
-  }
-}
  
 buildChart(); setActiveMetric('all'); fetchLive(); loadHistory(1);
 setInterval(fetchLive,60000); setInterval(loadCams,5000);
