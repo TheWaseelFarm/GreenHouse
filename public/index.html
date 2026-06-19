@@ -437,12 +437,12 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
   <div class="status-row">
     <div class="status-item">
       <i class="ti ti-clock"></i>
-      <span id="timestamp">--:--:--<small>Last updated</small></span>
+      <span id="timestamp">--:--:--</span><small style="display:block;color:var(--muted);font-size:.65rem;font-weight:700">Last updated</small>
     </div>
     <div class="tb-divider"></div>
     <div class="status-item">
       <i class="ti ti-calendar"></i>
-      <span id="dateStamp">--<small>Date</small></span>
+      <span id="dateStamp">--</span><small style="display:block;color:var(--muted);font-size:.65rem;font-weight:700">Date</small>
     </div>
     <div class="tb-divider"></div>
     <div class="status-item">
@@ -1200,19 +1200,14 @@ function sbNav(key) {
  
 buildChart(); setActiveMetric('all'); fetchLive(); loadHistory(1);
 setInterval(fetchLive,60000); setInterval(loadCams,5000);
-setInterval(()=>{const n=new Date();$('timestamp').textContent=n.toLocaleString('en-SA',{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});},1000);
+setInterval(()=>{
+  const n=new Date();
+  const ts=$('timestamp'); if(ts) ts.textContent=n.toLocaleTimeString('en-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const ds=$('dateStamp'); if(ds) ds.textContent=n.toLocaleDateString('en-SA',{day:'2-digit',month:'short',year:'numeric'});
+},1000);
   
  
  
- 
-// Timestamp update (GPT style)
-function updateTimestamp(){
-  const now=new Date();
-  const ts=$('timestamp');
-  if(ts){ts.childNodes[0].nodeValue=now.toLocaleTimeString('en-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
-  const ds=$('dateStamp');
-  if(ds){ds.childNodes[0].nodeValue=now.toLocaleDateString('en-SA',{day:'2-digit',month:'short',year:'numeric'});}
-}
  
 // Camera fullscreen
 document.querySelectorAll('[data-fullscreen]').forEach(btn=>{
@@ -1223,18 +1218,9 @@ document.querySelectorAll('[data-fullscreen]').forEach(btn=>{
   });
 });
  
-setInterval(updateTimestamp,1000);
-updateTimestamp();
  
  
-// Timestamp
-function updateTimestamp(){
-  const now=new Date();
-  const ts=document.getElementById('timestamp');
-  if(ts) ts.childNodes[0].nodeValue=now.toLocaleTimeString('en-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const ds=document.getElementById('dateStamp');
-  if(ds) ds.childNodes[0].nodeValue=now.toLocaleDateString('en-SA',{day:'2-digit',month:'short',year:'numeric'});
-}
+// Timestamp handled by setInterval above
 // Fullscreen
 document.querySelectorAll('[data-fullscreen]').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -1243,8 +1229,6 @@ document.querySelectorAll('[data-fullscreen]').forEach(btn=>{
     (t.requestFullscreen||t.webkitRequestFullscreen||t.msRequestFullscreen).call(t);
   });
 });
-setInterval(updateTimestamp,1000);
-updateTimestamp();
 </script>
 </body>
 </html>
