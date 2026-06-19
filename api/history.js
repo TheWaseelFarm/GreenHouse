@@ -11,10 +11,12 @@ module.exports = async (req, res) => {
   const hours = req.query.hours || 24;
   const limit = req.query.limit || 500;
 
-  const path = `/rest/v1/readings?select=*&recorded_at=gte.${new Date(Date.now() - hours*3600000).toISOString()}&order=recorded_at.asc&limit=${limit}`;
+  const since = new Date(Date.now() - hours * 3600000).toISOString();
+
+  const path = `/rest/v1/readings?select=recorded_at,co2,temperature,humidity,vpd,hub_temp,hub_humidity,water_leak_1,water_leak_2&recorded_at=gte.${since}&order=recorded_at.asc&limit=${limit}`;
 
   const options = {
-    hostname: SUPABASE_URL.replace('https://',''),
+    hostname: SUPABASE_URL.replace('https://', ''),
     path,
     method: 'GET',
     headers: {
