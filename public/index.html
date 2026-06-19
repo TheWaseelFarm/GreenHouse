@@ -443,8 +443,8 @@ const trendChart = new Chart(document.getElementById('trendChart'), {
     },
     scales:{
       x:{grid:{color:'rgba(255,255,255,0.045)',drawBorder:false},ticks:{color:'#7f8da3',maxTicksLimit:10,font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-      y: {position:'left',  title:{display:true,text:'CO₂ ppm',color:'#7f8da3'},grid:{color:'rgba(255,255,255,0.055)',drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-      y1:{position:'right', title:{display:true,text:'°C / %',color:'#7f8da3'}, grid:{drawOnChartArea:false,drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
+      y: {position:'left', min:300, max:1800, title:{display:true,text:'CO₂ ppm',color:'#7f8da3'},grid:{color:'rgba(255,255,255,0.055)',drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
+      y1:{position:'right', min:0, max:100, title:{display:true,text:'°C / %',color:'#7f8da3'}, grid:{drawOnChartArea:false,drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
       y2:{position:'right', display:false, min:0, max:4}
     }
   }
@@ -523,8 +523,8 @@ function rebuildChart() {
       },
       scales:{
         x:{grid:{color:'rgba(255,255,255,0.045)',drawBorder:false},ticks:{color:'#7f8da3',maxTicksLimit:10,font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-        y: {position:'left',  title:{display:true,text:'CO₂ ppm',color:'#7f8da3'},grid:{color:'rgba(255,255,255,0.055)',drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-        y1:{position:'right', title:{display:true,text:'°C / %',color:'#7f8da3'}, grid:{drawOnChartArea:false,drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
+        y: {position:'left', min:300, max:1800, title:{display:true,text:'CO₂ ppm',color:'#7f8da3'},grid:{color:'rgba(255,255,255,0.055)',drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
+        y1:{position:'right', min:0, max:100, title:{display:true,text:'°C / %',color:'#7f8da3'}, grid:{drawOnChartArea:false,drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
         y2:{position:'right', display:false, min:0, max:4}
       }
     }
