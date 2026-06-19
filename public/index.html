@@ -1,3 +1,5 @@
+
+Index · HTML
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -658,7 +660,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
     </div>
     <div class="chart-box"><canvas id="trendChart"></canvas></div>
     <div class="chart-note" id="chartNote">All metrics · Temperature & Humidity show weighted average (70% canopy + 30% wet wall)</div>
-    <button class="refresh-btn" id="refreshBtn" style="margin-top:14px" onclick="fetchLive()">
+    <button class="refresh-btn" id="refreshBtn" style="margin-top:14px" onclick="this.style.opacity='0.6';fetchLive().finally(()=>this.style.opacity='1')">
       <i class="ti ti-refresh"></i>Refresh — تحديث
     </button>
   </section>
@@ -1118,7 +1120,11 @@ async function fetchLive(){
     const devData=await devRes.json();
     const devices=devData.body?.deviceList||[];
     const device=devices.find(d=>d.deviceType?.toLowerCase().includes('co2')||d.deviceName?.toLowerCase().includes('co2')||d.deviceName?.toLowerCase().includes('meter pro'));
-    if(!device) return;
+    if(!device){
+      $('statusEn').textContent='Error: CO2 sensor not found in device list';
+      console.error('Devices found:', devices.map(d=>d.deviceName+'/'+d.deviceType));
+      return;
+    }
     const sRes=await fetch(`/api/status?id=${device.deviceId}`);
     const b=(await sRes.json()).body;
     const co2=b.CO2??b.co2??0, temp=parseFloat(b.temperature??0), hum=parseFloat(b.humidity??0), vpd=calcVPD(temp,hum);
@@ -1135,8 +1141,12 @@ async function fetchLive(){
     if(S.localHist.length>72) S.localHist.shift();
     if(S.range===1) applyChart(S.localHist.map(r=>({...r,recorded_at:r.time})));
     renderMetrics(); renderZones(); checkAlerts(); renderDecisions();
-    $('timestamp').textContent=now.toLocaleString('en-SA',{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  }catch(e){$('timestamp').textContent='Error: '+e.message;}
+    // timestamp updated by clock interval
+  }catch(e){
+    console.error('fetchLive error:', e);
+    const sEn=$('statusEn');
+    if(sEn) sEn.textContent='Connection error: '+e.message;
+  }
 }
  
 function loadCams(){['cam1','cam2'].forEach((id,i)=>{const url=i===0?CAM1_URL:CAM2_URL;if(!url)return;const img=$( id);img.src=url+'&t='+Date.now();img.onload=()=>img.closest('.camera-feed').classList.add('has-feed');});}
