@@ -8,9 +8,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --bg: #05070a;
-      --panel: rgba(14, 20, 29, 0.88);
+      --panel: rgba(14,20,29,0.88);
       --border: rgba(255,255,255,0.08);
       --border-strong: rgba(255,255,255,0.16);
       --text: #f5f7fb;
@@ -19,964 +20,928 @@
       --good: #20f584;
       --warning: #ff9f1c;
       --danger: #ff3b4f;
+      --blue: #45b9ff;
+      --purple: #a78bfa;
       --good-soft: rgba(32,245,132,0.14);
       --warning-soft: rgba(255,159,28,0.16);
       --danger-soft: rgba(255,59,79,0.16);
-      --blue: #45b9ff;
-      --purple: #a78bfa;
-      --radius-xl: 28px;
-      --radius-lg: 22px;
-      --radius-md: 16px;
+      --radius: 22px;
       --shadow: 0 24px 80px rgba(0,0,0,0.46);
-      --mono: "SFMono-Regular","Cascadia Code","Roboto Mono",Consolas,monospace;
-      --sans: Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      --mono: "SFMono-Regular","Cascadia Code",Consolas,monospace;
+      --sans: Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
       --arabic: "Segoe UI",Tahoma,Arial,sans-serif;
     }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;min-height:100vh;font-family:var(--sans);color:var(--text);
-      background:
-        radial-gradient(circle at 14% 8%,rgba(32,245,132,0.13),transparent 32%),
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--sans); color: var(--text); min-height: 100vh; overflow-x: hidden;
+      background: radial-gradient(circle at 14% 8%,rgba(32,245,132,0.13),transparent 32%),
         radial-gradient(circle at 84% 0%,rgba(69,185,255,0.11),transparent 34%),
         radial-gradient(circle at 50% 100%,rgba(167,139,250,0.08),transparent 38%),
         linear-gradient(180deg,#05070a 0%,#070b10 48%,#030405 100%);
-      overflow-x:hidden;
     }
-    body::before{
-      content:"";position:fixed;inset:0;pointer-events:none;
-      background-image:linear-gradient(rgba(255,255,255,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px);
-      background-size:42px 42px;
-      mask-image:linear-gradient(to bottom,rgba(0,0,0,0.76),transparent 82%);
+    body::before {
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background-image: linear-gradient(rgba(255,255,255,0.022) 1px,transparent 1px), linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom,rgba(0,0,0,0.76),transparent 82%);
     }
-    .dashboard{position:relative;z-index:1;width:min(1500px,calc(100% - 34px));margin:0 auto;padding:28px 0 34px}
  
-    /* HEADER */
-    .header{display:flex;justify-content:space-between;align-items:flex-start;gap:22px;margin-bottom:18px}
-    .brand h1{margin:0;font-size:clamp(1.35rem,2.8vw,2.7rem);line-height:1;font-weight:950;letter-spacing:-0.065em}
-    .brand .subtitle{margin-top:8px;color:var(--muted-strong);font-family:var(--arabic);font-size:clamp(0.98rem,1.5vw,1.18rem);direction:rtl;text-align:left}
-    .live-panel{min-width:230px;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-    .live-status{display:inline-flex;align-items:center;justify-content:flex-end;gap:10px;padding:11px 15px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,0.04);backdrop-filter:blur(18px);color:var(--muted-strong);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap}
-    .pulse{width:11px;height:11px;border-radius:50%;background:var(--good);position:relative;box-shadow:0 0 20px var(--good)}
-    .pulse::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:1px solid var(--good);animation:pulse 1.55s ease-out infinite;opacity:0.72}
-    @keyframes pulse{from{transform:scale(0.55);opacity:0.85}to{transform:scale(1.9);opacity:0}}
-    .timestamp{font-family:var(--mono);color:var(--muted);font-size:0.8rem}
+    .wrap { position:relative; z-index:1; width:min(1500px,calc(100% - 32px)); margin:0 auto; padding:24px 0 60px; }
  
-    /* ALERT */
-    .alert-banner{display:none;align-items:center;justify-content:space-between;gap:18px;margin:18px 0;padding:15px 18px;border-radius:var(--radius-md);border:1px solid rgba(255,59,79,0.4);background:linear-gradient(90deg,rgba(255,59,79,0.2),rgba(255,159,28,0.09)),rgba(24,9,14,0.84);box-shadow:0 18px 70px rgba(255,59,79,0.13)}
-    .alert-banner.active{display:flex}
-    .alert-main{display:flex;align-items:center;gap:12px;min-width:0}
-    .alert-icon{width:34px;height:34px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;background:var(--danger-soft);color:var(--danger);font-size:1.2rem}
-    .alert-title{font-weight:900;letter-spacing:-0.04em}
-    .alert-ar{margin-top:3px;font-family:var(--arabic);color:#ffd6dc;direction:rtl;text-align:left;font-size:0.92rem}
-    .alert-detail{font-family:var(--mono);color:#ffd6dc;font-size:0.86rem;text-align:right}
+    /* ── HEADER ── */
+    .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+    .brand h1 { font-size:clamp(1.2rem,2.5vw,2rem); font-weight:950; letter-spacing:-0.06em; }
+    .brand .sub { font-family:var(--arabic); color:var(--muted); font-size:0.9rem; margin-top:4px; direction:rtl; text-align:left; }
+    .header-right { display:flex; align-items:center; gap:14px; }
+    .live-pill { display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border:1px solid var(--border); border-radius:999px; background:rgba(255,255,255,0.04); font-size:0.75rem; color:var(--muted-strong); letter-spacing:0.1em; text-transform:uppercase; }
+    .pulse { width:10px; height:10px; border-radius:50%; background:var(--good); box-shadow:0 0 16px var(--good); position:relative; }
+    .pulse::after { content:""; position:absolute; inset:-7px; border-radius:50%; border:1px solid var(--good); animation:pulse 1.6s ease-out infinite; }
+    @keyframes pulse { from{transform:scale(0.5);opacity:0.8} to{transform:scale(1.8);opacity:0} }
+    #clock { font-family:var(--mono); color:var(--muted); font-size:0.78rem; }
+    .refresh-btn { display:inline-flex; align-items:center; gap:7px; border:1px solid rgba(32,245,132,0.3); border-radius:999px; padding:9px 16px; color:var(--text); background:rgba(32,245,132,0.08); font-size:0.8rem; font-weight:700; cursor:pointer; transition:all 0.2s; }
+    .refresh-btn:hover { background:rgba(32,245,132,0.15); border-color:rgba(32,245,132,0.6); }
  
-    /* DECISION BOX */
-    .decision-box{margin-bottom:18px;padding:20px;border-radius:var(--radius-lg);border:1px solid rgba(69,185,255,0.25);background:linear-gradient(135deg,rgba(69,185,255,0.08),rgba(167,139,250,0.06)),var(--panel)}
-    .decision-header{font-size:0.78rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:8px}
-    .decision-item{display:flex;gap:12px;padding:12px;border-radius:12px;margin-bottom:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);align-items:flex-start}
-    .decision-item:last-child{margin-bottom:0}
-    .priority-tag{font-size:0.65rem;font-weight:900;padding:3px 9px;border-radius:999px;white-space:nowrap;margin-top:2px}
-    .p-high{background:var(--danger-soft);color:var(--danger)}
-    .p-medium{background:var(--warning-soft);color:var(--warning)}
-    .p-low{background:var(--good-soft);color:var(--good)}
-    .decision-text{font-size:0.88rem;line-height:1.5;color:var(--muted-strong)}
-    .decision-ar{font-size:0.82rem;color:var(--muted);direction:rtl;margin-top:4px;font-family:var(--arabic);line-height:1.5}
+    /* ── STATUS BAR ── */
+    .status-bar { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.03); margin-bottom:20px; backdrop-filter:blur(20px); }
+    .status-summary { display:flex; align-items:center; gap:12px; font-size:0.85rem; }
+    .status-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .status-text { color:var(--muted-strong); }
+    .status-text strong { color:var(--text); }
+    .status-ar { font-family:var(--arabic); color:var(--muted); font-size:0.8rem; direction:rtl; }
+    .last-saved { font-family:var(--mono); font-size:0.7rem; color:var(--muted); }
  
-    /* METRICS */
-    .metrics-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:18px}
-    .metric-card{
-      position:relative;overflow:hidden;min-height:210px;padding:20px;
-      border-radius:var(--radius-lg);border:1px solid var(--border);border-top:3px solid var(--status);
-      background:radial-gradient(circle at 88% 0%,var(--status-soft),transparent 38%),linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.022)),var(--panel);
-      box-shadow:var(--shadow);transition:border-color 240ms,border-top-color 240ms,background 240ms,transform 180ms;
-      cursor:pointer;
+    /* ── ALERT ── */
+    .alert-box { display:none; align-items:center; gap:14px; padding:13px 18px; border-radius:14px; border:1px solid rgba(255,59,79,0.4); background:linear-gradient(90deg,rgba(255,59,79,0.18),rgba(255,159,28,0.08)),rgba(20,5,8,0.9); margin-bottom:18px; }
+    .alert-box.on { display:flex; }
+    .alert-icon { font-size:1.3rem; color:var(--danger); flex-shrink:0; }
+    .alert-title { font-weight:900; font-size:0.9rem; color:var(--danger); }
+    .alert-body { font-size:0.78rem; color:#ffd6dc; margin-top:2px; }
+    .alert-ar { font-family:var(--arabic); font-size:0.75rem; color:#ffb0bc; direction:rtl; margin-top:2px; }
+ 
+    /* ── ZONE 1: METRIC CARDS ── */
+    .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
+    .mc {
+      position:relative; overflow:hidden; padding:20px; border-radius:var(--radius);
+      border:1px solid var(--border); border-top:3px solid var(--c);
+      background:radial-gradient(circle at 88% 0%,var(--cs),transparent 40%),
+        linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.018)),var(--panel);
+      box-shadow:var(--shadow); cursor:pointer; transition:transform 0.18s,border-color 0.2s,box-shadow 0.2s;
     }
-    .metric-card:hover{transform:translateY(-2px);border-color:var(--border-strong)}
-    .metric-card.selected{border-color:var(--status)!important;box-shadow:0 0 0 2px var(--status),var(--shadow)}
-    .metric-card.good{--status:var(--good);--status-soft:var(--good-soft)}
-    .metric-card.warning{--status:var(--warning);--status-soft:var(--warning-soft)}
-    .metric-card.danger{--status:var(--danger);--status-soft:var(--danger-soft)}
-    .metric-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:24px}
-    .metric-label-en{color:var(--muted-strong);font-size:0.8rem;font-weight:850;letter-spacing:0.13em;text-transform:uppercase}
-    .metric-label-ar{margin-top:6px;font-family:var(--arabic);color:var(--muted);font-size:0.95rem;direction:rtl;text-align:left}
-    .status-badge{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;background:var(--status-soft);border:1px solid rgba(255,255,255,0.08);color:var(--status);font-family:var(--mono);font-size:0.68rem;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;transition:color 240ms,background 240ms}
-    .status-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--status);box-shadow:0 0 16px var(--status);transition:background 240ms,box-shadow 240ms}
-    .metric-value{display:flex;align-items:baseline;gap:9px;font-family:var(--mono);letter-spacing:-0.08em}
-    .metric-number{font-size:clamp(3.1rem,5vw,5.65rem);line-height:0.86;font-weight:950}
-    .metric-unit{color:var(--status);font-size:1.12rem;font-weight:900;letter-spacing:-0.02em;transition:color 240ms}
-    .metric-foot{margin-top:14px;display:flex;justify-content:space-between;color:var(--muted);font-family:var(--mono);font-size:0.72rem}
-    .metric-range{margin-top:8px;height:3px;border-radius:2px;background:rgba(255,255,255,0.08);overflow:hidden}
-    .metric-range-fill{height:100%;border-radius:2px;background:var(--status);transition:width 0.6s ease,background 0.4s}
-    .select-hint{margin-top:8px;font-size:0.65rem;color:var(--muted);opacity:0;transition:opacity 0.2s}
-    .metric-card:hover .select-hint{opacity:1}
-    .metric-card.selected .select-hint{opacity:1;color:var(--status)}
+    .mc:hover { transform:translateY(-3px); border-color:var(--border-strong); }
+    .mc.active { border-color:var(--c)!important; box-shadow:0 0 0 2px var(--c),var(--shadow); }
+    .mc.good   { --c:var(--good);    --cs:var(--good-soft); }
+    .mc.warn   { --c:var(--warning); --cs:var(--warning-soft); }
+    .mc.danger { --c:var(--danger);  --cs:var(--danger-soft); }
+    .mc.neutral{ --c:var(--blue);    --cs:rgba(69,185,255,0.12); }
+    .mc-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
+    .mc-labels .en { font-size:0.72rem; font-weight:850; letter-spacing:0.13em; text-transform:uppercase; color:var(--muted-strong); }
+    .mc-labels .ar { font-family:var(--arabic); font-size:0.82rem; color:var(--muted); margin-top:4px; direction:rtl; text-align:left; }
+    .mc-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border-radius:999px; background:var(--cs); border:1px solid rgba(255,255,255,0.08); color:var(--c); font-family:var(--mono); font-size:0.62rem; font-weight:900; letter-spacing:0.07em; text-transform:uppercase; white-space:nowrap; }
+    .mc-badge::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--c); box-shadow:0 0 10px var(--c); }
+    .mc-val { display:flex; align-items:baseline; gap:7px; font-family:var(--mono); letter-spacing:-0.08em; }
+    .mc-num { font-size:clamp(2.8rem,4.5vw,5rem); line-height:0.88; font-weight:950; }
+    .mc-unit { color:var(--c); font-size:1rem; font-weight:900; }
+    .mc-foot { margin-top:12px; display:flex; justify-content:space-between; color:var(--muted); font-family:var(--mono); font-size:0.68rem; }
+    .mc-bar { margin-top:8px; height:3px; border-radius:2px; background:rgba(255,255,255,0.08); overflow:hidden; }
+    .mc-bar-fill { height:100%; border-radius:2px; background:var(--c); transition:width 0.6s ease; }
+    .mc-hint { font-size:0.62rem; color:var(--muted); margin-top:6px; opacity:0; transition:opacity 0.2s; }
+    .mc:hover .mc-hint, .mc.active .mc-hint { opacity:1; }
+    .mc.active .mc-hint { color:var(--c); }
  
-    /* CHART */
-    .middle-row{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px}
-    .panel{border:1px solid var(--border);border-radius:var(--radius-xl);background:linear-gradient(180deg,rgba(255,255,255,0.052),rgba(255,255,255,0.022)),var(--panel);box-shadow:var(--shadow);backdrop-filter:blur(24px)}
-    .chart-panel{min-height:460px;padding:20px}
-    .panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}
-    .panel-title{margin:0;font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.14em;font-weight:900}
-    .panel-title-ar{margin-top:5px;font-family:var(--arabic);color:var(--muted-strong);direction:rtl;text-align:left;font-size:0.96rem}
+    /* ── ZONE 2: CLIMATE INTELLIGENCE ── */
+    .climate-panel { border:1px solid var(--border); border-radius:28px; background:linear-gradient(180deg,rgba(255,255,255,0.052),rgba(255,255,255,0.018)),var(--panel); box-shadow:var(--shadow); backdrop-filter:blur(24px); padding:22px; margin-bottom:18px; }
+    .cp-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+    .cp-title { font-size:0.75rem; font-weight:900; letter-spacing:0.13em; text-transform:uppercase; color:var(--muted); }
+    .cp-title-ar { font-family:var(--arabic); color:var(--muted-strong); font-size:0.9rem; margin-top:4px; direction:rtl; text-align:left; }
+    .cp-controls { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+    .time-btns { display:flex; gap:5px; }
+    .tbtn { padding:5px 12px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--muted); font-size:0.7rem; font-weight:700; cursor:pointer; transition:all 0.2s; font-family:var(--mono); }
+    .tbtn:hover { border-color:var(--border-strong); color:var(--text); }
+    .tbtn.active { background:var(--good); border-color:var(--good); color:#05070a; }
+    .metric-btns { display:flex; gap:5px; flex-wrap:wrap; }
+    .mbtn { display:flex; align-items:center; gap:5px; padding:5px 11px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--muted); font-size:0.7rem; font-weight:700; cursor:pointer; transition:all 0.2s; font-family:var(--mono); }
+    .mbtn .dot { width:7px; height:7px; border-radius:50%; }
+    .mbtn.active { border-color:var(--border-strong); color:var(--text); background:rgba(255,255,255,0.08); }
+    .cp-grid { display:grid; grid-template-columns:2fr 1fr; gap:16px; }
+    .chart-shell { height:300px; border-radius:18px; padding:14px; border:1px solid var(--border); background:linear-gradient(180deg,rgba(255,255,255,0.028),rgba(255,255,255,0.01)),rgba(0,0,0,0.18); }
+    .compare-toggle { display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:10px; border:1px solid rgba(69,185,255,0.25); background:rgba(69,185,255,0.07); cursor:pointer; font-size:0.75rem; color:var(--blue); font-weight:700; transition:all 0.2s; margin-top:8px; }
+    .compare-toggle.on { background:rgba(69,185,255,0.15); border-color:rgba(69,185,255,0.5); }
+    .toggle-dot { width:28px; height:16px; border-radius:999px; background:rgba(255,255,255,0.15); position:relative; transition:background 0.2s; }
+    .compare-toggle.on .toggle-dot { background:var(--blue); }
+    .toggle-dot::after { content:""; position:absolute; top:2px; left:2px; width:12px; height:12px; border-radius:50%; background:white; transition:transform 0.2s; }
+    .compare-toggle.on .toggle-dot::after { transform:translateX(12px); }
  
-    /* TIME RANGE */
-    .time-range{display:flex;gap:6px}
-    .range-btn{padding:5px 13px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--muted);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:var(--mono)}
-    .range-btn:hover{border-color:var(--border-strong);color:var(--text)}
-    .range-btn.active{background:var(--good);border-color:var(--good);color:#05070a}
+    /* VPD GAUGE PANEL */
+    .gauge-panel { display:flex; flex-direction:column; justify-content:space-between; }
+    .vpd-big { font-family:var(--mono); font-size:clamp(4rem,7vw,7rem); font-weight:950; letter-spacing:-0.12em; line-height:0.85; transition:color 0.3s; }
+    .vpd-unit { font-family:var(--mono); color:var(--muted-strong); font-weight:900; margin-top:4px; }
+    .gauge-track { height:14px; border-radius:999px; background:linear-gradient(90deg,var(--good) 0%,var(--good) 28%,var(--warning) 55%,var(--danger) 100%); position:relative; margin:16px 0 8px; box-shadow:inset 0 0 0 1px rgba(255,255,255,0.15); }
+    .gauge-track::before { content:""; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(180deg,rgba(255,255,255,0.3),transparent); opacity:0.4; }
+    .gauge-thumb { position:absolute; top:50%; transform:translate(-50%,-50%); width:26px; height:26px; border-radius:50%; border:3px solid #fff; background:#05070a; box-shadow:0 0 0 4px rgba(255,255,255,0.1),0 0 24px var(--good); transition:left 0.4s ease,box-shadow 0.3s; }
+    .gauge-scale { display:flex; justify-content:space-between; font-family:var(--mono); font-size:0.68rem; color:var(--muted); }
+    .gauge-zones { display:flex; gap:5px; margin-top:12px; flex-wrap:wrap; }
+    .gz { padding:3px 8px; border-radius:999px; font-size:0.62rem; font-weight:700; }
+    .vpd-advice-box { padding:14px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.03); margin-top:14px; }
+    .adv-en { font-size:0.82rem; color:var(--muted-strong); line-height:1.5; }
+    .adv-ar { font-family:var(--arabic); font-size:0.78rem; color:var(--text); line-height:1.6; direction:rtl; text-align:right; margin-top:8px; }
  
-    /* METRIC SELECTOR */
-    .metric-selector{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-    .metric-btn{padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--muted);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:var(--mono);display:flex;align-items:center;gap:6px}
-    .metric-btn .dot{width:7px;height:7px;border-radius:50%}
-    .metric-btn.active{border-color:var(--border-strong);color:var(--text);background:rgba(255,255,255,0.08)}
+    /* ── ZONE 3: ALERTS & ACTIONS ── */
+    .zone3 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
  
-    .chart-shell{height:320px;border-radius:22px;padding:16px;border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,0.032),rgba(255,255,255,0.012)),rgba(0,0,0,0.18)}
+    /* Greenhouse zones */
+    .zones-panel { border:1px solid var(--border); border-radius:var(--radius); background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015)),var(--panel); box-shadow:var(--shadow); padding:18px; }
+    .zones-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+    .zone-card { border-radius:14px; padding:14px; border:1px solid; }
+    .zone-card.wet { background:rgba(69,185,255,0.06); border-color:rgba(69,185,255,0.2); }
+    .zone-card.canopy { background:rgba(32,245,132,0.06); border-color:rgba(32,245,132,0.2); }
+    .zone-name { font-size:0.65rem; font-weight:900; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:4px; }
+    .zone-name.wet { color:var(--blue); }
+    .zone-name.canopy { color:var(--good); }
+    .zone-name-ar { font-family:var(--arabic); font-size:0.72rem; color:var(--muted); direction:rtl; margin-bottom:10px; }
+    .zone-readings { display:flex; justify-content:space-between; }
+    .zone-val { text-align:center; }
+    .zone-num { font-family:var(--mono); font-size:1.8rem; font-weight:950; letter-spacing:-0.06em; }
+    .zone-lbl { font-size:0.62rem; color:var(--muted); margin-top:2px; }
+    .cooling-row { display:flex; align-items:center; justify-content:space-between; margin-top:10px; padding:10px 14px; border-radius:10px; background:rgba(167,139,250,0.08); border:1px solid rgba(167,139,250,0.2); }
+    .cooling-label { font-size:0.72rem; color:var(--purple); font-weight:700; }
+    .cooling-label-ar { font-family:var(--arabic); font-size:0.68rem; color:var(--muted); direction:rtl; }
+    .cooling-val { font-family:var(--mono); font-size:1.6rem; font-weight:950; letter-spacing:-0.06em; color:var(--purple); }
+    .water-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+    .water-card { padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:rgba(255,255,255,0.03); display:flex; justify-content:space-between; align-items:center; }
+    .water-lbl { font-size:0.68rem; color:var(--muted); }
+    .water-status { font-size:0.72rem; font-weight:700; }
  
-    /* GAUGE */
-    .gauge-panel{padding:20px;display:flex;flex-direction:column;justify-content:space-between;min-height:460px;--vpd-color:var(--good);--vpd-position:22%}
-    .vpd-display{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:18px 0 24px}
-    .vpd-number{font-family:var(--mono);font-size:clamp(4.8rem,9vw,8.2rem);line-height:0.82;font-weight:950;letter-spacing:-0.12em;color:var(--vpd-color);text-shadow:0 0 42px rgba(32,245,132,0.18);transition:color 240ms,text-shadow 240ms}
-    .vpd-unit{margin-bottom:10px;font-family:var(--mono);color:var(--muted-strong);font-weight:900;letter-spacing:-0.03em}
-    .gauge-bar{position:relative;height:18px;border-radius:999px;background:linear-gradient(90deg,var(--good) 0%,var(--good) 28%,var(--warning) 55%,var(--danger) 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18)}
-    .gauge-bar::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,0.34),transparent);opacity:0.48}
-    .gauge-indicator{position:absolute;top:50%;left:var(--vpd-position);transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;border:3px solid #fff;background:#05070a;box-shadow:0 0 0 5px rgba(255,255,255,0.11),0 0 32px var(--vpd-color);transition:left 320ms ease,box-shadow 240ms}
-    .gauge-scale{display:flex;justify-content:space-between;margin-top:13px;color:var(--muted);font-family:var(--mono);font-size:0.76rem}
-    .vpd-zones{display:flex;gap:6px;margin-top:14px;font-size:0.68rem}
-    .vpd-zone{padding:3px 9px;border-radius:999px;font-weight:700}
-    .vpd-advice{margin-top:18px;padding:17px;border-radius:18px;border:1px solid var(--border);background:rgba(255,255,255,0.036)}
-    .advice-en{color:var(--muted-strong);line-height:1.45;font-size:0.95rem}
-    .advice-ar{margin-top:10px;font-family:var(--arabic);color:var(--text);line-height:1.6;direction:rtl;text-align:right;font-size:1rem}
+    /* Decisions panel */
+    .decisions-panel { border:1px solid rgba(69,185,255,0.2); border-radius:var(--radius); background:linear-gradient(135deg,rgba(69,185,255,0.07),rgba(167,139,250,0.05)),var(--panel); box-shadow:var(--shadow); padding:18px; }
+    .dec-header { font-size:0.7rem; font-weight:900; letter-spacing:0.12em; text-transform:uppercase; color:var(--blue); margin-bottom:14px; display:flex; align-items:center; gap:7px; }
+    .dec-item { display:flex; gap:10px; padding:11px; border-radius:11px; margin-bottom:8px; background:rgba(255,255,255,0.04); border:1px solid var(--border); align-items:flex-start; }
+    .dec-item:last-child { margin-bottom:0; }
+    .ptag { font-size:0.6rem; font-weight:900; padding:3px 8px; border-radius:999px; white-space:nowrap; margin-top:1px; flex-shrink:0; }
+    .ph { background:var(--danger-soft); color:var(--danger); }
+    .pm { background:var(--warning-soft); color:var(--warning); }
+    .pl { background:var(--good-soft); color:var(--good); }
+    .dec-en { font-size:0.82rem; line-height:1.5; color:var(--muted-strong); }
+    .dec-ar { font-family:var(--arabic); font-size:0.75rem; color:var(--muted); direction:rtl; margin-top:3px; line-height:1.5; }
  
-    /* CAMERAS */
-    .camera-section{padding:20px;margin-bottom:18px}
-    .camera-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-    .camera-card{overflow:hidden;border-radius:24px;border:1px solid var(--border);background:rgba(0,0,0,0.22)}
-    .camera-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.035)}
-    .camera-label{display:flex;align-items:center;gap:9px;color:var(--muted-strong);font-size:0.92rem;font-weight:800;letter-spacing:-0.02em}
-    .camera-label i{color:var(--good);font-size:1.15rem}
-    .fullscreen-btn{width:36px;height:36px;border:1px solid var(--border);border-radius:12px;display:grid;place-items:center;color:var(--text);background:rgba(255,255,255,0.04);cursor:pointer;transition:transform 160ms,border-color 160ms,background 160ms}
-    .fullscreen-btn:hover{transform:translateY(-1px);border-color:rgba(32,245,132,0.42);background:rgba(32,245,132,0.08)}
-    .camera-feed{position:relative;aspect-ratio:16/9;background:radial-gradient(circle at 50% 40%,rgba(32,245,132,0.08),transparent 34%),linear-gradient(145deg,#080d13,#030507);overflow:hidden}
-    .camera-feed img.stream-image{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity 240ms}
-    .camera-feed.has-feed img.stream-image{opacity:1}
-    .camera-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--muted);transition:opacity 240ms,visibility 240ms}
-    .camera-feed.has-feed .camera-placeholder{opacity:0;visibility:hidden}
-    .placeholder-inner{position:relative;z-index:1;display:grid;justify-items:center;gap:10px}
-    .placeholder-inner i{font-size:2.8rem;color:rgba(174,185,201,0.72)}
-    .placeholder-title{color:var(--muted-strong);font-weight:850;letter-spacing:-0.03em}
-    .placeholder-subtitle{font-family:var(--arabic);direction:rtl;color:var(--muted);font-size:0.92rem}
+    /* ── CAMERAS ── */
+    .cam-section { border:1px solid var(--border); border-radius:28px; background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015)),var(--panel); box-shadow:var(--shadow); padding:20px; margin-bottom:18px; }
+    .cam-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+    .cam-card { overflow:hidden; border-radius:18px; border:1px solid var(--border); background:rgba(0,0,0,0.2); }
+    .cam-top { display:flex; justify-content:space-between; align-items:center; padding:11px 14px; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.03); }
+    .cam-lbl { display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:800; color:var(--muted-strong); }
+    .cam-lbl i { color:var(--good); }
+    .fs-btn { width:32px; height:32px; border:1px solid var(--border); border-radius:10px; display:grid; place-items:center; color:var(--text); background:rgba(255,255,255,0.04); cursor:pointer; transition:all 0.15s; }
+    .fs-btn:hover { border-color:rgba(32,245,132,0.4); background:rgba(32,245,132,0.08); }
+    .cam-feed { position:relative; aspect-ratio:16/9; background:radial-gradient(circle at 50% 40%,rgba(32,245,132,0.07),transparent 35%),linear-gradient(145deg,#080d13,#030507); overflow:hidden; }
+    .cam-feed img { width:100%; height:100%; object-fit:cover; display:block; opacity:0; transition:opacity 0.3s; }
+    .cam-feed.has-feed img { opacity:1; }
+    .cam-placeholder { position:absolute; inset:0; display:grid; place-items:center; text-align:center; color:var(--muted); }
+    .cam-feed.has-feed .cam-placeholder { display:none; }
+    .cam-placeholder i { font-size:2.4rem; margin-bottom:8px; display:block; color:rgba(174,185,201,0.5); }
+    .cam-placeholder p { font-size:0.78rem; }
+    .cam-placeholder small { font-family:var(--arabic); direction:rtl; font-size:0.72rem; color:var(--muted); display:block; margin-top:4px; }
  
-    /* FOOTER */
-    .footer{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:18px 20px;border-radius:22px}
-    .footer-brand{font-family:var(--arabic);direction:rtl;color:var(--text);font-weight:850}
-    .footer-right{display:flex;align-items:center;gap:12px}
-    .refresh-btn{display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(32,245,132,0.34);border-radius:999px;padding:12px 17px;color:var(--text);background:linear-gradient(145deg,rgba(32,245,132,0.16),rgba(69,185,255,0.07)),rgba(5,7,10,0.9);font-weight:900;cursor:pointer;box-shadow:0 0 34px rgba(32,245,132,0.12);transition:transform 160ms,border-color 160ms}
-    .refresh-btn:hover{transform:translateY(-1px);border-color:rgba(32,245,132,0.72)}
-    .last-saved{font-family:var(--mono);font-size:0.72rem;color:var(--muted)}
+    /* ── FOOTER ── */
+    .footer { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-radius:18px; border:1px solid var(--border); background:rgba(255,255,255,0.02); }
+    .footer-brand { font-family:var(--arabic); direction:rtl; color:var(--muted-strong); font-size:0.85rem; font-weight:850; }
+    .footer-meta { font-family:var(--mono); font-size:0.68rem; color:var(--muted); }
  
-    /* LOADING SPINNER */
-    .chart-loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-family:var(--mono);font-size:0.82rem;gap:8px}
+    /* SECTION LABEL */
+    .sec-label { font-size:0.7rem; font-weight:900; letter-spacing:0.13em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; display:flex; align-items:center; gap:7px; }
+    .sec-label-ar { font-family:var(--arabic); font-size:0.8rem; color:var(--muted-strong); margin-bottom:12px; direction:rtl; }
  
-    @media(max-width:1180px){.metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.middle-row{grid-template-columns:1fr}.gauge-panel{min-height:auto}}
-    @media(max-width:780px){.dashboard{width:min(100% - 22px,1500px);padding-top:18px}.header{flex-direction:column}.live-panel{min-width:0;width:100%;align-items:flex-end}.metrics-grid,.camera-grid{grid-template-columns:1fr}.chart-panel,.gauge-panel,.camera-section{border-radius:22px;padding:15px}.chart-shell{height:260px}.footer{flex-direction:column;align-items:flex-start}.refresh-btn{width:100%;justify-content:center}.time-range{flex-wrap:wrap}}
+    /* SPIN */
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+ 
+    /* RESPONSIVE */
+    @media(max-width:1100px) { .metrics{grid-template-columns:repeat(2,1fr)} .cp-grid{grid-template-columns:1fr} .zone3{grid-template-columns:1fr} }
+    @media(max-width:640px)  { .metrics{grid-template-columns:1fr 1fr} .cam-grid{grid-template-columns:1fr} .wrap{padding:16px 0 40px} .time-btns,.metric-btns{flex-wrap:wrap} }
   </style>
 </head>
 <body>
-<main class="dashboard">
+<div class="wrap">
  
-  <header class="header">
+  <!-- HEADER -->
+  <div class="header">
     <div class="brand">
-      <div>
-        <h1>Al-Waseel Farm — Greenhouse Monitor</h1>
-        <div class="subtitle">مزرعة الوصيل — لوحة مراقبة البيئة المحمية</div>
-      </div>
+      <h1>Al-Waseel Farm — Greenhouse</h1>
+      <div class="sub">مزرعة الوصيل — مراقبة البيئة المحمية · فراولة مميزة</div>
     </div>
-    <div class="live-panel">
-      <div class="live-status"><span class="pulse"></span><span>Live Monitoring</span></div>
-      <div id="timestamp" class="timestamp">--:--:--</div>
+    <div class="header-right">
+      <div class="live-pill"><span class="pulse"></span> Live Monitoring</div>
+      <div id="clock">--:--:--</div>
+      <button class="refresh-btn" onclick="fetchLive()"><i class="ti ti-refresh"></i> Refresh</button>
     </div>
-  </header>
- 
-  <section id="alertBanner" class="alert-banner" aria-live="polite">
-    <div class="alert-main">
-      <div class="alert-icon"><i class="ti ti-alert-triangle"></i></div>
-      <div>
-        <div class="alert-title" id="alertTitle">Critical Environment Alert</div>
-        <div class="alert-ar" id="alertAr">تنبيه حرج في بيئة المحمية</div>
-      </div>
-    </div>
-    <div id="alertDetail" class="alert-detail"></div>
-  </section>
- 
-  <div class="decision-box" id="decisionBox" style="display:none">
-    <div class="decision-header"><i class="ti ti-brain"></i> Strawberry Farm Recommendations — توصيات مزرعة الفراولة</div>
-    <div id="decisionItems"></div>
   </div>
  
-  <section class="metrics-grid">
-    <article id="co2Card" class="metric-card good" onclick="selectMetric('co2')" title="Click to chart CO₂">
-      <div class="metric-top">
-        <div><div class="metric-label-en">CO₂</div><div class="metric-label-ar">ثاني أكسيد الكربون</div></div>
-        <div id="co2Status" class="status-badge">—</div>
-      </div>
-      <div class="metric-value"><span id="co2Value" class="metric-number">—</span><span class="metric-unit">ppm</span></div>
-      <div class="metric-foot"><span>Optimal</span><span>800–1200 ppm</span></div>
-      <div class="metric-range"><div class="metric-range-fill" id="co2Fill" style="width:0%"></div></div>
-      <div class="select-hint">↑ Click to isolate in chart</div>
-    </article>
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-summary">
+      <div class="status-dot" id="statusDot" style="background:var(--muted)"></div>
+      <div class="status-text" id="statusText">Loading farm status...</div>
+      <div class="status-ar" id="statusAr">جاري تحميل حالة المزرعة...</div>
+    </div>
+    <div class="last-saved" id="lastSaved">—</div>
+  </div>
  
-    <article id="tempCard" class="metric-card good" onclick="selectMetric('temp')" title="Click to chart Temperature">
-      <div class="metric-top">
-        <div><div class="metric-label-en">Temperature</div><div class="metric-label-ar">درجة الحرارة</div></div>
-        <div id="tempStatus" class="status-badge">—</div>
-      </div>
-      <div class="metric-value"><span id="tempValue" class="metric-number">—</span><span class="metric-unit">°C</span></div>
-      <div class="metric-foot"><span>Optimal</span><span>16–22 °C</span></div>
-      <div class="metric-range"><div class="metric-range-fill" id="tempFill" style="width:0%"></div></div>
-      <div class="select-hint">↑ Click to isolate in chart</div>
-    </article>
+  <!-- ALERT -->
+  <div class="alert-box" id="alertBox">
+    <i class="ti ti-alert-triangle alert-icon"></i>
+    <div>
+      <div class="alert-title" id="alertTitle">Alert</div>
+      <div class="alert-body" id="alertBody"></div>
+      <div class="alert-ar" id="alertAr"></div>
+    </div>
+  </div>
  
-    <article id="humidityCard" class="metric-card good" onclick="selectMetric('humidity')" title="Click to chart Humidity">
-      <div class="metric-top">
-        <div><div class="metric-label-en">Humidity</div><div class="metric-label-ar">الرطوبة النسبية</div></div>
-        <div id="humidityStatus" class="status-badge">—</div>
+  <!-- ZONE 1: METRICS -->
+  <div class="sec-label"><i class="ti ti-chart-bar"></i> Live Readings — القراءات المباشرة</div>
+  <div class="sec-label-ar">انقر على أي مؤشر لعرض تفاصيله في الرسم البياني</div>
+  <div class="metrics" id="metricsGrid">
+    <div class="mc neutral active" id="mc-co2" onclick="selectMetric('co2')">
+      <div class="mc-top">
+        <div class="mc-labels"><div class="en">CO₂</div><div class="ar">ثاني أكسيد الكربون</div></div>
+        <div class="mc-badge" id="b-co2">—</div>
       </div>
-      <div class="metric-value"><span id="humidityValue" class="metric-number">—</span><span class="metric-unit">%</span></div>
-      <div class="metric-foot"><span>Optimal</span><span>60–75 %</span></div>
-      <div class="metric-range"><div class="metric-range-fill" id="humFill" style="width:0%"></div></div>
-      <div class="select-hint">↑ Click to isolate in chart</div>
-    </article>
+      <div class="mc-val"><span class="mc-num" id="v-co2">—</span><span class="mc-unit">ppm</span></div>
+      <div class="mc-foot"><span>Optimal</span><span>800–1200 ppm</span></div>
+      <div class="mc-bar"><div class="mc-bar-fill" id="bar-co2" style="width:0%"></div></div>
+      <div class="mc-hint">↑ Showing in chart</div>
+    </div>
+    <div class="mc good" id="mc-temp" onclick="selectMetric('temp')">
+      <div class="mc-top">
+        <div class="mc-labels"><div class="en">Temperature</div><div class="ar">درجة الحرارة</div></div>
+        <div class="mc-badge" id="b-temp">—</div>
+      </div>
+      <div class="mc-val"><span class="mc-num" id="v-temp">—</span><span class="mc-unit">°C</span></div>
+      <div class="mc-foot"><span>Optimal</span><span>16–22 °C</span></div>
+      <div class="mc-bar"><div class="mc-bar-fill" id="bar-temp" style="width:0%"></div></div>
+      <div class="mc-hint">↑ Click to compare zones</div>
+    </div>
+    <div class="mc good" id="mc-hum" onclick="selectMetric('hum')">
+      <div class="mc-top">
+        <div class="mc-labels"><div class="en">Humidity</div><div class="ar">الرطوبة النسبية</div></div>
+        <div class="mc-badge" id="b-hum">—</div>
+      </div>
+      <div class="mc-val"><span class="mc-num" id="v-hum">—</span><span class="mc-unit">%</span></div>
+      <div class="mc-foot"><span>Optimal</span><span>60–75 %</span></div>
+      <div class="mc-bar"><div class="mc-bar-fill" id="bar-hum" style="width:0%"></div></div>
+      <div class="mc-hint">↑ Click to compare zones</div>
+    </div>
+    <div class="mc good" id="mc-vpd" onclick="selectMetric('vpd')">
+      <div class="mc-top">
+        <div class="mc-labels"><div class="en">VPD</div><div class="ar">عجز ضغط البخار</div></div>
+        <div class="mc-badge" id="b-vpd">—</div>
+      </div>
+      <div class="mc-val"><span class="mc-num" id="v-vpd">—</span><span class="mc-unit">kPa</span></div>
+      <div class="mc-foot"><span>Optimal</span><span>0.5–1.0 kPa</span></div>
+      <div class="mc-bar"><div class="mc-bar-fill" id="bar-vpd" style="width:0%"></div></div>
+      <div class="mc-hint">↑ Click to isolate</div>
+    </div>
+  </div>
  
-    <article id="vpdCard" class="metric-card good" onclick="selectMetric('vpd')" title="Click to chart VPD">
-      <div class="metric-top">
-        <div><div class="metric-label-en">VPD</div><div class="metric-label-ar">عجز ضغط البخار</div></div>
-        <div id="vpdStatus" class="status-badge">—</div>
-      </div>
-      <div class="metric-value"><span id="vpdValue" class="metric-number">—</span><span class="metric-unit">kPa</span></div>
-      <div class="metric-foot"><span>Optimal</span><span>0.5–1.0 kPa</span></div>
-      <div class="metric-range"><div class="metric-range-fill" id="vpdFill" style="width:0%"></div></div>
-      <div class="select-hint">↑ Click to isolate in chart</div>
-    </article>
-  </section>
- 
-  <section class="middle-row">
-    <section class="panel chart-panel">
-      <div class="panel-head">
-        <div>
-          <h2 class="panel-title" id="chartTitle">All Metrics</h2>
-          <div class="panel-title-ar" id="chartTitleAr">جميع المؤشرات</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-          <div class="time-range">
-            <button class="range-btn active" onclick="setRange(1)"   id="btn-1h">1H</button>
-            <button class="range-btn"        onclick="setRange(6)"   id="btn-6h">6H</button>
-            <button class="range-btn"        onclick="setRange(24)"  id="btn-24h">24H</button>
-            <button class="range-btn"        onclick="setRange(168)" id="btn-7d">7D</button>
-          </div>
-        </div>
-      </div>
-      <div class="metric-selector">
-        <button class="metric-btn active" onclick="selectMetric('all')"      id="btn-all"><span class="dot" style="background:#aeb9c9"></span>All</button>
-        <button class="metric-btn"        onclick="selectMetric('co2')"      id="btn-co2"><span class="dot" style="background:#20f584"></span>CO₂</button>
-        <button class="metric-btn"        onclick="selectMetric('temp')"     id="btn-temp"><span class="dot" style="background:#45b9ff"></span>Temp</button>
-        <button class="metric-btn"        onclick="selectMetric('humidity')" id="btn-humidity"><span class="dot" style="background:#a78bfa"></span>Humidity</button>
-        <button class="metric-btn"        onclick="selectMetric('vpd')"      id="btn-vpd"><span class="dot" style="background:#ff9f1c"></span>VPD</button>
-      </div>
-      <div class="chart-shell" id="chartShell">
-        <canvas id="trendChart"></canvas>
-      </div>
-    </section>
- 
-    <aside id="gaugePanel" class="panel gauge-panel">
+  <!-- ZONE 2: CLIMATE INTELLIGENCE -->
+  <div class="sec-label" style="margin-bottom:4px"><i class="ti ti-brain"></i> Climate Intelligence — التحليل المناخي</div>
+  <div class="sec-label-ar">اضغط على المؤشر لتغيير الرسم · فعّل المقارنة لرؤية الفرق بين المناطق</div>
+  <div class="climate-panel">
+    <div class="cp-head">
       <div>
-        <div class="panel-head">
-          <div><h2 class="panel-title">VPD Gauge</h2><div class="panel-title-ar">مؤشر عجز ضغط البخار</div></div>
+        <div class="cp-title" id="chartTitle">CO₂ Trend</div>
+        <div class="cp-title-ar" id="chartTitleAr">اتجاه ثاني أكسيد الكربون</div>
+      </div>
+      <div class="cp-controls">
+        <div class="time-btns">
+          <button class="tbtn active" onclick="setRange(1)"   id="t-1h">1H</button>
+          <button class="tbtn"        onclick="setRange(6)"   id="t-6h">6H</button>
+          <button class="tbtn"        onclick="setRange(24)"  id="t-24h">24H</button>
+          <button class="tbtn"        onclick="setRange(168)" id="t-7d">7D</button>
         </div>
-        <div class="vpd-display">
-          <div id="vpdGaugeNumber" class="vpd-number">—</div>
-          <div class="vpd-unit">kPa</div>
-        </div>
-        <div class="gauge-bar"><div id="gaugeIndicator" class="gauge-indicator"></div></div>
-        <div class="gauge-scale"><span>0</span><span>0.5</span><span>1.0</span><span>1.3</span><span>2.0</span><span>3+</span></div>
-        <div class="vpd-zones">
-          <span class="vpd-zone" style="background:var(--good-soft);color:var(--good)">0.5–1.0 Optimal</span>
-          <span class="vpd-zone" style="background:var(--warning-soft);color:var(--warning)">1.0–1.3 Stress</span>
-          <span class="vpd-zone" style="background:var(--danger-soft);color:var(--danger)">>1.3 Critical</span>
+        <div class="metric-btns">
+          <button class="mbtn" onclick="selectMetric('co2')"  id="mb-co2"><span class="dot" style="background:#20f584"></span>CO₂</button>
+          <button class="mbtn" onclick="selectMetric('temp')" id="mb-temp"><span class="dot" style="background:#45b9ff"></span>Temp</button>
+          <button class="mbtn" onclick="selectMetric('hum')"  id="mb-hum"><span class="dot" style="background:#a78bfa"></span>Humidity</button>
+          <button class="mbtn" onclick="selectMetric('vpd')"  id="mb-vpd"><span class="dot" style="background:#ff9f1c"></span>VPD</button>
+          <button class="mbtn" onclick="selectMetric('all')"  id="mb-all"><span class="dot" style="background:#aeb9c9"></span>All</button>
         </div>
       </div>
-      <div class="vpd-advice">
-        <div id="adviceEn" class="advice-en">Loading sensor data...</div>
-        <div id="adviceAr" class="advice-ar">جاري تحميل بيانات المستشعر...</div>
-      </div>
-    </aside>
-  </section>
- 
-  <!-- GREENHOUSE ZONES + WATER -->
-  <section class="panel" style="padding:20px;margin-bottom:18px">
-    <div class="panel-head">
-      <div><h2 class="panel-title">Greenhouse Zones — مناطق المحمية</h2><div class="panel-title-ar">مقارنة بين منطقة التبريد ومنطقة المحصول</div></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
- 
-      <!-- Zone 1: Wet Wall -->
-      <div style="background:rgba(69,185,255,0.06);border:1px solid rgba(69,185,255,0.2);border-radius:16px;padding:18px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-          <div style="width:8px;height:8px;border-radius:50%;background:#45b9ff"></div>
-          <span style="font-size:0.75rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:#45b9ff">Wet Wall Zone</span>
+    <div class="cp-grid">
+      <div>
+        <div class="chart-shell"><canvas id="mainChart"></canvas></div>
+        <div class="compare-toggle" id="compareToggle" onclick="toggleCompare()" style="display:none">
+          <div class="toggle-dot"></div>
+          <span id="compareLabel">Show wet wall comparison</span>
+          <span style="font-size:0.68rem;color:var(--muted);margin-right:auto;font-family:var(--arabic);direction:rtl">مقارنة منطقة التبريد</span>
         </div>
-        <div style="font-family:var(--arabic);font-size:0.85rem;color:var(--muted);margin-bottom:12px;direction:rtl">منطقة الجدار المبلل</div>
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px">
-          <div>
-            <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">Temperature</div>
-            <div style="font-family:var(--mono);font-size:2.4rem;font-weight:950;letter-spacing:-0.08em;color:#45b9ff" id="hub-temp">—</div>
-            <div style="font-size:0.8rem;color:var(--muted)">°C</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">Humidity</div>
-            <div style="font-family:var(--mono);font-size:2.4rem;font-weight:950;letter-spacing:-0.08em;color:#45b9ff" id="hub-hum">—</div>
-            <div style="font-size:0.8rem;color:var(--muted)">%</div>
-          </div>
-        </div>
-        <div style="font-size:0.72rem;color:var(--muted);padding-top:10px;border-top:1px solid var(--border)">Hub 2 — Near cooling wall</div>
       </div>
- 
-      <!-- Zone 2: Canopy -->
-      <div style="background:rgba(32,245,132,0.06);border:1px solid rgba(32,245,132,0.2);border-radius:16px;padding:18px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--good)"></div>
-          <span style="font-size:0.75rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:var(--good)">Canopy Zone</span>
-        </div>
-        <div style="font-family:var(--arabic);font-size:0.85rem;color:var(--muted);margin-bottom:12px;direction:rtl">منطقة المحصول</div>
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px">
-          <div>
-            <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">Temperature</div>
-            <div style="font-family:var(--mono);font-size:2.4rem;font-weight:950;letter-spacing:-0.08em" id="canopy-temp" style="color:var(--good)">—</div>
-            <div style="font-size:0.8rem;color:var(--muted)">°C</div>
+      <div class="gauge-panel">
+        <div>
+          <div style="font-size:0.68rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">VPD — عجز ضغط البخار</div>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <div class="vpd-big" id="vpdBig">—</div>
+            <div class="vpd-unit">kPa</div>
           </div>
-          <div style="text-align:right">
-            <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">Humidity</div>
-            <div style="font-family:var(--mono);font-size:2.4rem;font-weight:950;letter-spacing:-0.08em" id="canopy-hum" style="color:var(--good)">—</div>
-            <div style="font-size:0.8rem;color:var(--muted)">%</div>
+          <div class="gauge-track"><div class="gauge-thumb" id="gThumb" style="left:0%"></div></div>
+          <div class="gauge-scale"><span>0</span><span>0.5</span><span>1.0</span><span>1.3</span><span>2.0</span><span>3+</span></div>
+          <div class="gauge-zones">
+            <span class="gz" style="background:var(--good-soft);color:var(--good)">0.5–1.0 Optimal</span>
+            <span class="gz" style="background:var(--warning-soft);color:var(--warning)">1.0–1.3 Stress</span>
+            <span class="gz" style="background:var(--danger-soft);color:var(--danger)">>1.3 Critical</span>
           </div>
         </div>
-        <div style="font-size:0.72rem;color:var(--muted);padding-top:10px;border-top:1px solid var(--border)">Meter Pro CO2 — Middle of greenhouse</div>
+        <div class="vpd-advice-box">
+          <div class="adv-en" id="advEn">Loading...</div>
+          <div class="adv-ar" id="advAr">جاري التحميل...</div>
+        </div>
       </div>
+    </div>
+  </div>
  
-      <!-- Zone 3: Cooling Efficiency + Water -->
-      <div style="display:flex;flex-direction:column;gap:12px">
+  <!-- ZONE 3: ALERTS & ACTIONS -->
+  <div class="sec-label" style="margin-bottom:12px"><i class="ti ti-layout-grid"></i> Operations — العمليات</div>
+  <div class="zone3">
  
-        <!-- Cooling Delta -->
-        <div style="background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.2);border-radius:16px;padding:16px;flex:1">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-            <div style="width:8px;height:8px;border-radius:50%;background:var(--purple)"></div>
-            <span style="font-size:0.72rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:var(--purple)">Cooling Efficiency</span>
-          </div>
-          <div style="font-family:var(--arabic);font-size:0.82rem;color:var(--muted);margin-bottom:10px;direction:rtl">كفاءة التبريد</div>
-          <div style="display:flex;align-items:baseline;gap:6px">
-            <div style="font-family:var(--mono);font-size:2.8rem;font-weight:950;letter-spacing:-0.08em;color:var(--purple)" id="cooling-delta">—</div>
-            <div style="font-size:1rem;color:var(--muted)">°C</div>
-          </div>
-          <div style="font-size:0.7rem;color:var(--muted);margin-top:8px" id="cooling-label">Canopy vs wet wall difference</div>
-        </div>
- 
-        <!-- Water Sensors -->
-        <div style="background:rgba(255,59,79,0.04);border:1px solid rgba(255,59,79,0.15);border-radius:16px;padding:16px">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-            <div style="width:8px;height:8px;border-radius:50%;background:var(--good)" id="water-dot"></div>
-            <span style="font-size:0.72rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Water Tank Sensors</span>
-          </div>
-          <div style="font-family:var(--arabic);font-size:0.82rem;color:var(--muted);margin-bottom:10px;direction:rtl">مستشعرات خزان المياه</div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border-radius:8px">
-              <span style="font-size:0.75rem;color:var(--muted)">Sensor 1</span>
-              <span style="font-size:0.75rem;font-weight:700" id="water1-status">—</span>
+    <!-- Greenhouse Zones -->
+    <div class="zones-panel">
+      <div class="sec-label"><i class="ti ti-building-warehouse"></i> Greenhouse Zones — مناطق المحمية</div>
+      <div class="zones-grid">
+        <div class="zone-card wet">
+          <div class="zone-name wet">🌊 Wet Wall Zone</div>
+          <div class="zone-name-ar">منطقة الجدار المبلل</div>
+          <div class="zone-readings">
+            <div class="zone-val">
+              <div class="zone-num" id="hub-t" style="color:var(--blue)">—</div>
+              <div class="zone-lbl">°C Temp</div>
             </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border-radius:8px">
-              <span style="font-size:0.75rem;color:var(--muted)">Sensor 2</span>
-              <span style="font-size:0.75rem;font-weight:700" id="water2-status">—</span>
+            <div class="zone-val">
+              <div class="zone-num" id="hub-h" style="color:var(--blue)">—</div>
+              <div class="zone-lbl">% Humidity</div>
             </div>
           </div>
+          <div style="font-size:0.62rem;color:var(--muted);margin-top:8px">Hub 2 · Near cooling wall</div>
         </div>
- 
+        <div class="zone-card canopy">
+          <div class="zone-name canopy">🌿 Canopy Zone</div>
+          <div class="zone-name-ar">منطقة المحصول</div>
+          <div class="zone-readings">
+            <div class="zone-val">
+              <div class="zone-num" id="can-t" style="color:var(--good)">—</div>
+              <div class="zone-lbl">°C Temp</div>
+            </div>
+            <div class="zone-val">
+              <div class="zone-num" id="can-h" style="color:var(--good)">—</div>
+              <div class="zone-lbl">% Humidity</div>
+            </div>
+          </div>
+          <div style="font-size:0.62rem;color:var(--muted);margin-top:8px">Meter Pro CO2 · Middle zone</div>
+        </div>
+      </div>
+      <div class="cooling-row">
+        <div>
+          <div class="cooling-label">Cooling Efficiency</div>
+          <div class="cooling-label-ar" id="coolingDesc">كفاءة التبريد</div>
+        </div>
+        <div style="text-align:right">
+          <div class="cooling-val" id="coolingDelta">—</div>
+          <div style="font-size:0.62rem;color:var(--muted)">°C difference</div>
+        </div>
+      </div>
+      <div class="water-row">
+        <div class="water-card">
+          <div>
+            <div style="font-size:0.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em">Tank Sensor 1</div>
+            <div style="font-family:var(--arabic);font-size:0.68rem;color:var(--muted);direction:rtl">مستشعر خزان 1</div>
+          </div>
+          <div class="water-status" id="w1">—</div>
+        </div>
+        <div class="water-card">
+          <div>
+            <div style="font-size:0.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em">Tank Sensor 2</div>
+            <div style="font-family:var(--arabic);font-size:0.68rem;color:var(--muted);direction:rtl">مستشعر خزان 2</div>
+          </div>
+          <div class="water-status" id="w2">—</div>
+        </div>
       </div>
     </div>
-  </section>
  
-  <section class="panel camera-section">
-    <div class="panel-head">
-      <div><h2 class="panel-title">Live Cameras — كاميرات مباشرة</h2><div class="panel-title-ar">Reolink Elite Floodlight WiFi</div></div>
+    <!-- Decisions -->
+    <div class="decisions-panel">
+      <div class="dec-header"><i class="ti ti-brain"></i> Farm Recommendations — توصيات المزرعة</div>
+      <div id="decisions"></div>
     </div>
-    <div class="camera-grid">
-      <article class="camera-card">
-        <div class="camera-top">
-          <div class="camera-label"><i class="ti ti-video"></i><span>Camera 1 — كاميرا 1</span></div>
-          <button class="fullscreen-btn" type="button" data-fullscreen="feed1"><i class="ti ti-maximize"></i></button>
-        </div>
-        <div id="feed1" class="camera-feed">
-          <img id="cam1" class="stream-image" src="" alt="Camera 1" />
-          <div class="camera-placeholder"><div class="placeholder-inner"><i class="ti ti-camera"></i><div class="placeholder-title">Stream Loading...</div><div class="placeholder-subtitle">جاري تحميل البث المباشر</div></div></div>
-        </div>
-      </article>
-      <article class="camera-card">
-        <div class="camera-top">
-          <div class="camera-label"><i class="ti ti-video"></i><span>Camera 2 — كاميرا 2</span></div>
-          <button class="fullscreen-btn" type="button" data-fullscreen="feed2"><i class="ti ti-maximize"></i></button>
-        </div>
-        <div id="feed2" class="camera-feed">
-          <img id="cam2" class="stream-image" src="" alt="Camera 2" />
-          <div class="camera-placeholder"><div class="placeholder-inner"><i class="ti ti-camera"></i><div class="placeholder-title">Stream Loading...</div><div class="placeholder-subtitle">جاري تحميل البث المباشر</div></div></div>
-        </div>
-      </article>
-    </div>
-  </section>
  
-  <footer class="panel footer">
-    <div class="footer-brand">مزرعة الوصيل — Diriyah, Riyadh · Premium Strawberry Production</div>
-    <div class="footer-right">
-      <span class="last-saved" id="lastSaved">—</span>
-      <button id="refreshBtn" class="refresh-btn" type="button"><i class="ti ti-refresh"></i><span>Refresh — تحديث</span></button>
-    </div>
-  </footer>
+  </div>
  
-</main>
+  <!-- CAMERAS -->
+  <div class="cam-section">
+    <div class="sec-label"><i class="ti ti-video"></i> Live Cameras — كاميرات مباشرة · Reolink Elite Floodlight WiFi</div>
+    <div class="cam-grid">
+      <div class="cam-card">
+        <div class="cam-top">
+          <div class="cam-lbl"><i class="ti ti-video"></i> Camera 1 — كاميرا 1</div>
+          <button class="fs-btn" onclick="goFS('feed1')"><i class="ti ti-maximize"></i></button>
+        </div>
+        <div id="feed1" class="cam-feed">
+          <img id="cam1" src="" alt="Camera 1">
+          <div class="cam-placeholder"><i class="ti ti-camera"></i><p>Stream Loading...</p><small>جاري تحميل البث</small></div>
+        </div>
+      </div>
+      <div class="cam-card">
+        <div class="cam-top">
+          <div class="cam-lbl"><i class="ti ti-video"></i> Camera 2 — كاميرا 2</div>
+          <button class="fs-btn" onclick="goFS('feed2')"><i class="ti ti-maximize"></i></button>
+        </div>
+        <div id="feed2" class="cam-feed">
+          <img id="cam2" src="" alt="Camera 2">
+          <div class="cam-placeholder"><i class="ti ti-camera"></i><p>Stream Loading...</p><small>جاري تحميل البث</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-brand">مزرعة الوصيل — الدرعية، الرياض · إنتاج فراولة مميز</div>
+    <div class="footer-meta" id="footerMeta">Auto-refresh every 60s · Data saved every 5 min</div>
+  </div>
+ 
+</div>
 <script>
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════
 // CONFIG
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════
 const CAM1_URL = '';
 const CAM2_URL = '';
-const WHATSAPP = '966XXXXXXXXX';
+const WHATSAPP = '966505199611';
+const HUB_ID     = 'FDD0AE072D7C';
+const WATER1_ID  = 'E65584467069';
+const WATER2_ID  = 'E77760186472B';
  
-// ═══════════════════════════════════════════
-// STRAWBERRY THRESHOLDS — Riyadh premium production
-// ═══════════════════════════════════════════
-const THRESHOLDS = {
-  co2:  { goodMin:800,  goodMax:1200, warnMin:600,  warnMax:1500, unit:'ppm',  label:'CO₂',         labelAr:'ثاني أكسيد الكربون' },
-  temp: { goodMin:16,   goodMax:22,   warnMin:14,   warnMax:26,   unit:'°C',   label:'Temperature',  labelAr:'درجة الحرارة' },
-  hum:  { goodMin:60,   goodMax:75,   warnMin:50,   warnMax:85,   unit:'%',    label:'Humidity',     labelAr:'الرطوبة النسبية' },
-  vpd:  { goodMin:0.5,  goodMax:1.0,  warnMin:0,    warnMax:1.3,  unit:'kPa',  label:'VPD',          labelAr:'عجز ضغط البخار' }
+// ═══════════════════════════════════════
+// THRESHOLDS — Premium Strawberry Riyadh
+// ═══════════════════════════════════════
+const T = {
+  co2:  { ok:[800,1200],  warn:[600,1500],  unit:'ppm' },
+  temp: { ok:[16,22],     warn:[14,26],     unit:'°C'  },
+  hum:  { ok:[60,75],     warn:[50,85],     unit:'%'   },
+  vpd:  { ok:[0.5,1.0],   warn:[0,1.3],     unit:'kPa' }
 };
+const ALERT_TEMP = 26, ALERT_VPD = 1.3;
  
-// Alert triggers — strict for premium strawberry
-const ALERT_TEMP = 26;
-const ALERT_VPD  = 1.3;
- 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════════
-const state = {
-  current: { co2: null, temp: null, humidity: null, vpd: null },
-  selectedMetric: 'all',
-  selectedRange: 1,
+// ═══════════════════════════════════════
+const S = {
+  live: { co2:null, temp:null, hum:null, vpd:null, hubTemp:null, hubHum:null, w1:false, w2:false },
+  metric: 'co2',
+  range: 1,
+  compare: false,
   lastAlert: 0,
-  lastSaved: null
+  localHist: [],
+  chart: null
 };
  
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════
 // HELPERS
-// ═══════════════════════════════════════════
-function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+// ═══════════════════════════════════════
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+function calcVPD(t,rh){ return parseFloat((0.6108*Math.exp((17.27*t)/(t+237.3))*(1-rh/100)).toFixed(2)); }
  
-function getStatus(metric, value) {
-  const t = THRESHOLDS[metric];
-  if(!t) return 'good';
-  if(value >= t.goodMin && value <= t.goodMax) return 'good';
-  if(value >= t.warnMin && value <= t.warnMax) return 'warning';
+function getStatus(m, v) {
+  const t = T[m];
+  if(v >= t.ok[0]  && v <= t.ok[1])   return 'good';
+  if(v >= t.warn[0]&& v <= t.warn[1]) return 'warn';
   return 'danger';
 }
  
-function statusText(s){return s==='good'?'Good':s==='warning'?'Warning':'Danger'}
-function statusColor(s){return s==='good'?'var(--good)':s==='warning'?'var(--warning)':'var(--danger)'}
- 
-function setCardStatus(cardId, badgeId, status) {
-  const card  = document.getElementById(cardId);
-  const badge = document.getElementById(badgeId);
-  card.classList.remove('good','warning','danger');
-  card.classList.add(status);
-  badge.textContent = statusText(status);
-}
- 
-function calcVPD(temp, hum) {
-  const svp = 0.6108 * Math.exp((17.27*temp)/(temp+237.3));
-  return Number(clamp(svp*(1-hum/100),0,6.5).toFixed(2));
-}
- 
-function calcRangePercent(metric, value) {
-  const t = THRESHOLDS[metric];
-  if(!t) return 0;
-  const range = t.warnMax - t.warnMin;
-  return Math.min(100, Math.max(0, ((value - t.warnMin) / range) * 100));
-}
- 
-// ═══════════════════════════════════════════
-// CHART
-// ═══════════════════════════════════════════
-const trendChart = new Chart(document.getElementById('trendChart'), {
-  type: 'line',
-  data: {
-    labels: [],
-    datasets: [
-      { label:'CO₂ ppm',        data:[], borderColor:'#20f584', backgroundColor:'rgba(32,245,132,0.08)',  yAxisID:'y',  borderWidth:2.4, tension:0.38, pointRadius:0, pointHoverRadius:4 },
-      { label:'Temperature °C', data:[], borderColor:'#45b9ff', backgroundColor:'rgba(69,185,255,0.08)',  yAxisID:'y1', borderWidth:2.4, tension:0.38, pointRadius:0, pointHoverRadius:4 },
-      { label:'Humidity %',     data:[], borderColor:'#a78bfa', backgroundColor:'rgba(167,139,250,0.08)', yAxisID:'y1', borderWidth:2.4, tension:0.38, pointRadius:0, pointHoverRadius:4 },
-      { label:'VPD kPa',        data:[], borderColor:'#ff9f1c', backgroundColor:'rgba(255,159,28,0.08)',  yAxisID:'y2', borderWidth:2.4, tension:0.38, pointRadius:0, pointHoverRadius:4 }
-    ]
-  },
-  options: {
-    responsive:true, maintainAspectRatio:false,
-    animation:{duration:450,easing:'easeOutQuart'},
-    interaction:{mode:'index',intersect:false},
-    plugins:{
-      legend:{position:'top',align:'end',labels:{color:'#aeb9c9',usePointStyle:true,pointStyle:'circle',boxWidth:8,boxHeight:8,padding:18,font:{family:'SFMono-Regular,Consolas,monospace',size:11,weight:'700'}}},
-      tooltip:{backgroundColor:'rgba(5,7,10,0.92)',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,titleColor:'#f5f7fb',bodyColor:'#aeb9c9',padding:12,displayColors:true}
-    },
-    scales:{
-      x:{grid:{color:'rgba(255,255,255,0.045)',drawBorder:false},ticks:{color:'#7f8da3',maxTicksLimit:10,font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-      y: {position:'left', min:300, max:1800, title:{display:true,text:'CO₂ ppm',color:'#7f8da3'},grid:{color:'rgba(255,255,255,0.055)',drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-      y1:{position:'right', min:0, max:100, title:{display:true,text:'°C / %',color:'#7f8da3'}, grid:{drawOnChartArea:false,drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-      y2:{position:'right', display:false, min:0, max:4}
-    }
-  }
-});
- 
-// ═══════════════════════════════════════════
-// METRIC SELECTOR
-// ═══════════════════════════════════════════
-const metricConfig = {
-  all:      {title:'All Metrics',  titleAr:'جميع المؤشرات',      datasets:[0,1,2,3]},
-  co2:      {title:'CO₂',          titleAr:'ثاني أكسيد الكربون', datasets:[0]},
-  temp:     {title:'Temperature',  titleAr:'درجة الحرارة',        datasets:[1]},
-  humidity: {title:'Humidity',     titleAr:'الرطوبة النسبية',     datasets:[2]},
-  vpd:      {title:'VPD',          titleAr:'عجز ضغط البخار',      datasets:[3]}
+const BADGE = {
+  co2:  { good:'Normal',  warn:'Low',      danger:'Critical' },
+  temp: { good:'Optimal', warn:'Warning',  danger:'Danger'   },
+  hum:  { good:'Optimal', warn:'Low',      danger:'Critical' },
+  vpd:  { good:'Optimal', warn:'Elevated', danger:'Critical' }
 };
  
-function selectMetric(metric) {
-  state.selectedMetric = metric;
-  // Card highlight
-  ['co2','temp','humidity','vpd'].forEach(m => {
-    const c = document.getElementById(m+'Card');
-    if(c) c.classList.toggle('selected', m===metric);
-  });
-  // Metric buttons
-  document.querySelectorAll('.metric-btn').forEach(b => b.classList.remove('active'));
-  const mb = document.getElementById('btn-'+metric);
-  if(mb) mb.classList.add('active');
-  // Chart datasets
-  const cfg = metricConfig[metric]||metricConfig.all;
-  trendChart.data.datasets.forEach((ds,i)=>{ ds.hidden = !cfg.datasets.includes(i); });
-  trendChart.update();
-  document.getElementById('chartTitle').textContent   = cfg.title;
-  document.getElementById('chartTitleAr').textContent = cfg.titleAr;
+function col(s){ return s==='good'?'var(--good)':s==='warn'?'var(--warning)':'var(--danger)'; }
+function mcCls(s){ return s==='good'?'good':s==='warn'?'warn':'danger'; }
+ 
+function rangeBar(m, v) {
+  const t = T[m];
+  return clamp(((v - t.warn[0]) / (t.warn[1] - t.warn[0])) * 100, 0, 100);
 }
  
-// ═══════════════════════════════════════════
-// TIME RANGE — fixed: reload from Supabase on every click
-// ═══════════════════════════════════════════
-function setRange(hours) {
-  state.selectedRange = hours;
-  // Update button states
-  document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
-  const map = {1:'1h',6:'6h',24:'24h',168:'7d'};
-  const rb = document.getElementById('btn-'+map[hours]);
-  if(rb) rb.classList.add('active');
-  // Show loading state
-  const shell = document.getElementById('chartShell');
-  if(shell) shell.innerHTML = '<div class="chart-loading"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Loading history...</div>';
-  // Re-init chart after clearing
-  setTimeout(() => {
-    shell.innerHTML = '<canvas id="trendChart"></canvas>';
-    rebuildChart();
-    loadHistory(hours);
-  }, 100);
-}
- 
-function rebuildChart() {
-  // Recreate chart instance on the new canvas
-  const ctx = document.getElementById('trendChart');
-  if(!ctx) return;
-  const newChart = new Chart(ctx, {
-    type:'line',
-    data:{labels:[],datasets:[
-      {label:'CO₂ ppm',        data:[],borderColor:'#20f584',backgroundColor:'rgba(32,245,132,0.08)', yAxisID:'y',  borderWidth:2.4,tension:0.38,pointRadius:0,pointHoverRadius:4},
-      {label:'Temperature °C', data:[],borderColor:'#45b9ff',backgroundColor:'rgba(69,185,255,0.08)', yAxisID:'y1', borderWidth:2.4,tension:0.38,pointRadius:0,pointHoverRadius:4},
-      {label:'Humidity %',     data:[],borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,0.08)',yAxisID:'y1', borderWidth:2.4,tension:0.38,pointRadius:0,pointHoverRadius:4},
-      {label:'VPD kPa',        data:[],borderColor:'#ff9f1c',backgroundColor:'rgba(255,159,28,0.08)', yAxisID:'y2', borderWidth:2.4,tension:0.38,pointRadius:0,pointHoverRadius:4}
-    ]},
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      animation:{duration:450,easing:'easeOutQuart'},
-      interaction:{mode:'index',intersect:false},
-      plugins:{
-        legend:{position:'top',align:'end',labels:{color:'#aeb9c9',usePointStyle:true,pointStyle:'circle',boxWidth:8,boxHeight:8,padding:18,font:{family:'SFMono-Regular,Consolas,monospace',size:11,weight:'700'}}},
-        tooltip:{backgroundColor:'rgba(5,7,10,0.92)',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,titleColor:'#f5f7fb',bodyColor:'#aeb9c9',padding:12,displayColors:true}
-      },
-      scales:{
-        x:{grid:{color:'rgba(255,255,255,0.045)',drawBorder:false},ticks:{color:'#7f8da3',maxTicksLimit:10,font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-        y: {position:'left', min:300, max:1800, title:{display:true,text:'CO₂ ppm',color:'#7f8da3'},grid:{color:'rgba(255,255,255,0.055)',drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-        y1:{position:'right', min:0, max:100, title:{display:true,text:'°C / %',color:'#7f8da3'}, grid:{drawOnChartArea:false,drawBorder:false},ticks:{color:'#7f8da3',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-        y2:{position:'right', display:false, min:0, max:4}
-      }
-    }
-  });
-  window._activeChart = newChart;
-  // Re-apply metric visibility
-  const cfg = metricConfig[state.selectedMetric]||metricConfig.all;
-  newChart.data.datasets.forEach((ds,i)=>{ ds.hidden=!cfg.datasets.includes(i); });
-  newChart.update();
-}
- 
-function getActiveChart() {
-  return window._activeChart || trendChart;
-}
- 
-// ═══════════════════════════════════════════
-// UPDATE CHART DATA
-// ═══════════════════════════════════════════
-function updateChartData(data) {
-  const chart = getActiveChart();
-  if(!chart) return;
-  const labels = data.map(r => {
-    const d = new Date(r.recorded_at || r.time || Date.now());
-    return state.selectedRange <= 6
-      ? d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
-      : d.toLocaleDateString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-  });
-  chart.data.labels           = labels;
-  chart.data.datasets[0].data = data.map(r => r.co2);
-  chart.data.datasets[1].data = data.map(r => r.temperature ?? r.temp);
-  chart.data.datasets[2].data = data.map(r => r.humidity);
-  chart.data.datasets[3].data = data.map(r => r.vpd);
-  chart.update();
-}
- 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════
 // RENDER METRICS
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════
 function renderMetrics() {
-  const { co2, temp, humidity, vpd } = state.current;
-  if(co2 === null) return;
+  const { co2, temp, hum, vpd } = S.live;
+  if(co2===null) return;
  
-  // Values
-  document.getElementById('co2Value').textContent      = co2;
-  document.getElementById('tempValue').textContent     = Number(temp).toFixed(1);
-  document.getElementById('humidityValue').textContent = humidity;
-  document.getElementById('vpdValue').textContent      = Number(vpd).toFixed(2);
+  const data = { co2, temp, hum, vpd };
+  const ids  = { co2:'co2', temp:'temp', hum:'hum', vpd:'vpd' };
+  const disp = { co2:co2, temp:Number(temp).toFixed(1), hum:hum, vpd:Number(vpd).toFixed(2) };
  
-  // Status
-  setCardStatus('co2Card',      'co2Status',      getStatus('co2',  co2));
-  setCardStatus('tempCard',     'tempStatus',     getStatus('temp', temp));
-  setCardStatus('humidityCard', 'humidityStatus', getStatus('hum',  humidity));
-  setCardStatus('vpdCard',      'vpdStatus',      getStatus('vpd',  vpd));
+  Object.keys(data).forEach(m => {
+    const s  = getStatus(m, data[m]);
+    const mc = $('mc-'+m);
+    mc.className = `mc ${mcCls(s)}${S.metric===m?' active':''}`;
+    $('v-'+m).textContent    = disp[m];
+    $('b-'+m).textContent    = BADGE[m][s];
+    $('bar-'+m).style.width  = rangeBar(m, data[m]) + '%';
+  });
  
-  // Range bars
-  document.getElementById('co2Fill').style.width  = calcRangePercent('co2',  co2)+'%';
-  document.getElementById('tempFill').style.width = calcRangePercent('temp', temp)+'%';
-  document.getElementById('humFill').style.width  = calcRangePercent('hum',  humidity)+'%';
-  document.getElementById('vpdFill').style.width  = calcRangePercent('vpd',  vpd)+'%';
+  // VPD Gauge
+  const vs = getStatus('vpd', vpd);
+  const vc = col(vs);
+  $('vpdBig').textContent  = Number(vpd).toFixed(2);
+  $('vpdBig').style.color  = vc;
+  $('gThumb').style.left   = clamp((vpd/3)*100,0,100) + '%';
+  $('gThumb').style.boxShadow = `0 0 0 4px rgba(255,255,255,0.1),0 0 24px ${vc}`;
  
-  // VPD gauge — scaled to 0–3 kPa max
-  const vpdStatus   = getStatus('vpd', vpd);
-  const vpdPosition = `${clamp((vpd/3)*100,0,100)}%`;
-  const vpdColor    = statusColor(vpdStatus);
-  const gaugePanel  = document.getElementById('gaugePanel');
-  gaugePanel.style.setProperty('--vpd-position', vpdPosition);
-  gaugePanel.style.setProperty('--vpd-color', vpdColor);
-  document.getElementById('vpdGaugeNumber').textContent = Number(vpd).toFixed(2);
-  document.getElementById('vpdGaugeNumber').style.color = vpdColor;
- 
-  // VPD advice — strawberry specific
   const advice = {
-    good:    {en:`VPD ${Number(vpd).toFixed(2)} kPa — optimal for strawberries. Stomata open, photosynthesis and sugar development at peak. Maintain current conditions.`, ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} — مثالي للفراولة. الثغور مفتوحة وتطور السكر في ذروته. حافظ على الوضع الحالي.`},
-    warning: {en:`VPD ${Number(vpd).toFixed(2)} kPa — mild stress. Strawberry fruit development may slow. Increase humidity by 5–10% or reduce temperature by 2°C.`, ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} — إجهاد خفيف. نمو الفراولة قد يتباطأ. ارفع الرطوبة 5–10٪ أو اخفض الحرارة 2°م.`},
-    danger:  {en:`VPD ${Number(vpd).toFixed(2)} kPa — CRITICAL. Severe strawberry stress. Fruit quality and yield at risk. Activate misting immediately.`, ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} — حرج. إجهاد شديد على الفراولة. جودة المحصول في خطر. شغّل الرذاذ فوراً.`}
+    good:  { en:`VPD ${Number(vpd).toFixed(2)} kPa — optimal for strawberries. Stomata open, photosynthesis and sugar development at peak.`, ar:`عجز ضغط البخار مثالي للفراولة. الثغور مفتوحة وتطور السكر في ذروته.` },
+    warn:  { en:`VPD ${Number(vpd).toFixed(2)} kPa — mild stress. Strawberry fruit development slowing. Increase humidity 5–10% or reduce temp 2°C.`, ar:`إجهاد خفيف على الفراولة. ارفع الرطوبة 5–10٪ أو اخفض الحرارة 2°م.` },
+    danger:{ en:`VPD ${Number(vpd).toFixed(2)} kPa — CRITICAL. Severe stress. Fruit quality at risk. Activate misting immediately.`, ar:`عجز ضغط البخار حرج. جودة الثمار في خطر. شغّل نظام الرذاذ فوراً.` }
   };
-  document.getElementById('adviceEn').textContent = advice[vpdStatus].en;
-  document.getElementById('adviceAr').textContent = advice[vpdStatus].ar;
+  $('advEn').textContent = advice[vs].en;
+  $('advAr').textContent = advice[vs].ar;
+ 
+  // Status bar
+  const worst = [getStatus('co2',co2),getStatus('temp',temp),getStatus('hum',hum),getStatus('vpd',vpd)];
+  const overall = worst.includes('danger')?'danger':worst.includes('warn')?'warn':'good';
+  $('statusDot').style.background = col(overall);
+  const statusMsg = {
+    good:   { en:`All parameters optimal — strawberries healthy`, ar:`جميع المؤشرات مثالية — الفراولة بصحة ممتازة ✓` },
+    warn:   { en:`Moderate stress — ${temp}°C, ${hum}% RH, VPD ${Number(vpd).toFixed(2)} kPa`, ar:`إجهاد متوسط — تحقق من التوصيات أدناه` },
+    danger: { en:`Critical conditions — immediate action required`, ar:`ظروف حرجة — تدخل فوري مطلوب` }
+  };
+  $('statusText').textContent = statusMsg[overall].en;
+  $('statusAr').textContent   = statusMsg[overall].ar;
 }
  
-// ═══════════════════════════════════════════
-// ALERT
-// ═══════════════════════════════════════════
-function renderAlert() {
-  const { co2, temp, humidity, vpd } = state.current;
-  if(co2===null) return;
-  const alerts=[], alertsAr=[];
-  if(temp > ALERT_TEMP) { alerts.push(`Temp ${Number(temp).toFixed(1)}°C > ${ALERT_TEMP}°C limit`); alertsAr.push(`الحرارة ${Number(temp).toFixed(1)}°م تجاوزت الحد`); }
-  if(vpd  > ALERT_VPD)  { alerts.push(`VPD ${Number(vpd).toFixed(2)} kPa > ${ALERT_VPD} kPa limit`); alertsAr.push(`عجز ضغط البخار ${Number(vpd).toFixed(2)} تجاوز الحد`); }
-  if(humidity < 50)      { alerts.push(`Humidity ${humidity}% critically low`); alertsAr.push(`الرطوبة ${humidity}٪ منخفضة جداً`); }
-  if(alerts.length) {
-    document.getElementById('alertBanner').classList.add('active');
-    document.getElementById('alertTitle').textContent  = `🍓 Strawberry Alert — تنبيه الفراولة`;
-    document.getElementById('alertAr').textContent     = alertsAr.join(' · ');
-    document.getElementById('alertDetail').textContent = alerts.join(' · ');
-    const now=Date.now();
-    if(now-state.lastAlert > 30*60*1000) {
-      state.lastAlert=now;
-      const t=new Date().toLocaleTimeString('ar-SA');
-      const msg=encodeURIComponent(`🍓 تنبيه مزرعة الوصيل\n${t}\n${alertsAr.join('\n')}\nhttps://green-house-iota.vercel.app`);
+// ═══════════════════════════════════════
+// RENDER ZONES
+// ═══════════════════════════════════════
+function renderZones() {
+  const { hubTemp, hubHum, temp, hum, w1, w2 } = S.live;
+  if(hubTemp === null) return;
+ 
+  $('hub-t').textContent = Number(hubTemp).toFixed(1);
+  $('hub-h').textContent = hubHum;
+  $('can-t').textContent = Number(temp).toFixed(1);
+  $('can-h').textContent = hum;
+ 
+  // Canopy temp color
+  const ts = getStatus('temp', temp);
+  $('can-t').style.color = col(ts);
+  const hs = getStatus('hum', hum);
+  $('can-h').style.color = col(hs);
+ 
+  // Cooling delta — wet wall is near cooling, canopy is middle
+  // Normal: hub_temp < canopy_temp (cool air warms as it travels)
+  const delta = parseFloat((temp - hubTemp).toFixed(1));
+  const deltaEl = $('coolingDelta');
+  deltaEl.textContent = (delta > 0 ? '+' : '') + delta;
+ 
+  // Logic: delta > 0 means canopy warmer than wet wall = NORMAL (air warming as it travels)
+  // delta <= 0 means hub warmer than canopy = wet wall not working
+  if(delta >= 3) {
+    deltaEl.style.color = 'var(--good)';
+    $('coolingDesc').textContent = 'Wet wall working excellently — ' + delta + '°C gradient';
+  } else if(delta >= 1) {
+    deltaEl.style.color = 'var(--warning)';
+    $('coolingDesc').textContent = 'Wet wall working — ' + delta + '°C gradient';
+  } else if(delta >= 0) {
+    deltaEl.style.color = 'var(--warning)';
+    $('coolingDesc').textContent = 'Wet wall marginal — check water supply';
+  } else {
+    deltaEl.style.color = 'var(--danger)';
+    $('coolingDesc').textContent = 'Wet wall issue — hub warmer than expected';
+  }
+ 
+  // Water sensors
+  $('w1').textContent   = w1 ? '🚨 LEAK!' : '✓ Normal';
+  $('w2').textContent   = w2 ? '🚨 LEAK!' : '✓ Normal';
+  $('w1').style.color   = w1 ? 'var(--danger)' : 'var(--good)';
+  $('w2').style.color   = w2 ? 'var(--danger)' : 'var(--good)';
+ 
+  if(w1 || w2) {
+    showAlert('💧 Water Leak — تسرب مياه!', 'Tank sensor triggered. Check water tank immediately.', 'تم اكتشاف تسرب في خزان المياه. تحقق فوراً.');
+  }
+}
+ 
+// ═══════════════════════════════════════
+// RENDER ALERT
+// ═══════════════════════════════════════
+function showAlert(title, body, ar) {
+  $('alertBox').classList.add('on');
+  $('alertTitle').textContent = title;
+  $('alertBody').textContent  = body;
+  $('alertAr').textContent    = ar;
+}
+ 
+function checkAlerts() {
+  const { temp, vpd, hum } = S.live;
+  if(temp===null) return;
+  const msgs=[], arMsgs=[];
+  if(temp > ALERT_TEMP) { msgs.push(`Temp ${Number(temp).toFixed(1)}°C > ${ALERT_TEMP}°C`); arMsgs.push(`الحرارة ${Number(temp).toFixed(1)}°م تجاوزت الحد`); }
+  if(vpd  > ALERT_VPD)  { msgs.push(`VPD ${Number(vpd).toFixed(2)} kPa > ${ALERT_VPD} kPa`); arMsgs.push(`عجز ضغط البخار ${Number(vpd).toFixed(2)} تجاوز الحد`); }
+  if(hum  < 50)          { msgs.push(`Humidity ${hum}% critically low`); arMsgs.push(`الرطوبة ${hum}٪ منخفضة جداً`); }
+  if(msgs.length) {
+    showAlert('🍓 Strawberry Alert — تنبيه الفراولة', msgs.join(' · '), arMsgs.join(' · '));
+    const now = Date.now();
+    if(now - S.lastAlert > 30*60*1000) {
+      S.lastAlert = now;
+      const t = new Date().toLocaleTimeString('ar-SA');
+      const msg = encodeURIComponent(`🍓 تنبيه مزرعة الوصيل\n${t}\n${arMsgs.join('\n')}\nhttps://green-house-iota.vercel.app`);
       window.open(`https://wa.me/${WHATSAPP}?text=${msg}`,'_blank');
     }
   } else {
-    document.getElementById('alertBanner').classList.remove('active');
+    $('alertBox').classList.remove('on');
   }
 }
  
-// ═══════════════════════════════════════════
-// DECISION SUPPORT — strawberry specific
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════
+// DECISIONS
+// ═══════════════════════════════════════
 function renderDecisions() {
-  const { co2, temp, humidity, vpd } = state.current;
+  const { co2, temp, hum, vpd, hubTemp } = S.live;
   if(co2===null) return;
-  const actions=[];
+  const acts = [];
+  const delta = hubTemp !== null ? parseFloat((temp - hubTemp).toFixed(1)) : null;
  
-  // Temperature — most critical for strawberries
-  if(temp > 26)        actions.push({p:'high',   en:`🌡 Temperature ${Number(temp).toFixed(1)}°C is above critical limit (26°C) for strawberries. Sugar content dropping rapidly. Activate full cooling and ventilation immediately.`,          ar:`الحرارة ${Number(temp).toFixed(1)}°م فوق الحد الحرج. محتوى السكر في الفراولة ينخفض. شغّل التبريد الكامل فوراً.`});
-  else if(temp > 22)   actions.push({p:'medium', en:`🌡 Temperature ${Number(temp).toFixed(1)}°C is above optimal range (16–22°C). Strawberry sweetness and shelf life affected. Increase cooling by 2–4°C.`,                              ar:`الحرارة ${Number(temp).toFixed(1)}°م فوق المثالي. حلاوة الفراولة وصلاحيتها تتأثر. خفض الحرارة 2–4 درجات.`});
-  else if(temp < 14)   actions.push({p:'high',   en:`🌡 Temperature ${Number(temp).toFixed(1)}°C is too cold. Strawberry growth will stall below 14°C. Activate heating.`,                                                                   ar:`الحرارة ${Number(temp).toFixed(1)}°م منخفضة جداً. نمو الفراولة سيتوقف. شغّل التدفئة.`});
-  else if(temp < 16)   actions.push({p:'medium', en:`🌡 Temperature ${Number(temp).toFixed(1)}°C slightly below optimal. Strawberry growth is slow. Consider mild heating.`,                                                                 ar:`الحرارة ${Number(temp).toFixed(1)}°م أقل من المثالي قليلاً. النمو بطيء. فكر في التدفئة الخفيفة.`});
+  if(temp > 26)       acts.push({p:'h', en:`🌡 Temp ${Number(temp).toFixed(1)}°C critical. Sugar development stopped. Activate full cooling immediately.`, ar:`الحرارة ${Number(temp).toFixed(1)}°م حرجة. توقف تطور السكر. شغّل التبريد الكامل فوراً.`});
+  else if(temp > 22)  acts.push({p:'m', en:`🌡 Temp ${Number(temp).toFixed(1)}°C above optimal. Strawberry sweetness affected. Increase cooling 2–4°C.`, ar:`الحرارة فوق المثالي. حلاوة الفراولة تتأثر. خفض الحرارة 2–4 درجات.`});
+  if(vpd > 1.3)       acts.push({p:'h', en:`💧 VPD ${Number(vpd).toFixed(2)} kPa critical — stomata closed. Activate misting immediately.`, ar:`عجز ضغط البخار حرج — الثغور مغلقة. شغّل نظام الرذاذ فوراً.`});
+  else if(vpd > 1.0)  acts.push({p:'m', en:`💧 VPD ${Number(vpd).toFixed(2)} kPa elevated. Increase humidity 5–10%.`, ar:`عجز ضغط البخار مرتفع. ارفع الرطوبة 5–10٪.`});
+  if(hum < 50)        acts.push({p:'h', en:`💦 Humidity ${hum}% critical. Flower and fruit desiccation risk. Mist immediately.`, ar:`الرطوبة ${hum}٪ حرجة. خطر جفاف الأزهار. رشّ فوراً.`});
+  else if(hum < 60)   acts.push({p:'m', en:`💦 Humidity ${hum}% below optimal 60–75%. Check irrigation and consider misting.`, ar:`الرطوبة ${hum}٪ أقل من المثالي. تحقق من الري وفكر في الرذاذ.`});
+  else if(hum > 85)   acts.push({p:'h', en:`🍄 Humidity ${hum}% — Botrytis risk critical. Increase ventilation immediately.`, ar:`الرطوبة ${hum}٪ — خطر فطر البوتريتيس حرج. افتح التهوية فوراً.`});
+  if(co2 < 600)       acts.push({p:'m', en:`🌿 CO₂ ${co2} ppm too low. Consider enrichment to 800–1200 ppm during daylight.`, ar:`ثاني أكسيد الكربون ${co2} منخفض. فكر في إضافته لـ 800–1200 ppm نهاراً.`});
+  if(delta !== null && delta < 1) acts.push({p:'m', en:`❄️ Wet wall efficiency low (${delta}°C difference). Check water pump and pads.`, ar:`كفاءة الجدار المبلل منخفضة (${delta}°م فرق). تحقق من المضخة والألواح.`});
+  if(acts.length===0) acts.push({p:'l', en:`✅ All parameters optimal. Maintain current settings. Monitor every 30 minutes.`, ar:`✅ جميع المؤشرات مثالية. حافظ على الإعدادات الحالية. راقب كل 30 دقيقة.`});
  
-  // VPD
-  if(vpd > 1.3)        actions.push({p:'high',   en:`💧 VPD ${Number(vpd).toFixed(2)} kPa critical — stomata closed, no photosynthesis, wilting risk. Activate misting system immediately.`,                                                   ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} حرج — الثغور مغلقة. شغّل نظام الرذاذ فوراً.`});
-  else if(vpd > 1.0)   actions.push({p:'medium', en:`💧 VPD ${Number(vpd).toFixed(2)} kPa elevated for strawberries. Increase humidity by 5–10% to protect fruit quality.`,                                                                   ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} مرتفع للفراولة. ارفع الرطوبة 5–10٪ لحماية جودة الثمار.`});
- 
-  // Humidity
-  if(humidity < 50)    actions.push({p:'high',   en:`💦 Humidity ${humidity}% critically low. Strawberry flowers and fruit at risk of desiccation. Activate misting immediately.`,                                                              ar:`الرطوبة ${humidity}٪ منخفضة جداً. أزهار الفراولة في خطر. شغّل الرذاذ فوراً.`});
-  else if(humidity<60) actions.push({p:'medium', en:`💦 Humidity ${humidity}% below optimal (60–75%). Strawberry transpiration stress building. Check irrigation timing and consider misting.`,                                                 ar:`الرطوبة ${humidity}٪ أقل من المثالي. إجهاد تعرق يتصاعد. تحقق من الري وفكر في الرذاذ.`});
-  else if(humidity>85) actions.push({p:'high',   en:`💦 Humidity ${humidity}% too high — Botrytis (grey mould) risk is critical for strawberries at this level. Increase ventilation immediately.`,                                          ar:`الرطوبة ${humidity}٪ مرتفعة جداً — خطر فطر البوتريتيس على الفراولة حرج. افتح التهوية فوراً.`});
-  else if(humidity>75) actions.push({p:'medium', en:`💦 Humidity ${humidity}% above optimal. Monitor for Botrytis signs. Increase air circulation.`,                                                                                        ar:`الرطوبة ${humidity}٪ فوق المثالي. راقب علامات البوتريتيس. زد تداول الهواء.`});
- 
-  // CO2
-  if(co2 < 600)        actions.push({p:'medium', en:`🌿 CO₂ ${co2} ppm too low for peak photosynthesis. Consider CO₂ enrichment to 800–1200 ppm during daylight hours for maximum strawberry yield.`,                                        ar:`ثاني أكسيد الكربون ${co2} منخفض. فكر في إضافة CO₂ لبلوغ 800–1200 ppm أثناء ساعات النهار لزيادة المحصول.`});
-  else if(co2 > 1500)  actions.push({p:'medium', en:`🌿 CO₂ ${co2} ppm above optimal. Open vents to bring levels down to 1200 ppm.`,                                                                                                       ar:`ثاني أكسيد الكربون ${co2} مرتفع فوق المثالي. افتح التهوية لإعادته لـ 1200 ppm.`});
- 
-  if(actions.length===0) actions.push({p:'low', en:`✅ All parameters within optimal range for premium strawberry production. Maintain current conditions. Monitor every 30 minutes.`,                                                          ar:`✅ جميع المؤشرات ضمن النطاق المثالي لإنتاج فراولة مميزة. حافظ على الوضع الحالي. راقب كل 30 دقيقة.`});
- 
-  document.getElementById('decisionBox').style.display='block';
-  document.getElementById('decisionItems').innerHTML=actions.map(a=>`
-    <div class="decision-item">
-      <span class="priority-tag ${a.p==='high'?'p-high':a.p==='medium'?'p-medium':'p-low'}">${a.p.toUpperCase()}</span>
-      <div><div class="decision-text">${a.en}</div><div class="decision-ar">${a.ar}</div></div>
+  $('decisions').innerHTML = acts.map(a=>`
+    <div class="dec-item">
+      <span class="ptag ${a.p==='h'?'ph':a.p==='m'?'pm':'pl'}">${a.p==='h'?'HIGH':a.p==='m'?'MED':'OK'}</span>
+      <div><div class="dec-en">${a.en}</div><div class="dec-ar">${a.ar}</div></div>
     </div>`).join('');
 }
  
-// ═══════════════════════════════════════════
-// SUPABASE
-// ═══════════════════════════════════════════
-async function saveReading(co2, temp, humidity, vpd) {
-  try {
-    const res = await fetch('/api/save-reading', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        co2, temperature:temp, humidity, vpd,
-        heat_index: calcHeatIndex(temp,humidity),
-        dew_point:  calcDewPoint(temp,humidity),
-        abs_humidity: parseFloat((0.6108*Math.exp((17.27*temp)/(temp+237.3))*(humidity/100)*1000/(0.4615*(273.15+temp))).toFixed(1)),
-        plant_stress_index: calcPSI(vpd,temp,humidity)
-      })
-    });
-    if(res.ok) {
-      state.lastSaved = new Date();
-      const el = document.getElementById('lastSaved');
-      if(el) el.textContent = 'Saved ' + state.lastSaved.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+// ═══════════════════════════════════════
+// CHART
+// ═══════════════════════════════════════
+const chartColors = {
+  co2:  { border:'#20f584', bg:'rgba(32,245,132,0.08)',  yAxis:'y1' },
+  temp: { border:'#45b9ff', bg:'rgba(69,185,255,0.08)',  yAxis:'y2' },
+  hum:  { border:'#a78bfa', bg:'rgba(167,139,250,0.08)', yAxis:'y2' },
+  vpd:  { border:'#ff9f1c', bg:'rgba(255,159,28,0.08)',  yAxis:'y3' },
+  hubTemp: { border:'rgba(69,185,255,0.5)', bg:'transparent', yAxis:'y2' },
+  hubHum:  { border:'rgba(167,139,250,0.5)', bg:'transparent', yAxis:'y2' }
+};
+ 
+const chartMeta = {
+  co2:  { title:'CO₂ Trend',         titleAr:'اتجاه ثاني أكسيد الكربون',  compare:false },
+  temp: { title:'Temperature — Zone Comparison', titleAr:'مقارنة درجة الحرارة بين المناطق', compare:true },
+  hum:  { title:'Humidity — Zone Comparison',    titleAr:'مقارنة الرطوبة بين المناطق',      compare:true },
+  vpd:  { title:'VPD Trend',          titleAr:'اتجاه عجز ضغط البخار',       compare:false },
+  all:  { title:'All Metrics',        titleAr:'جميع المؤشرات',               compare:false }
+};
+ 
+function buildChart() {
+  const ctx = $('mainChart');
+  if(!ctx) return;
+  if(S.chart) { S.chart.destroy(); S.chart=null; }
+  S.chart = new Chart(ctx, {
+    type:'line',
+    data:{ labels:[], datasets:[] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      animation:{ duration:350, easing:'easeOutQuart' },
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ position:'top', align:'end', labels:{ color:'#aeb9c9', usePointStyle:true, pointStyle:'circle', boxWidth:8, boxHeight:8, padding:16, font:{ family:'SFMono-Regular,Consolas,monospace', size:11, weight:'700' } } },
+        tooltip:{ backgroundColor:'rgba(5,7,10,0.92)', borderColor:'rgba(255,255,255,0.12)', borderWidth:1, titleColor:'#f5f7fb', bodyColor:'#aeb9c9', padding:11, displayColors:true }
+      },
+      scales:{
+        x:  { grid:{ color:'rgba(255,255,255,0.04)' }, ticks:{ color:'#7f8da3', maxTicksLimit:10, font:{ family:'SFMono-Regular,Consolas,monospace', size:10 } } },
+        y1: { position:'left',  title:{ display:true, text:'CO₂ ppm', color:'#7f8da3' }, grid:{ color:'rgba(255,255,255,0.05)' }, ticks:{ color:'#20f584', font:{ family:'SFMono-Regular,Consolas,monospace', size:10 } }, min:300, max:1800 },
+        y2: { position:'right', title:{ display:true, text:'°C / %',  color:'#7f8da3' }, grid:{ display:false }, ticks:{ color:'#45b9ff', font:{ family:'SFMono-Regular,Consolas,monospace', size:10 } }, min:0, max:100 },
+        y3: { position:'right', display:false, min:0, max:4 }
+      }
     }
-  } catch(e){console.warn('Save failed:',e.message)}
+  });
 }
  
+function pushChartData(data) {
+  if(!S.chart) buildChart();
+  const m = S.metric;
+  const meta = chartMeta[m] || chartMeta.co2;
+  const showCompare = S.compare && meta.compare;
+ 
+  const labels = data.map(r => {
+    const d = new Date(r.recorded_at || r.time || Date.now());
+    return S.range <= 6
+      ? d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
+      : d.toLocaleDateString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  });
+ 
+  let datasets = [];
+  if(m === 'all') {
+    datasets = [
+      { label:'CO₂ ppm',    data:data.map(r=>r.co2),         borderColor:'#20f584', backgroundColor:'rgba(32,245,132,0.06)',  tension:0.38, borderWidth:2.2, pointRadius:0, pointHoverRadius:3, yAxisID:'y1' },
+      { label:'Temp °C',    data:data.map(r=>r.temperature??r.temp), borderColor:'#45b9ff', backgroundColor:'transparent', tension:0.38, borderWidth:2.2, pointRadius:0, pointHoverRadius:3, yAxisID:'y2', borderDash:[4,2] },
+      { label:'Humidity %', data:data.map(r=>r.humidity),     borderColor:'#a78bfa', backgroundColor:'transparent', tension:0.38, borderWidth:2.2, pointRadius:0, pointHoverRadius:3, yAxisID:'y2', borderDash:[2,3] },
+      { label:'VPD kPa',    data:data.map(r=>r.vpd),          borderColor:'#ff9f1c', backgroundColor:'transparent', tension:0.38, borderWidth:2.2, pointRadius:0, pointHoverRadius:3, yAxisID:'y3' }
+    ];
+  } else if(m === 'co2') {
+    datasets = [{ label:'CO₂ ppm', data:data.map(r=>r.co2), borderColor:'#20f584', backgroundColor:'rgba(32,245,132,0.08)', tension:0.38, borderWidth:2.4, pointRadius:0, pointHoverRadius:4, fill:true, yAxisID:'y1' }];
+  } else if(m === 'temp') {
+    datasets = [{ label:'Canopy Temp °C', data:data.map(r=>r.temperature??r.temp), borderColor:'#45b9ff', backgroundColor:'rgba(69,185,255,0.08)', tension:0.38, borderWidth:2.4, pointRadius:0, pointHoverRadius:4, fill:true, yAxisID:'y2' }];
+    if(showCompare && data[0]?.hub_temp != null) datasets.push({ label:'Wet Wall Temp °C', data:data.map(r=>r.hub_temp), borderColor:'rgba(69,185,255,0.45)', backgroundColor:'transparent', tension:0.38, borderWidth:1.8, pointRadius:0, borderDash:[5,3], yAxisID:'y2' });
+  } else if(m === 'hum') {
+    datasets = [{ label:'Canopy Humidity %', data:data.map(r=>r.humidity), borderColor:'#a78bfa', backgroundColor:'rgba(167,139,250,0.08)', tension:0.38, borderWidth:2.4, pointRadius:0, pointHoverRadius:4, fill:true, yAxisID:'y2' }];
+    if(showCompare && data[0]?.hub_humidity != null) datasets.push({ label:'Wet Wall Humidity %', data:data.map(r=>r.hub_humidity), borderColor:'rgba(167,139,250,0.45)', backgroundColor:'transparent', tension:0.38, borderWidth:1.8, pointRadius:0, borderDash:[5,3], yAxisID:'y2' });
+  } else if(m === 'vpd') {
+    datasets = [{ label:'VPD kPa', data:data.map(r=>r.vpd), borderColor:'#ff9f1c', backgroundColor:'rgba(255,159,28,0.08)', tension:0.38, borderWidth:2.4, pointRadius:0, pointHoverRadius:4, fill:true, yAxisID:'y3' }];
+  }
+ 
+  S.chart.data.labels   = labels;
+  S.chart.data.datasets = datasets;
+  S.chart.update();
+}
+ 
+// ═══════════════════════════════════════
+// METRIC SELECTOR
+// ═══════════════════════════════════════
+function selectMetric(m) {
+  S.metric = m;
+  // Card highlights
+  ['co2','temp','hum','vpd'].forEach(k => {
+    const mc = $('mc-'+k);
+    if(mc) { mc.className = mc.className.replace(' active',''); if(k===m) mc.classList.add('active'); }
+  });
+  // Metric buttons
+  document.querySelectorAll('.mbtn').forEach(b => b.classList.remove('active'));
+  const mb = $('mb-'+m); if(mb) mb.classList.add('active');
+  // Chart title
+  const meta = chartMeta[m] || chartMeta.all;
+  $('chartTitle').textContent   = meta.title;
+  $('chartTitleAr').textContent = meta.titleAr;
+  // Compare toggle visibility
+  const ct = $('compareToggle');
+  if(meta.compare) { ct.style.display='flex'; }
+  else { ct.style.display='none'; S.compare=false; ct.classList.remove('on'); }
+  // Reload chart
+  if(S.range === 1) pushChartData(S.localHist.map(r=>({...r,recorded_at:r.time})));
+  else loadHistory(S.range);
+}
+ 
+// ═══════════════════════════════════════
+// COMPARE TOGGLE
+// ═══════════════════════════════════════
+function toggleCompare() {
+  S.compare = !S.compare;
+  const ct = $('compareToggle');
+  ct.classList.toggle('on', S.compare);
+  $('compareLabel').textContent = S.compare ? 'Hide wet wall comparison' : 'Show wet wall comparison';
+  if(S.range === 1) pushChartData(S.localHist.map(r=>({...r,recorded_at:r.time})));
+  else loadHistory(S.range);
+}
+ 
+// ═══════════════════════════════════════
+// TIME RANGE
+// ═══════════════════════════════════════
+function setRange(h) {
+  S.range = h;
+  document.querySelectorAll('.tbtn').forEach(b => b.classList.remove('active'));
+  const map = {1:'1h',6:'6h',24:'24h',168:'7d'};
+  const tb = $('t-'+map[h]); if(tb) tb.classList.add('active');
+  if(h === 1) pushChartData(S.localHist.map(r=>({...r,recorded_at:r.time})));
+  else loadHistory(h);
+}
+ 
+// ═══════════════════════════════════════
+// SUPABASE HISTORY
+// ═══════════════════════════════════════
 async function loadHistory(hours) {
   try {
     const res  = await fetch(`/api/history?hours=${hours}&limit=500`);
     const data = await res.json();
-    if(Array.isArray(data) && data.length > 0) {
-      updateChartData(data);
-    } else {
-      // No data yet — show live session data if range is 1H
-      const chart = getActiveChart();
-      if(chart && chart.data.labels.length===0) {
-        chart.data.labels = ['No historical data yet'];
-        chart.update();
-      }
-    }
-  } catch(e){console.warn('History load failed:',e.message)}
+    if(Array.isArray(data) && data.length > 0) pushChartData(data);
+  } catch(e) { console.warn('History:', e.message); }
 }
  
-// ═══════════════════════════════════════════
-// DERIVED CALCS
-// ═══════════════════════════════════════════
-function calcDewPoint(t,rh){const a=17.27,b=237.3;const al=(a*t)/(b+t)+Math.log(rh/100);return parseFloat((b*al/(a-al)).toFixed(1))}
-function calcHeatIndex(t,rh){if(t<27)return t;return parseFloat((-8.78+1.61*t+2.34*rh-0.15*t*rh-0.012*t*t-0.016*rh*rh+0.002*t*t*rh+0.0007*t*rh*rh).toFixed(1))}
-function calcPSI(vpd,temp,hum){let s=0;if(vpd>1.0&&vpd<=1.3)s+=2;if(vpd>1.3)s+=4;if(temp>22&&temp<=26)s+=2;if(temp>26)s+=4;if(hum<60&&hum>=50)s+=1;if(hum<50)s+=3;if(hum>85)s+=2;return Math.min(s,10)}
- 
-// ═══════════════════════════════════════════
-// FETCH LIVE DATA
-// ═══════════════════════════════════════════
-let localHistory = [];
- 
-async function fetchData() {
+async function saveReading(co2, temp, hum, vpd) {
   try {
+    const res = await fetch('/api/save-reading', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ co2, temperature:temp, humidity:hum, vpd,
+        heat_index: calcHI(temp,hum), dew_point: calcDP(temp,hum),
+        abs_humidity: parseFloat((0.6108*Math.exp((17.27*temp)/(temp+237.3))*(hum/100)*1000/(0.4615*(273.15+temp))).toFixed(1)),
+        plant_stress_index: calcPSI(vpd,temp,hum)
+      })
+    });
+    if(res.ok) $('lastSaved').textContent = 'Saved ' + new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  } catch(e){}
+}
+ 
+function calcDP(t,rh){ const a=17.27,b=237.3,al=(a*t)/(b+t)+Math.log(rh/100); return parseFloat((b*al/(a-al)).toFixed(1)); }
+function calcHI(t,rh){ if(t<27)return t; return parseFloat((-8.78+1.61*t+2.34*rh-0.15*t*rh-0.012*t*t-0.016*rh*rh+0.002*t*t*rh+0.0007*t*rh*rh).toFixed(1)); }
+function calcPSI(v,t,h){ let s=0; if(v>1.0&&v<=1.3)s+=2; if(v>1.3)s+=4; if(t>22&&t<=26)s+=2; if(t>26)s+=4; if(h<60&&h>=50)s+=1; if(h<50)s+=3; if(h>85)s+=2; return Math.min(s,10); }
+ 
+// ═══════════════════════════════════════
+// FETCH LIVE DATA
+// ═══════════════════════════════════════
+async function fetchLive() {
+  try {
+    // Main CO2 device
     const devRes  = await fetch('/api/devices');
     const devData = await devRes.json();
-    const devices = devData.body?.deviceList||[];
-    const device  = devices.find(d=>
-      d.deviceType?.toLowerCase().includes('co2')||
-      d.deviceName?.toLowerCase().includes('co2')||
-      d.deviceName?.toLowerCase().includes('meter pro')
-    );
-    if(!device){document.getElementById('timestamp').textContent='No CO2 device found';return}
+    const devices = devData.body?.deviceList || [];
+    const device  = devices.find(d => d.deviceType?.toLowerCase().includes('co2') || d.deviceName?.toLowerCase().includes('co2') || d.deviceName?.toLowerCase().includes('meter pro'));
+    if(!device) return;
  
     const sRes  = await fetch(`/api/status?id=${device.deviceId}`);
     const sData = await sRes.json();
     const b     = sData.body;
  
-    const co2      = b.CO2??b.co2??0;
-    const temp     = parseFloat(b.temperature??0);
-    const humidity = parseFloat(b.humidity??0);
-    const vpd      = calcVPD(temp,humidity);
+    const co2  = b.CO2 ?? b.co2 ?? 0;
+    const temp = parseFloat(b.temperature ?? 0);
+    const hum  = parseFloat(b.humidity ?? 0);
+    const vpd  = calcVPD(temp, hum);
  
-    state.current = {co2,temp,humidity,vpd};
+    S.live.co2  = co2;
+    S.live.temp = temp;
+    S.live.hum  = hum;
+    S.live.vpd  = vpd;
  
-    // Fetch Hub 2 and Water sensors in parallel
-    const HUB_ID      = 'FDD0AE072D7C';
-    const WATER1_ID   = 'E65584467069';
-    const WATER2_ID   = 'E77760186472B';
+    saveReading(co2, temp, hum, vpd);
  
+    // Update local history
+    const now = new Date();
+    S.localHist.push({ co2, temperature:temp, humidity:hum, vpd, hub_temp:S.live.hubTemp, hub_humidity:S.live.hubHum, time:now.toISOString() });
+    if(S.localHist.length > 72) S.localHist.shift();
+    if(S.range === 1) pushChartData(S.localHist.map(r=>({...r,recorded_at:r.time})));
+ 
+    renderMetrics();
+    checkAlerts();
+    renderDecisions();
+ 
+    $('clock').textContent = now.toLocaleString('en-SA',{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+ 
+    // Fetch secondary devices in parallel
     Promise.all([
       fetch(`/api/status?id=${HUB_ID}`).then(r=>r.json()),
       fetch(`/api/status?id=${WATER1_ID}`).then(r=>r.json()),
       fetch(`/api/status?id=${WATER2_ID}`).then(r=>r.json())
-    ]).then(([hubRes, w1Res, w2Res]) => {
-      const hub = hubRes.body ?? {};
-      const w1  = w1Res.body ?? {};
-      const w2  = w2Res.body ?? {};
- 
-      const hub_temp     = parseFloat(hub.temperature ?? 0);
-      const hub_humidity = parseFloat(hub.humidity ?? 0);
-      const cooling_delta = parseFloat((hub_temp - temp).toFixed(1));
- 
-      const leak1 = w1.status==='leak_detected'||w1.detectionState==='detected';
-      const leak2 = w2.status==='leak_detected'||w2.detectionState==='detected';
- 
-      // Update zones section
-      document.getElementById('hub-temp').textContent    = hub_temp.toFixed(1);
-      document.getElementById('hub-hum').textContent     = hub_humidity;
-      document.getElementById('canopy-temp').textContent = temp.toFixed(1);
-      document.getElementById('canopy-hum').textContent  = humidity;
- 
-      const deltaEl = document.getElementById('cooling-delta');
-      deltaEl.textContent = (cooling_delta > 0 ? '+' : '') + cooling_delta;
-      deltaEl.style.color = cooling_delta >= 2 ? 'var(--good)' : cooling_delta >= 0 ? 'var(--warning)' : 'var(--danger)';
-      document.getElementById('cooling-label').textContent =
-        cooling_delta >= 2 ? `Wet wall working well — ${cooling_delta}°C cooler at canopy` :
-        cooling_delta >= 0 ? `Wet wall marginal — only ${cooling_delta}°C difference` :
-        `Warning: canopy warmer than wet wall input`;
- 
-      // Water sensors
-      const w1El = document.getElementById('water1-status');
-      const w2El = document.getElementById('water2-status');
-      const dotEl = document.getElementById('water-dot');
-      w1El.textContent = leak1 ? '🚨 LEAK DETECTED' : '✓ Normal';
-      w2El.textContent = leak2 ? '🚨 LEAK DETECTED' : '✓ Normal';
-      w1El.style.color = leak1 ? 'var(--danger)' : 'var(--good)';
-      w2El.style.color = leak2 ? 'var(--danger)' : 'var(--good)';
-      dotEl.style.background = (leak1||leak2) ? 'var(--danger)' : 'var(--good)';
- 
-      // Water leak alert
-      if(leak1 || leak2) {
-        document.getElementById('alertBanner').classList.add('active');
-        document.getElementById('alertTitle').textContent = '💧 Water Leak Detected — تسرب مياه!';
-        document.getElementById('alertAr').textContent    = 'تم اكتشاف تسرب في خزان المياه. تحقق فوراً.';
-        document.getElementById('alertDetail').textContent= 'Water tank sensor triggered. Check tank immediately.';
+    ]).then(([hub, w1, w2]) => {
+      S.live.hubTemp = parseFloat(hub.body?.temperature ?? 0);
+      S.live.hubHum  = parseFloat(hub.body?.humidity ?? 0);
+      S.live.w1 = w1.body?.status==='leak_detected' || w1.body?.detectionState==='detected';
+      S.live.w2 = w2.body?.status==='leak_detected' || w2.body?.detectionState==='detected';
+      // Update local history with hub data
+      if(S.localHist.length > 0) {
+        const last = S.localHist[S.localHist.length-1];
+        last.hub_temp = S.live.hubTemp;
+        last.hub_humidity = S.live.hubHum;
       }
+      renderZones();
+    }).catch(e => console.warn('Secondary:', e.message));
  
-      // Canopy temp color
-      const canopyTempEl = document.getElementById('canopy-temp');
-      const tStatus = getStatus('temp', temp);
-      canopyTempEl.style.color = tStatus==='good'?'var(--good)':tStatus==='warning'?'var(--warning)':'var(--danger)';
-      const canopyHumEl = document.getElementById('canopy-hum');
-      const hStatus = getStatus('hum', humidity);
-      canopyHumEl.style.color = hStatus==='good'?'var(--good)':hStatus==='warning'?'var(--warning)':'var(--danger)';
- 
-    }).catch(e => console.warn('Secondary sensors error:', e.message));
- 
-    // Save to Supabase
-    saveReading(co2,temp,humidity,vpd);
- 
-    // Local 1H chart update
-    const now   = new Date();
-    const label = now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-    localHistory.push({co2,temperature:temp,humidity,vpd,recorded_at:now.toISOString()});
-    if(localHistory.length>60) localHistory.shift();
-    if(state.selectedRange===1) updateChartData(localHistory);
- 
-    renderMetrics();
-    renderAlert();
-    renderDecisions();
-    loadCameras();
- 
-    document.getElementById('timestamp').textContent = now.toLocaleString('en-SA',{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
- 
-  } catch(e){document.getElementById('timestamp').textContent='Error: '+e.message}
+  } catch(e) {
+    $('clock').textContent = 'Error: ' + e.message;
+  }
 }
  
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════
 // CAMERAS
-// ═══════════════════════════════════════════
-function loadCameras(){
-  ['cam1','cam2'].forEach((id,i)=>{
-    const url=i===0?CAM1_URL:CAM2_URL;
-    if(!url)return;
-    const img=document.getElementById(id);
-    img.src=url+'&t='+Date.now();
-    img.onload=()=>img.closest('.camera-feed').classList.add('has-feed');
+// ═══════════════════════════════════════
+function loadCams() {
+  ['cam1','cam2'].forEach((id,i) => {
+    const url = i===0 ? CAM1_URL : CAM2_URL;
+    if(!url) return;
+    const img = $(id);
+    img.src = url + '&t=' + Date.now();
+    img.onload = () => img.closest('.cam-feed').classList.add('has-feed');
   });
 }
+function goFS(id) { const el=$(id); (el.requestFullscreen||el.webkitRequestFullscreen).call(el); }
  
-// ═══════════════════════════════════════════
-// FULLSCREEN
-// ═══════════════════════════════════════════
-document.querySelectorAll('[data-fullscreen]').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    const t=document.getElementById(btn.dataset.fullscreen);
-    if(!t)return;
-    (t.requestFullscreen||t.webkitRequestFullscreen||t.msRequestFullscreen).call(t);
-  });
-});
- 
-// ═══════════════════════════════════════════
-// REFRESH BUTTON
-// ═══════════════════════════════════════════
-document.getElementById('refreshBtn').addEventListener('click',fetchData);
- 
-// ═══════════════════════════════════════════
-// SPIN ANIMATION
-// ═══════════════════════════════════════════
-const style=document.createElement('style');
-style.textContent='@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
-document.head.appendChild(style);
- 
-// ═══════════════════════════════════════════
-// PUBLIC API
-// ═══════════════════════════════════════════
-window.AlWaseelFarmDashboard = {
-  state,
-  refreshData: fetchData,
-  setCameraUrl(id,url){const img=document.getElementById(id);if(img){const f=img.closest('.camera-feed');img.onload=()=>f.classList.add('has-feed');img.onerror=()=>f.classList.remove('has-feed');img.src=url;}},
-  setCameraUrls(urls){if(urls.cam1)this.setCameraUrl('cam1',urls.cam1);if(urls.cam2)this.setCameraUrl('cam2',urls.cam2);},
-  setData(data){const t=Number(data.temp??state.current.temp),h=Number(data.humidity??state.current.humidity);state.current={co2:Number(data.co2??state.current.co2),temp:t,humidity:h,vpd:Number(data.vpd??calcVPD(t,h))};renderMetrics();renderAlert();renderDecisions();},
-  simulateAlert(){state.current={co2:450,temp:28,humidity:42,vpd:1.8};renderMetrics();renderAlert();renderDecisions();}
-};
- 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════
 // INIT
-// ═══════════════════════════════════════════
-window._activeChart = trendChart;
-setInterval(()=>document.getElementById('timestamp').textContent=new Date().toLocaleString('en-SA',{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}),1000);
-setInterval(fetchData,   60000);
-setInterval(loadCameras,  5000);
-fetchData();
+// ═══════════════════════════════════════
+buildChart();
+selectMetric('co2');
+fetchLive();
 loadHistory(1);
+setInterval(fetchLive, 60000);
+setInterval(loadCams,   5000);
+setInterval(() => {
+  const now = new Date();
+  $('clock').textContent = now.toLocaleString('en-SA',{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}, 1000);
 </script>
 </body>
 </html>
+ 
