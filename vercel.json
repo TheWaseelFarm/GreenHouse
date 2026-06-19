@@ -1,7 +1,27 @@
 {
-  "rewrites": [
-    { "source": "/api/devices", "destination": "/api/devices" },
-    { "source": "/api/status/:id", "destination": "/api/status" },
-    { "source": "/(.*)", "destination": "/public/index.html" }
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/devices",
+      "dest": "/api/devices.js"
+    },
+    {
+      "src": "/api/status",
+      "dest": "/api/status.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/index.html"
+    }
   ]
 }
