@@ -11,359 +11,367 @@
   --deep:#06442E;--forest:#032D21;--sage:#8FAF7A;--soft-sage:#E8F0E2;
   --gold:#C49A3A;--light-gold:#E6D3A3;--cream:#F8F4EA;--card:#FFFDF7;
   --muted:#6F765F;--danger:#C0392B;--soft-danger:#FDECEA;--blue:#1976D2;
-  --border:rgba(100,75,26,.16);--shadow:0 18px 54px rgba(48,39,18,.10);
-  --radius:24px;--ar:"Segoe UI",Tahoma,Arial,sans-serif;
+  --border:rgba(100,75,26,.16);--shadow:0 8px 32px rgba(48,39,18,.09);
+  --radius:22px;
+  --ar:"Segoe UI",Tahoma,Arial,sans-serif;
   --mono:"SFMono-Regular","Cascadia Code",Consolas,monospace;
   --sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
 }
 *{box-sizing:border-box} html{scroll-behavior:smooth}
 body{margin:0;min-height:100vh;font-family:var(--sans);color:var(--deep);
-  background:radial-gradient(circle at 10% 0%,rgba(196,154,58,.16),transparent 32%),
-    radial-gradient(circle at 86% 6%,rgba(143,175,122,.20),transparent 30%),
-    linear-gradient(180deg,var(--cream),#fffaf0 58%,#f3ead9);overflow-x:hidden}
+  background:radial-gradient(circle at 10% 0%,rgba(196,154,58,.14),transparent 32%),
+    radial-gradient(circle at 86% 6%,rgba(143,175,122,.18),transparent 30%),
+    linear-gradient(180deg,var(--cream),#fffaf0 58%,#f3ead9);
+  overflow-x:hidden}
 body::before{content:"";position:fixed;inset:0;pointer-events:none;
-  background-image:linear-gradient(rgba(6,68,46,.035) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(6,68,46,.035) 1px,transparent 1px);
-  background-size:44px 44px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.55),transparent 78%)}
+  background-image:linear-gradient(rgba(6,68,46,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(6,68,46,.03) 1px,transparent 1px);
+  background-size:44px 44px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.5),transparent 75%)}
  
-/* APP LAYOUT */
-.app{position:relative;z-index:1;display:grid;grid-template-columns:300px 1fr;min-height:100vh;
-  width:min(1680px,100%);margin:0 auto;background:rgba(255,253,247,.46);
-  box-shadow:0 0 0 1px rgba(196,154,58,.16)}
+/* ── APP GRID ── */
+.app{position:relative;z-index:1;display:grid;grid-template-columns:280px 1fr;
+  min-height:100vh;width:min(1680px,100%);margin:0 auto;
+  background:rgba(255,253,247,.4);box-shadow:0 0 0 1px rgba(196,154,58,.14)}
  
-/* SIDEBAR */
+/* ── SIDEBAR ── */
 .sidebar{border-right:1px solid var(--border);
-  background:linear-gradient(180deg,rgba(255,253,247,.96),rgba(248,244,234,.92));
-  padding:24px 18px;display:flex;flex-direction:column;gap:22px;
-  min-height:100vh;position:sticky;top:0;align-self:start;overflow-y:auto}
-.side-logo{display:grid;justify-items:center;text-align:center;gap:8px;padding-bottom:10px}
-.side-logo img{width:128px;max-width:84%;height:auto;object-fit:contain;
-  filter:drop-shadow(0 8px 10px rgba(30,44,18,.12))}
-.brand-ar{font-family:var(--ar);font-size:1.36rem;font-weight:900;line-height:1;color:var(--deep);direction:rtl}
-.brand-en{font-weight:900;letter-spacing:.12em;color:var(--deep);font-size:.8rem;text-transform:uppercase}
-.side-meta{display:flex;gap:7px;justify-content:center;color:var(--muted);font-weight:750;font-size:.76rem}
-.nav{display:grid;gap:6px}
-.nav a{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--deep);
-  font-weight:800;padding:12px 14px;border-radius:13px;transition:.2s ease;font-size:.84rem}
-.nav a i{font-size:1.15rem;color:#8d7335;flex-shrink:0}
-.nav a:hover{background:rgba(196,154,58,.1);color:var(--deep)}
+  background:linear-gradient(180deg,rgba(255,253,247,.97),rgba(248,244,234,.94));
+  padding:22px 16px;display:flex;flex-direction:column;gap:20px;
+  min-height:100vh;position:sticky;top:0;align-self:start}
+.side-logo{display:grid;justify-items:center;text-align:center;gap:7px;padding-bottom:8px}
+.side-logo img{width:120px;max-width:82%;height:auto;object-fit:contain;
+  filter:drop-shadow(0 6px 10px rgba(30,44,18,.1))}
+.brand-ar{font-family:var(--ar);font-size:1.3rem;font-weight:900;color:var(--deep);direction:rtl}
+.brand-en{font-weight:900;letter-spacing:.12em;color:var(--deep);font-size:.76rem;text-transform:uppercase}
+.side-meta{display:flex;gap:6px;justify-content:center;color:var(--muted);font-size:.72rem;font-weight:700}
+.nav{display:grid;gap:5px}
+.nav a{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--deep);
+  font-weight:800;padding:11px 13px;border-radius:12px;transition:.18s;font-size:.82rem}
+.nav a i{font-size:1.1rem;color:#8d7335;flex-shrink:0}
+.nav a:hover{background:rgba(196,154,58,.1)}
 .nav a.active{color:#fff;background:linear-gradient(135deg,#7ea06d,#06442E);
-  box-shadow:0 8px 22px rgba(6,68,46,.18)}
+  box-shadow:0 6px 18px rgba(6,68,46,.18)}
 .nav a.active i{color:var(--light-gold)}
-.side-art{margin-top:auto;padding-top:16px;opacity:.88}
+.side-art{margin-top:auto;padding-top:14px;opacity:.85}
 .side-art svg{width:100%;height:auto}
-.side-art small{display:block;margin-top:8px;color:var(--muted);font-weight:800;
-  font-size:.7rem;text-align:center;letter-spacing:.06em}
+.side-art small{display:block;margin-top:6px;color:var(--muted);font-weight:800;
+  font-size:.66rem;text-align:center;letter-spacing:.06em}
  
-/* MAIN */
-.main{padding:24px;min-width:0}
+/* ── MAIN ── */
+.main{padding:22px;min-width:0}
  
-/* TOPBAR */
-.topbar{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;
-  margin-bottom:18px;background:rgba(255,253,247,.86);border:1px solid var(--border);
-  border-radius:var(--radius);padding:18px 22px;box-shadow:var(--shadow);backdrop-filter:blur(12px)}
-.title-block h1{margin:0;font-size:clamp(1.2rem,2.2vw,2rem);font-weight:950;
+/* ── TOPBAR ── */
+.topbar{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;
+  margin-bottom:16px;background:rgba(255,253,247,.88);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px 22px;box-shadow:var(--shadow);
+  backdrop-filter:blur(12px)}
+.title-block h1{margin:0;font-size:clamp(1.1rem,2vw,1.9rem);font-weight:950;
   text-transform:uppercase;letter-spacing:-.04em;line-height:1.1}
-.title-block p{margin:5px 0 0;color:var(--muted);font-family:var(--ar);
-  font-weight:800;direction:rtl;text-align:left;font-size:.9rem}
-.status-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:flex-end}
-.status-item{display:flex;align-items:center;gap:9px;color:var(--deep);font-weight:800;font-size:.82rem}
-.status-item small{display:block;color:var(--muted);font-size:.68rem;font-weight:700;line-height:1.2}
-.status-item i{font-size:1.25rem;color:#8d7335}
-.divider{width:1px;height:38px;background:var(--border)}
-.online-dot{width:13px;height:13px;border-radius:50%;background:#16a34a;flex-shrink:0;
-  box-shadow:0 0 0 5px rgba(22,163,74,.12),0 0 18px rgba(22,163,74,.32);position:relative}
-.online-dot::after{content:"";position:absolute;inset:-7px;border-radius:50%;
+.title-block p{margin:4px 0 0;color:var(--muted);font-family:var(--ar);
+  font-weight:800;direction:rtl;text-align:left;font-size:.86rem}
+.status-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end}
+.status-item{display:flex;align-items:center;gap:8px;color:var(--deep);font-weight:800;font-size:.8rem}
+.status-item small{display:block;color:var(--muted);font-size:.65rem;font-weight:700;line-height:1.2}
+.status-item i{font-size:1.15rem;color:#8d7335}
+.tb-divider{width:1px;height:34px;background:var(--border)}
+.online-dot{width:12px;height:12px;border-radius:50%;background:#16a34a;flex-shrink:0;
+  box-shadow:0 0 0 5px rgba(22,163,74,.1),0 0 14px rgba(22,163,74,.28);position:relative}
+.online-dot::after{content:"";position:absolute;inset:-6px;border-radius:50%;
   border:1px solid #16a34a;animation:pulse 1.6s ease-out infinite}
 @keyframes pulse{from{transform:scale(.5);opacity:.8}to{transform:scale(1.9);opacity:0}}
  
-/* GLOBAL STATUS BAR */
+/* ── STATUS BAR ── */
 .status-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:10px 16px;border-radius:14px;border:1px solid var(--border);
-  background:rgba(255,253,247,.9);margin-bottom:16px;box-shadow:0 2px 8px rgba(6,68,46,.05);
-  flex-wrap:wrap}
+  background:rgba(255,253,247,.92);margin-bottom:16px;
+  box-shadow:0 2px 8px rgba(6,68,46,.04);flex-wrap:wrap}
 .status-left{display:flex;align-items:center;gap:9px}
-#statusDot{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:var(--muted)}
-#statusEn{font-size:.82rem;font-weight:600;color:var(--deep)}
+#statusDot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex-shrink:0}
+#statusEn{font-size:.82rem;font-weight:600}
 #statusAr{font-family:var(--ar);font-size:.76rem;color:var(--muted);direction:rtl}
-#lastSaved{font-family:var(--mono);font-size:.65rem;color:var(--muted)}
+#lastSaved{font-family:var(--mono);font-size:.62rem;color:var(--muted)}
  
-/* ALERT BANNER */
+/* ── ALERT BANNER ── */
 #alertBanner{display:none;margin-bottom:16px;border-radius:16px;
   border:1px solid rgba(192,57,43,.22);background:var(--soft-danger);color:var(--danger);
-  padding:15px 18px;box-shadow:0 10px 30px rgba(192,57,43,.1);
+  padding:14px 18px;box-shadow:0 8px 28px rgba(192,57,43,.1);
   align-items:center;justify-content:space-between;gap:14px}
 #alertBanner.active{display:flex}
 .alert-main{display:flex;gap:12px;align-items:center}
-.alert-main i{font-size:1.5rem}
+.alert-main i{font-size:1.4rem}
 .alert-title{font-weight:950;font-size:.9rem}
 .alert-ar{font-family:var(--ar);direction:rtl;font-size:.8rem;margin-top:2px}
-.alert-detail{font-family:var(--mono);font-weight:800;font-size:.78rem;text-align:right}
+#alertDetail{font-family:var(--mono);font-weight:800;font-size:.76rem;text-align:right}
  
-/* METRIC CARDS */
-.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin-bottom:18px}
-.metric{position:relative;overflow:hidden;min-height:188px;cursor:pointer;
+/* ── METRIC CARDS ── */
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.metric{position:relative;overflow:hidden;cursor:pointer;
   background:linear-gradient(180deg,#fffefb,var(--card));
-  border:1px solid rgba(196,154,58,.22);border-top:4px solid var(--status);
-  border-radius:22px;padding:18px 18px 10px;box-shadow:var(--shadow);
-  transition:transform .18s ease,border-color .22s ease,box-shadow .2s}
-.metric:hover{transform:translateY(-2px);border-color:rgba(196,154,58,.45);
-  box-shadow:0 22px 60px rgba(48,39,18,.14)}
-.metric.selected{border-color:var(--gold)!important;box-shadow:0 0 0 2px rgba(196,154,58,.25),var(--shadow)}
-.metric::before{content:"";position:absolute;inset:auto -40px -40px auto;
-  width:130px;height:130px;border-radius:50%;background:var(--status-soft);pointer-events:none}
+  border:1px solid rgba(196,154,58,.2);border-top:4px solid var(--status);
+  border-radius:20px;padding:16px 16px 10px;box-shadow:var(--shadow);
+  transition:transform .18s,border-color .2s,box-shadow .2s}
+.metric:hover{transform:translateY(-2px);border-color:rgba(196,154,58,.4);
+  box-shadow:0 14px 44px rgba(48,39,18,.13)}
+.metric.selected{border-color:var(--gold)!important;
+  box-shadow:0 0 0 2px rgba(196,154,58,.22),var(--shadow)}
+.metric::before{content:"";position:absolute;inset:auto -36px -36px auto;
+  width:120px;height:120px;border-radius:50%;background:var(--status-soft);pointer-events:none}
 .metric.good{--status:#16894E;--status-soft:#E8F0E2}
 .metric.warning{--status:#C49A3A;--status-soft:#fff5d8}
 .metric.danger{--status:#C0392B;--status-soft:#FDECEA}
 .metric-top{position:relative;z-index:1;display:flex;align-items:flex-start;
-  justify-content:space-between;gap:10px;margin-bottom:4px}
-.metric-icon{width:44px;height:44px;object-fit:contain;flex-shrink:0}
-.metric-label-en{color:var(--deep);font-size:.76rem;text-transform:uppercase;
+  justify-content:space-between;gap:8px;margin-bottom:4px}
+.metric-icon{width:40px;height:40px;object-fit:contain;flex-shrink:0}
+.metric-label-en{color:var(--deep);font-size:.72rem;text-transform:uppercase;
   font-weight:950;letter-spacing:.08em}
 .metric-label-ar{font-family:var(--ar);direction:rtl;text-align:left;
-  color:var(--muted);font-size:.86rem;margin-top:3px;font-weight:800}
-.mc-sub{font-size:.58rem;color:var(--gold);margin-top:2px;font-style:italic}
-.badge{padding:5px 9px;border-radius:999px;background:var(--status-soft);
-  color:var(--status);font-family:var(--mono);font-size:.64rem;font-weight:950;
-  text-transform:uppercase;border:1px solid rgba(0,0,0,.06)}
-.metric-value{position:relative;z-index:1;margin-top:14px;display:flex;
-  align-items:baseline;gap:7px;font-family:var(--mono)}
-.metric-number{font-size:clamp(2.6rem,4vw,4.4rem);font-weight:950;
+  color:var(--muted);font-size:.82rem;margin-top:2px;font-weight:800}
+.mc-sub{font-size:.56rem;color:var(--gold);margin-top:2px;font-style:italic}
+.badge{padding:4px 8px;border-radius:999px;background:var(--status-soft);
+  color:var(--status);font-family:var(--mono);font-size:.62rem;font-weight:950;
+  text-transform:uppercase;border:1px solid rgba(0,0,0,.05);white-space:nowrap}
+.metric-value{position:relative;z-index:1;margin-top:12px;display:flex;
+  align-items:baseline;gap:6px;font-family:var(--mono)}
+.metric-number{font-size:clamp(2.4rem,3.6vw,4rem);font-weight:950;
   letter-spacing:-.1em;line-height:.88;color:var(--deep)}
 .metric.warning .metric-number{color:var(--gold)}
 .metric.danger  .metric-number{color:var(--danger)}
-.unit{font-weight:950;color:var(--muted);font-size:.9rem}
-.optimal{position:relative;z-index:1;margin-top:10px;color:var(--gold);
-  font-weight:900;font-size:.8rem}
+.unit{font-weight:950;color:var(--muted);font-size:.88rem}
+.optimal{position:relative;z-index:1;margin-top:8px;color:var(--gold);font-weight:900;font-size:.76rem}
 .mc-bar{position:relative;z-index:1;margin-top:6px;height:3px;
-  background:rgba(6,68,46,.1);border-radius:2px;overflow:hidden}
+  background:rgba(6,68,46,.08);border-radius:2px;overflow:hidden}
 .mc-bar-fill{height:100%;border-radius:2px;
-  background:linear-gradient(90deg,var(--status),var(--gold));
-  transition:width .6s ease}
-.spark{position:relative;z-index:1;margin-top:10px;width:100%;height:26px}
-.spark path{fill:none;stroke:var(--status);stroke-width:2.2;stroke-linecap:round;opacity:.85}
-.spark .fill{fill:var(--status-soft);stroke:none;opacity:.65}
-.mc-hint{position:relative;z-index:1;font-size:.58rem;color:var(--muted);
+  background:linear-gradient(90deg,var(--status),var(--gold));transition:width .6s ease}
+.spark{position:relative;z-index:1;margin-top:8px;width:100%;height:24px}
+.spark path{fill:none;stroke:var(--status);stroke-width:2;stroke-linecap:round;opacity:.82}
+.spark .fill{fill:var(--status-soft);stroke:none;opacity:.6}
+.mc-hint{position:relative;z-index:1;font-size:.56rem;color:var(--muted);
   margin-top:4px;opacity:0;transition:opacity .2s}
 .metric:hover .mc-hint,.metric.selected .mc-hint{opacity:1}
 .metric.selected .mc-hint{color:var(--gold)}
  
-/* SUB-SELECTORS */
-.sub-row{display:none;margin:-10px 0 14px;flex-wrap:wrap;gap:6px;align-items:center}
+/* ── SUB-SELECTORS ── */
+.sub-row{display:none;margin:-10px 0 14px;flex-wrap:wrap;gap:5px;align-items:center}
 .sub-row.visible{display:flex}
-.sub-label{font-size:.6rem;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-.sbtn{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;
+.sub-label{font-size:.58rem;color:var(--muted);font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase}
+.sbtn{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;
   border:1px solid var(--border);background:var(--card);color:var(--muted);
-  font-size:.66rem;font-weight:700;cursor:pointer;font-family:var(--mono);transition:all .18s}
+  font-size:.64rem;font-weight:700;cursor:pointer;font-family:var(--mono);transition:all .18s}
 .sbtn .sdot{width:6px;height:6px;border-radius:50%}
-.sbtn.active{background:var(--soft-sage);border-color:rgba(6,68,46,.2);
-  color:var(--deep);font-weight:800}
+.sbtn.active{background:var(--soft-sage);border-color:rgba(6,68,46,.2);color:var(--deep);font-weight:800}
  
-/* GRID 2 */
-.grid-2{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px}
+/* ── PANEL BASE ── */
 .panel{background:rgba(255,253,247,.9);border:1px solid var(--border);
-  border-radius:var(--radius);box-shadow:var(--shadow);backdrop-filter:blur(12px)}
-.panel-pad{padding:20px}
-.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
-.panel-title{margin:0;font-size:.9rem;color:var(--deep);font-weight:950;
+  border-radius:var(--radius);box-shadow:var(--shadow);backdrop-filter:blur(10px)}
+.panel-pad{padding:18px}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.panel-title{margin:0;font-size:.86rem;color:var(--deep);font-weight:950;
   text-transform:uppercase;letter-spacing:-.02em}
-.panel-ar{font-family:var(--ar);direction:rtl;text-align:left;margin-top:3px;
-  color:var(--muted);font-weight:800;font-size:.82rem}
-.chart-box{height:340px;border-radius:16px;border:1px solid rgba(196,154,58,.14);
-  background:linear-gradient(180deg,#fffefb,#fffaf0);padding:12px}
+.panel-ar{font-family:var(--ar);direction:rtl;text-align:left;
+  margin-top:3px;color:var(--muted);font-weight:800;font-size:.78rem}
+ 
+/* ── ACTION CENTER: 2-col Recommendations + Zones ── */
+.action-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+ 
+/* RECOMMENDATIONS — prominent, left */
+.rec-panel{padding:22px;border:2px solid rgba(196,154,58,.28);
+  background:linear-gradient(135deg,rgba(248,244,234,.98),rgba(255,253,247,.98));
+  display:flex;flex-direction:column}
+.rec-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;
+  padding-bottom:14px;border-bottom:2px solid rgba(196,154,58,.2)}
+.rec-header i{font-size:1.5rem;color:var(--gold)}
+.rec-title-en{font-size:.82rem;font-weight:950;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--deep)}
+.rec-title-ar{font-family:var(--ar);direction:rtl;font-size:1rem;
+  font-weight:900;color:var(--deep);margin-top:2px}
+.dec-item{display:flex;gap:12px;padding:14px;border-radius:14px;margin-bottom:10px;
+  background:rgba(255,253,247,.95);border:1px solid var(--border);
+  align-items:flex-start;box-shadow:0 2px 8px rgba(6,68,46,.04)}
+.dec-item:last-child{margin-bottom:0}
+.ptag{font-size:.62rem;font-weight:900;padding:4px 10px;border-radius:999px;
+  white-space:nowrap;margin-top:2px;flex-shrink:0;letter-spacing:.04em}
+.ph{background:rgba(192,57,43,.1);color:var(--danger);border:1px solid rgba(192,57,43,.2)}
+.pm{background:rgba(196,154,58,.12);color:#8B5E00;border:1px solid rgba(196,154,58,.25)}
+.pl{background:rgba(22,137,78,.1);color:#16894E;border:1px solid rgba(22,137,78,.2)}
+.dec-en{font-size:.88rem;line-height:1.55;color:var(--deep);font-weight:600}
+.dec-ar{font-family:var(--ar);font-size:.8rem;color:var(--muted);direction:rtl;
+  margin-top:5px;line-height:1.6;font-weight:700}
+ 
+/* ZONES PANEL — right */
+.zones-panel{padding:18px;display:flex;flex-direction:column;gap:12px}
+.weighted-row{background:linear-gradient(135deg,var(--soft-sage),rgba(230,211,163,.35));
+  border:1px solid rgba(196,154,58,.22);border-radius:14px;padding:14px 16px;
+  display:flex;justify-content:space-between;align-items:center}
+.wt-label{font-size:.62rem;font-weight:900;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--deep)}
+.wt-label-ar{font-family:var(--ar);font-size:.72rem;color:var(--muted);
+  direction:rtl;margin-top:3px}
+.wt-val{font-family:var(--mono);font-size:1.7rem;font-weight:950;
+  color:var(--deep);letter-spacing:-.05em}
+.wt-sub{font-size:.62rem;color:var(--muted);text-align:right;margin-top:3px}
+.zones-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.zone-card{border-radius:13px;padding:14px;border:1px solid}
+.zone-card.wet{background:rgba(25,118,210,.05);border-color:rgba(25,118,210,.2)}
+.zone-card.cnp{background:var(--soft-sage);border-color:rgba(6,68,46,.15)}
+.zn{font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.zn.wet{color:var(--blue)} .zn.cnp{color:var(--deep)}
+.zn-ar{font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl;margin-bottom:10px}
+.z-readings{display:flex;justify-content:space-between}
+.z-val{text-align:center}
+.z-num{font-family:var(--mono);font-size:1.7rem;font-weight:950;
+  letter-spacing:-.05em;color:var(--deep)}
+.z-lbl{font-size:.6rem;color:var(--muted);margin-top:2px}
+.z-src{font-size:.56rem;color:var(--muted);margin-top:7px;
+  padding-top:7px;border-top:1px solid var(--border)}
+.cooling-row{background:rgba(248,244,234,.9);border:1px solid var(--border);
+  border-radius:11px;padding:11px 14px;display:flex;
+  justify-content:space-between;align-items:center}
+.cl-desc{font-size:.7rem;color:var(--deep);font-weight:700}
+.cl-desc-ar{font-family:var(--ar);font-size:.64rem;color:var(--muted);
+  direction:rtl;margin-top:2px}
+.cl-val{font-family:var(--mono);font-size:1.4rem;font-weight:950;
+  letter-spacing:-.04em;color:var(--deep)}
+.water-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.w-card{padding:10px 12px;border-radius:10px;border:1px solid var(--border);
+  background:rgba(248,244,234,.8);display:flex;justify-content:space-between;align-items:center}
+.w-lbl{font-size:.62rem;color:var(--muted);font-weight:600}
+.w-lbl-ar{font-family:var(--ar);font-size:.6rem;color:var(--muted);direction:rtl}
+.w-status{font-size:.72rem;font-weight:700;color:#16894E}
+ 
+/* ── CHART + VPD ROW ── */
+.climate-row{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px}
+.chart-panel{padding:20px}
 .chart-controls{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .time-range{display:flex;gap:4px}
 .range-btn{padding:4px 11px;border-radius:999px;border:1px solid var(--border);
-  background:transparent;color:var(--muted);font-size:.67rem;font-weight:700;
+  background:transparent;color:var(--muted);font-size:.66rem;font-weight:700;
   cursor:pointer;font-family:var(--mono);transition:all .18s}
 .range-btn:hover{border-color:var(--gold);color:var(--deep)}
 .range-btn.active{background:var(--deep);border-color:var(--deep);color:var(--light-gold)}
 .metric-btns{display:flex;gap:4px;flex-wrap:wrap}
 .mbtn{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;
   border:1px solid var(--border);background:transparent;color:var(--muted);
-  font-size:.66rem;font-weight:700;cursor:pointer;font-family:var(--mono);transition:all .18s}
+  font-size:.65rem;font-weight:700;cursor:pointer;font-family:var(--mono);transition:all .18s}
 .mbtn .mdot{width:6px;height:6px;border-radius:50%}
 .mbtn.active{background:var(--soft-sage);border-color:rgba(6,68,46,.2);color:var(--deep)}
-.chart-note{font-size:.6rem;color:var(--muted);margin-top:7px;font-family:var(--mono)}
-.chartTitleAr{font-family:var(--ar);direction:rtl;text-align:left;
-  color:var(--muted);font-size:.8rem;margin-top:2px}
+.chart-box{height:300px;border-radius:14px;border:1px solid rgba(196,154,58,.12);
+  background:linear-gradient(180deg,#fffefb,#fffaf0);padding:12px}
+.chart-note{font-size:.6rem;color:var(--muted);margin-top:6px;font-family:var(--mono)}
  
 /* VPD GAUGE */
 .gauge-panel{--vpd-color:var(--deep);--needle-rotation:-90deg;
-  display:flex;flex-direction:column;justify-content:space-between;min-height:420px}
+  padding:20px;display:flex;flex-direction:column;justify-content:space-between}
 .gauge-wrap{text-align:center;margin:4px 0}
-.gauge-svg{width:min(290px,100%);height:auto;margin:0 auto;display:block}
+.gauge-svg{width:min(270px,100%);height:auto;margin:0 auto;display:block}
 .needle{transform-origin:160px 160px;transform:rotate(var(--needle-rotation));
   transition:transform .35s ease}
-.gauge-value{font-family:var(--mono);font-size:clamp(3rem,5.5vw,5rem);
+.gauge-value{font-family:var(--mono);font-size:clamp(2.8rem,5vw,4.6rem);
   font-weight:950;letter-spacing:-.12em;color:var(--vpd-color);line-height:.88}
-.gauge-unit{font-family:var(--mono);font-weight:950;color:var(--deep);font-size:1rem;margin-left:6px}
-.gauge-scale{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
-  margin-top:10px;border-top:1px solid var(--border);padding-top:12px}
-.scale-item{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
-.scale-item b{display:block;color:var(--deep);font-size:.84rem}
-.advice{margin-top:14px;border-radius:14px;background:var(--soft-sage);
-  border:1px solid rgba(143,175,122,.28);padding:13px}
-#adviceEn{color:var(--deep);font-weight:850;font-size:.84rem;line-height:1.5}
+.gauge-unit{font-family:var(--mono);font-weight:950;color:var(--deep);
+  font-size:.95rem;margin-left:5px}
+.gauge-scale{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
+  margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+.scale-item{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.scale-item b{display:block;color:var(--deep);font-size:.8rem}
+.advice{margin-top:12px;border-radius:13px;background:var(--soft-sage);
+  border:1px solid rgba(143,175,122,.28);padding:13px;flex:1}
+#adviceEn{color:var(--deep);font-weight:850;font-size:.82rem;line-height:1.5}
 #adviceAr{margin-top:7px;font-family:var(--ar);direction:rtl;text-align:right;
-  line-height:1.6;color:var(--forest);font-weight:800;font-size:.8rem}
+  line-height:1.6;color:var(--forest);font-weight:800;font-size:.78rem}
  
-/* LOWER ROW */
-.lower{display:grid;grid-template-columns:1fr 2fr;gap:18px;margin-bottom:18px}
- 
-/* ZONES PANEL */
-.zones-panel{padding:18px}
-.weighted-row{background:linear-gradient(135deg,var(--soft-sage),rgba(230,211,163,.35));
-  border:1px solid rgba(196,154,58,.25);border-radius:12px;padding:11px 14px;
-  display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.wt-label{font-size:.6rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--deep)}
-.wt-label-ar{font-family:var(--ar);font-size:.68rem;color:var(--muted);direction:rtl;margin-top:2px}
-.wt-val{font-family:var(--mono);font-size:1.4rem;font-weight:950;color:var(--deep);letter-spacing:-.04em}
-.wt-sub{font-size:.58rem;color:var(--muted);text-align:right;margin-top:2px}
-.zones-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
-.zone-card{border-radius:11px;padding:12px;border:1px solid}
-.zone-card.wet{background:rgba(25,118,210,.05);border-color:rgba(25,118,210,.2)}
-.zone-card.cnp{background:var(--soft-sage);border-color:rgba(6,68,46,.15)}
-.zn{font-size:.6rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
-.zn.wet{color:var(--blue)} .zn.cnp{color:var(--deep)}
-.zn-ar{font-family:var(--ar);font-size:.68rem;color:var(--muted);direction:rtl;margin-bottom:8px}
-.z-readings{display:flex;justify-content:space-between}
-.z-val{text-align:center}
-.z-num{font-family:var(--mono);font-size:1.5rem;font-weight:950;letter-spacing:-.04em;color:var(--deep)}
-.z-lbl{font-size:.58rem;color:var(--muted);margin-top:2px}
-.z-src{font-size:.54rem;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
-.cooling-row{background:rgba(248,244,234,.9);border:1px solid var(--border);
-  border-radius:10px;padding:9px 12px;display:flex;justify-content:space-between;
-  align-items:center;margin-bottom:9px}
-.cl-desc{font-size:.68rem;color:var(--deep);font-weight:600}
-.cl-desc-ar{font-family:var(--ar);font-size:.62rem;color:var(--muted);direction:rtl;margin-top:2px}
-.cl-val{font-family:var(--mono);font-size:1.2rem;font-weight:950;letter-spacing:-.04em;color:var(--deep)}
-.water-row{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.w-card{padding:8px 12px;border-radius:9px;border:1px solid var(--border);
-  background:rgba(248,244,234,.8);display:flex;justify-content:space-between;align-items:center}
-.w-lbl{font-size:.6rem;color:var(--muted);font-weight:600}
-.w-lbl-ar{font-family:var(--ar);font-size:.58rem;color:var(--muted);direction:rtl}
-.w-status{font-size:.7rem;font-weight:700;color:#16894E}
- 
-/* ALERTS NORMAL CARD */
-.normal-card{min-height:200px;border-radius:16px;border:1px solid rgba(143,175,122,.25);
-  background:linear-gradient(135deg,#fffefb,#eef5e8);padding:20px;
-  display:flex;align-items:center;gap:15px}
-.normal-card i{font-size:2.6rem;color:#16894E;flex-shrink:0}
-.normal-card b{font-size:1rem;color:var(--deep)}
-.normal-card p{margin:.3rem 0 0;color:var(--muted);font-size:.86rem}
- 
-/* DECISIONS PANEL */
-.decisions-panel{padding:18px;border:1px solid rgba(196,154,58,.18);
-  background:linear-gradient(135deg,rgba(196,154,58,.04),var(--card))}
-.dec-header{font-size:.6rem;font-weight:900;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--deep);display:flex;align-items:center;gap:7px;margin-bottom:12px}
-.dec-item{display:flex;gap:10px;padding:10px;border-radius:10px;margin-bottom:7px;
-  background:rgba(248,244,234,.8);border:1px solid var(--border);align-items:flex-start}
-.dec-item:last-child{margin-bottom:0}
-.ptag{font-size:.56rem;font-weight:900;padding:3px 7px;border-radius:999px;
-  white-space:nowrap;margin-top:1px;flex-shrink:0}
-.ph{background:rgba(192,57,43,.1);color:var(--danger)}
-.pm{background:rgba(196,154,58,.12);color:var(--gold)}
-.pl{background:rgba(22,137,78,.1);color:#16894E}
-.dec-en{font-size:.8rem;line-height:1.5;color:var(--deep)}
-.dec-ar{font-family:var(--ar);font-size:.72rem;color:var(--muted);direction:rtl;margin-top:3px;line-height:1.5}
- 
-/* CAMERAS */
-.camera-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
-.cam-card{border-radius:18px;overflow:hidden;border:1px solid rgba(196,154,58,.22);
-  background:#fff;box-shadow:0 10px 28px rgba(48,39,18,.08)}
+/* ── CAMERAS ROW ── */
+.cam-row{margin-bottom:18px}
+.camera-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.cam-card{border-radius:16px;overflow:hidden;border:1px solid rgba(196,154,58,.2);
+  background:#fff;box-shadow:0 8px 24px rgba(48,39,18,.07)}
 .cam-head{display:flex;align-items:center;justify-content:space-between;
-  padding:10px 12px;background:#fffefb;border-bottom:1px solid var(--border);font-weight:900}
+  padding:10px 13px;background:#fffefb;border-bottom:1px solid var(--border);font-weight:900}
 .cam-head i{color:var(--gold)}
 .cam-right{display:flex;align-items:center;gap:7px}
-.live-badge{background:#16a34a;color:#fff;border-radius:8px;
-  padding:4px 8px;font-size:.68rem;font-weight:800}
-.fullscreen-btn{border:1px solid rgba(196,154,58,.28);background:#fffdf7;
-  color:var(--deep);width:36px;height:36px;border-radius:11px;
+.live-badge{background:#16a34a;color:#fff;border-radius:7px;
+  padding:4px 8px;font-size:.64rem;font-weight:800}
+.fullscreen-btn{border:1px solid rgba(196,154,58,.25);background:#fffdf7;
+  color:var(--deep);width:34px;height:34px;border-radius:10px;
   display:grid;place-items:center;cursor:pointer;transition:all .15s}
 .fullscreen-btn:hover{border-color:var(--gold);background:rgba(196,154,58,.08)}
 .camera-feed{position:relative;aspect-ratio:16/9;background:var(--soft-sage);overflow:hidden}
 .camera-feed img.stream-image{width:100%;height:100%;object-fit:cover;
-  display:block;opacity:0;transition:opacity .25s}
+  display:block;opacity:0;transition:opacity .25s;position:absolute;inset:0}
 .camera-feed.has-feed img.stream-image{opacity:1}
 .camera-placeholder{position:absolute;inset:0;display:grid;place-items:center;
   text-align:center;color:var(--deep);pointer-events:none}
 .camera-feed.has-feed .camera-placeholder{display:none}
 .placeholder-title{font-weight:950;font-size:.8rem}
-.placeholder-subtitle{font-family:var(--ar);direction:rtl;font-size:.72rem;color:var(--muted);margin-top:4px}
-.cam-strip{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;
-  justify-content:space-between;background:linear-gradient(90deg,var(--forest),var(--deep));
-  color:#fff;padding:9px 12px;font-weight:900;font-size:.82rem}
+.placeholder-subtitle{font-family:var(--ar);direction:rtl;font-size:.7rem;color:var(--muted);margin-top:4px}
+.cam-strip{position:absolute;left:0;right:0;bottom:0;display:flex;
+  align-items:center;justify-content:space-between;
+  background:linear-gradient(90deg,var(--forest),var(--deep));
+  color:#fff;padding:9px 12px;font-weight:900;font-size:.8rem}
  
-/* FOOTER */
-.footer-info{display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+/* ── REFRESH BTN ── */
+.refresh-btn{border:1px solid rgba(196,154,58,.36);
+  background:linear-gradient(135deg,var(--deep),var(--forest));color:#fff;
+  border-radius:999px;padding:10px 18px;display:inline-flex;align-items:center;
+  gap:8px;font-weight:950;min-height:40px;cursor:pointer;font-size:.8rem;
+  box-shadow:0 8px 20px rgba(6,68,46,.18);transition:all .18s}
+.refresh-btn:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(6,68,46,.25)}
+ 
+/* ── FOOTER ── */
+.footer-info{display:grid;grid-template-columns:repeat(4,1fr);
   border-radius:var(--radius) var(--radius) 0 0;overflow:hidden}
-.foot-item{min-height:96px;display:flex;align-items:center;gap:13px;
-  padding:16px;border-right:1px solid var(--border);background:rgba(255,253,247,.92)}
+.foot-item{min-height:88px;display:flex;align-items:center;gap:12px;
+  padding:14px 16px;border-right:1px solid var(--border);
+  background:rgba(255,253,247,.92)}
 .foot-item:last-child{border-right:none;justify-content:flex-end}
-.foot-item i{font-size:1.8rem;color:var(--gold);flex-shrink:0}
-.foot-item b{display:block;color:var(--deep);font-size:.84rem}
-.foot-item small{display:block;color:var(--muted);margin-top:3px;font-weight:750;font-size:.72rem}
-.foot-logo{height:74px;object-fit:contain}
+.foot-item i{font-size:1.7rem;color:var(--gold);flex-shrink:0}
+.foot-item b{display:block;color:var(--deep);font-size:.82rem}
+.foot-item small{display:block;color:var(--muted);margin-top:3px;
+  font-weight:750;font-size:.68rem}
+.foot-logo{height:68px;object-fit:contain}
 .footer-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;
   background:linear-gradient(90deg,var(--forest),var(--deep));color:#fff;
-  padding:14px 20px;font-size:.84rem;flex-wrap:wrap}
+  padding:13px 20px;flex-wrap:wrap;font-size:.82rem}
 .footer-bar span:last-child{font-family:var(--ar);direction:rtl}
-#footerSaved{font-family:var(--mono);font-size:.62rem;color:rgba(255,255,255,.45)}
-.refresh-btn{border:1px solid rgba(196,154,58,.38);
-  background:linear-gradient(135deg,var(--deep),var(--forest));color:#fff;
-  border-radius:999px;padding:11px 18px;display:inline-flex;align-items:center;
-  gap:8px;font-weight:950;min-height:44px;cursor:pointer;font-size:.82rem;
-  box-shadow:0 10px 24px rgba(6,68,46,.2);transition:all .18s}
-.refresh-btn:hover{transform:translateY(-1px);box-shadow:0 14px 32px rgba(6,68,46,.28)}
+#footerSaved{font-family:var(--mono);font-size:.6rem;color:rgba(255,255,255,.4)}
  
-/* RESPONSIVE */
+/* ── RESPONSIVE ── */
 @media(max-width:1180px){
   .app{grid-template-columns:1fr}
-  .sidebar{position:relative;min-height:auto;display:grid;grid-template-columns:auto 1fr;align-items:center}
+  .sidebar{position:relative;min-height:auto;flex-direction:row;
+    align-items:center;flex-wrap:wrap;padding:14px 16px;gap:14px}
   .side-logo{justify-items:start;text-align:left;padding:0}
-  .side-logo img{width:80px}
-  .nav{display:flex;overflow-x:auto;padding-bottom:4px;gap:5px}
-  .nav a{white-space:nowrap;padding:9px 12px}
+  .side-logo img{width:72px}
+  .nav{flex-direction:row;flex-wrap:wrap;gap:4px}
+  .nav a{padding:8px 12px;font-size:.78rem}
   .side-art{display:none}
   .metrics{grid-template-columns:repeat(2,1fr)}
-  .grid-2,.lower{grid-template-columns:1fr}
+  .action-row{grid-template-columns:1fr}
+  .climate-row{grid-template-columns:1fr}
   .footer-info{grid-template-columns:repeat(2,1fr)}
   .foot-item:nth-child(2){border-right:none}
 }
 @media(max-width:768px){
   .main{padding:14px}
-  .sidebar{padding:14px;display:block}
-  .side-logo{display:flex;align-items:center;gap:10px}
-  .side-logo img{width:64px}
-  .brand-ar{font-size:1.1rem} .brand-en{font-size:.68rem}
-  .side-meta{justify-content:flex-start}
-  .nav{margin-top:12px;flex-wrap:wrap}
-  .topbar{grid-template-columns:1fr;padding:14px;border-radius:18px}
+  .topbar{grid-template-columns:1fr;padding:14px}
   .status-row{justify-content:flex-start;gap:10px}
-  .divider{display:none}
+  .tb-divider{display:none}
   .metrics,.camera-grid,.footer-info{grid-template-columns:1fr}
-  .metric{min-height:160px}
-  .gauge-panel{min-height:auto}
-  .lower{gap:14px}
-  .foot-item{border-right:none;border-bottom:1px solid var(--border);min-height:78px}
-  .foot-item:last-child{justify-content:flex-start;border-bottom:none}
-  .footer-bar{flex-direction:column;text-align:center;gap:8px}
-  .title-block h1{font-size:1.2rem}
+  .action-row,.climate-row{grid-template-columns:1fr}
+  .footer-bar{flex-direction:column;text-align:center;gap:7px}
   .refresh-btn{width:100%;justify-content:center}
+  .foot-item{border-right:none;border-bottom:1px solid var(--border);min-height:74px}
+  .foot-item:last-child{justify-content:flex-start;border-bottom:none}
 }
 </style>
 </head>
 <body>
 <div class="app">
  
-<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="side-logo">
-    <img src="al-waseel-logo.svg"
-         onerror="this.src='al-waseel-logo.svg'"
-         alt="Al-Waseel Farm"/>
+    <img src="assets/images/logo/al-waseel-logo-transparent.png" onerror="this.src='assets/images/logo/al-waseel-logo.png'" alt="Al-Waseel Farm"/>
     <div>
       <div class="brand-ar">مزرعة الوصيل</div>
       <div class="brand-en">AL-WASEEL FARM</div>
@@ -386,7 +394,6 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
   </div>
 </aside>
  
-<!-- MAIN -->
 <main class="main" id="top">
  
 <!-- TOPBAR -->
@@ -400,12 +407,12 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
       <i class="ti ti-clock"></i>
       <span id="timestamp">--:--:--<small>Last updated</small></span>
     </div>
-    <div class="divider"></div>
+    <div class="tb-divider"></div>
     <div class="status-item">
       <i class="ti ti-calendar"></i>
       <span id="dateStamp">--<small>Date</small></span>
     </div>
-    <div class="divider"></div>
+    <div class="tb-divider"></div>
     <div class="status-item">
       <span class="online-dot"></span>
       <span>System Online<small>All Systems Normal</small></span>
@@ -413,14 +420,14 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
   </div>
 </header>
  
-<!-- GLOBAL STATUS BAR -->
+<!-- STATUS BAR -->
 <div class="status-bar">
   <div class="status-left">
     <div id="statusDot"></div>
     <div id="statusEn">Loading farm status...</div>
     <div id="statusAr">جاري تحميل حالة المزرعة...</div>
   </div>
-  <div id="lastSaved" style="font-family:var(--mono);font-size:.62rem;color:var(--muted)">—</div>
+  <div id="lastSaved">—</div>
 </div>
  
 <!-- ALERT BANNER -->
@@ -432,23 +439,22 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
       <div class="alert-ar">تنبيه حرج في بيئة المحمية</div>
     </div>
   </div>
-  <div id="alertDetail" class="alert-detail"></div>
+  <div id="alertDetail"></div>
 </section>
  
-<!-- METRIC CARDS -->
+<!-- ZONE 1: METRIC CARDS -->
 <section id="environment" class="metrics">
- 
   <article class="metric good" id="co2Card" onclick="toggleMetric('co2')">
     <div class="metric-top">
-      <img class="metric-icon" src="co2-cloud.svg" alt="CO₂"/>
+      <img class="metric-icon" src="assets/images/icons/co2-cloud.svg" alt="CO2"/>
       <div><div class="metric-label-en">CO₂ Level</div><div class="metric-label-ar">ثاني أكسيد الكربون</div></div>
       <div id="co2Status" class="badge">Normal</div>
     </div>
     <div class="metric-value"><span id="co2Value" class="metric-number">—</span><span class="unit">ppm</span></div>
     <div class="optimal">Baseline 350–500 ppm</div>
     <div class="mc-bar"><div class="mc-bar-fill" id="bar-co2" style="width:0%"></div></div>
-    <svg class="spark" viewBox="0 0 220 32" preserveAspectRatio="none">
-      <path class="fill" d="M0 20 C18 17 28 18 43 12 S80 21 99 16 124 13 142 22 179 11 220 18 V32 H0Z"/>
+    <svg class="spark" viewBox="0 0 220 28" preserveAspectRatio="none">
+      <path class="fill" d="M0 20 C18 17 28 18 43 12 S80 21 99 16 124 13 142 22 179 11 220 18 V28 H0Z"/>
       <path d="M0 20 C18 17 28 18 43 12 S80 21 99 16 124 13 142 22 179 11 220 18"/>
     </svg>
     <div class="mc-hint">↑ Click to isolate · click again to return</div>
@@ -456,77 +462,151 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
  
   <article class="metric good" id="tempCard" onclick="toggleMetric('temp')">
     <div class="metric-top">
-      <img class="metric-icon" src="temperature.svg" alt="Temperature"/>
+      <img class="metric-icon" src="assets/images/icons/temperature.svg" alt="Temperature"/>
       <div><div class="metric-label-en">Temperature</div><div class="metric-label-ar">درجة الحرارة</div><div class="mc-sub">Weighted 70% canopy · 30% wet wall</div></div>
       <div id="tempStatus" class="badge">Optimal</div>
     </div>
     <div class="metric-value"><span id="tempValue" class="metric-number">—</span><span class="unit">°C</span></div>
     <div class="optimal">Optimal 16–22 °C</div>
     <div class="mc-bar"><div class="mc-bar-fill" id="bar-temp" style="width:0%"></div></div>
-    <svg class="spark" viewBox="0 0 220 32" preserveAspectRatio="none">
-      <path class="fill" d="M0 24 C25 8 40 20 58 18 S98 6 122 20 154 28 176 14 201 10 220 20 V32 H0Z"/>
-      <path d="M0 24 C25 8 40 20 58 18 S98 6 122 20 154 28 176 14 201 10 220 20"/>
+    <svg class="spark" viewBox="0 0 220 28" preserveAspectRatio="none">
+      <path class="fill" d="M0 22 C25 8 40 18 58 16 S98 5 122 18 154 26 176 12 201 8 220 18 V28 H0Z"/>
+      <path d="M0 22 C25 8 40 18 58 16 S98 5 122 18 154 26 176 12 201 8 220 18"/>
     </svg>
     <div class="mc-hint">↑ Click to drill down · use zone selectors below</div>
   </article>
  
   <article class="metric good" id="humidityCard" onclick="toggleMetric('hum')">
     <div class="metric-top">
-      <img class="metric-icon" src="humidity.svg" alt="Humidity"/>
+      <img class="metric-icon" src="assets/images/icons/humidity.svg" alt="Humidity"/>
       <div><div class="metric-label-en">Humidity</div><div class="metric-label-ar">الرطوبة النسبية</div><div class="mc-sub">Weighted 70% canopy · 30% wet wall</div></div>
       <div id="humidityStatus" class="badge">Optimal</div>
     </div>
     <div class="metric-value"><span id="humidityValue" class="metric-number">—</span><span class="unit">%</span></div>
     <div class="optimal">Optimal 60–75 %</div>
     <div class="mc-bar"><div class="mc-bar-fill" id="bar-hum" style="width:0%"></div></div>
-    <svg class="spark" viewBox="0 0 220 32" preserveAspectRatio="none">
-      <path class="fill" d="M0 23 C24 24 31 13 51 11 S86 29 111 20 137 13 154 22 186 29 220 10 V32 H0Z"/>
-      <path d="M0 23 C24 24 31 13 51 11 S86 29 111 20 137 13 154 22 186 29 220 10"/>
+    <svg class="spark" viewBox="0 0 220 28" preserveAspectRatio="none">
+      <path class="fill" d="M0 21 C24 22 31 11 51 9 S86 27 111 18 137 11 154 20 186 27 220 8 V28 H0Z"/>
+      <path d="M0 21 C24 22 31 11 51 9 S86 27 111 18 137 11 154 20 186 27 220 8"/>
     </svg>
     <div class="mc-hint">↑ Click to drill down · use zone selectors below</div>
   </article>
  
   <article class="metric good" id="vpdCard" onclick="toggleMetric('vpd')">
     <div class="metric-top">
-      <img class="metric-icon" src="vpd-leaf.svg" alt="VPD"/>
+      <img class="metric-icon" src="assets/images/icons/vpd-leaf.svg" alt="VPD"/>
       <div><div class="metric-label-en">VPD</div><div class="metric-label-ar">عجز ضغط البخار</div></div>
       <div id="vpdStatus" class="badge">Optimal</div>
     </div>
     <div class="metric-value"><span id="vpdValue" class="metric-number">—</span><span class="unit">kPa</span></div>
     <div class="optimal">Optimal 0.5–1.0 kPa</div>
     <div class="mc-bar"><div class="mc-bar-fill" id="bar-vpd" style="width:0%"></div></div>
-    <svg class="spark" viewBox="0 0 220 32" preserveAspectRatio="none">
-      <path class="fill" d="M0 23 C22 13 32 20 45 18 S75 8 99 21 132 30 152 17 185 9 220 16 V32 H0Z"/>
-      <path d="M0 23 C22 13 32 20 45 18 S75 8 99 21 132 30 152 17 185 9 220 16"/>
+    <svg class="spark" viewBox="0 0 220 28" preserveAspectRatio="none">
+      <path class="fill" d="M0 21 C22 11 32 18 45 16 S75 7 99 19 132 28 152 15 185 7 220 14 V28 H0Z"/>
+      <path d="M0 21 C22 11 32 18 45 16 S75 7 99 19 132 28 152 15 185 7 220 14"/>
     </svg>
     <div class="mc-hint">↑ Click to isolate · click again to return</div>
   </article>
- 
 </section>
  
-<!-- SUB-SELECTORS -->
+<!-- SUB-SELECTORS (appear only when temp/hum selected) -->
 <div class="sub-row" id="sstemp">
-  <span class="sub-label">View:</span>
+  <span class="sub-label">Temp view:</span>
   <button class="sbtn active" onclick="setSubView('temp','weighted')" id="sstemp-weighted"><span class="sdot" style="background:var(--gold)"></span>Weighted 70/30</button>
   <button class="sbtn" onclick="setSubView('temp','canopy')"  id="sstemp-canopy"><span class="sdot" style="background:#16894E"></span>Canopy Only</button>
   <button class="sbtn" onclick="setSubView('temp','wetwall')" id="sstemp-wetwall"><span class="sdot" style="background:var(--blue)"></span>Wet Wall Only</button>
   <button class="sbtn" onclick="setSubView('temp','compare')" id="sstemp-compare"><span class="sdot" style="background:var(--muted)"></span>Compare Both</button>
 </div>
 <div class="sub-row" id="sshum">
-  <span class="sub-label">View:</span>
+  <span class="sub-label">Humidity view:</span>
   <button class="sbtn active" onclick="setSubView('hum','weighted')" id="sshum-weighted"><span class="sdot" style="background:var(--gold)"></span>Weighted 70/30</button>
   <button class="sbtn" onclick="setSubView('hum','canopy')"  id="sshum-canopy"><span class="sdot" style="background:#16894E"></span>Canopy Only</button>
   <button class="sbtn" onclick="setSubView('hum','wetwall')" id="sshum-wetwall"><span class="sdot" style="background:var(--blue)"></span>Wet Wall Only</button>
   <button class="sbtn" onclick="setSubView('hum','compare')" id="sshum-compare"><span class="sdot" style="background:var(--muted)"></span>Compare Both</button>
 </div>
  
-<!-- CHART + GAUGE -->
-<section id="chart" class="grid-2">
-  <section class="panel panel-pad">
+<!-- ZONE 2: ACTION CENTER — Recommendations (left, large) + Zones (right) -->
+<div class="action-row" id="alerts">
+  <!-- RECOMMENDATIONS — primary decision tool -->
+  <div class="panel rec-panel">
+    <div class="rec-header">
+      <i class="ti ti-brain"></i>
+      <div>
+        <div class="rec-title-en">Farm Recommendations</div>
+        <div class="rec-title-ar">توصيات المزرعة — قرارات الفراولة</div>
+      </div>
+    </div>
+    <div id="decisionsBody"></div>
+  </div>
+ 
+  <!-- GREENHOUSE ZONES — context for decisions -->
+  <div class="panel zones-panel">
+    <div class="panel-head">
+      <div>
+        <h2 class="panel-title"><i class="ti ti-building-warehouse" style="margin-right:5px"></i>Greenhouse Zones</h2>
+        <div class="panel-ar">مناطق المحمية — مقارنة التبريد والمحصول</div>
+      </div>
+    </div>
+    <div class="weighted-row">
+      <div>
+        <div class="wt-label">Weighted Greenhouse Avg</div>
+        <div class="wt-label-ar">متوسط موزون · 70% محصول + 30% تبريد</div>
+      </div>
+      <div style="text-align:right">
+        <div class="wt-val" id="wtTemp">—°C</div>
+        <div class="wt-sub" id="wtHum">Humidity: —%</div>
+      </div>
+    </div>
+    <div class="zones-grid">
+      <div class="zone-card wet">
+        <div class="zn wet">🌊 Wet Wall</div>
+        <div class="zn-ar">الجدار المبلل · 30%</div>
+        <div class="z-readings">
+          <div class="z-val"><div class="z-num" id="hubTemp">—</div><div class="z-lbl">°C</div></div>
+          <div class="z-val"><div class="z-num" id="hubHum">—</div><div class="z-lbl">%</div></div>
+        </div>
+        <div class="z-src">Hub 2 · Near cooling wall</div>
+      </div>
+      <div class="zone-card cnp">
+        <div class="zn cnp">🌿 Canopy</div>
+        <div class="zn-ar">منطقة المحصول · 70%</div>
+        <div class="z-readings">
+          <div class="z-val"><div class="z-num" id="canTemp">—</div><div class="z-lbl">°C</div></div>
+          <div class="z-val"><div class="z-num" id="canHum">—</div><div class="z-lbl">%</div></div>
+        </div>
+        <div class="z-src">Meter Pro CO₂ · Middle zone</div>
+      </div>
+    </div>
+    <div class="cooling-row">
+      <div>
+        <div class="cl-desc">Cooling Gradient</div>
+        <div class="cl-desc-ar" id="clDesc">كفاءة التبريد</div>
+      </div>
+      <div style="text-align:right">
+        <div class="cl-val" id="clVal">—</div>
+        <div style="font-size:.56rem;color:var(--muted)">°C canopy vs wet wall</div>
+      </div>
+    </div>
+    <div class="water-row">
+      <div class="w-card">
+        <div><div class="w-lbl">Tank Sensor 1</div><div class="w-lbl-ar">مستشعر خزان 1</div></div>
+        <div id="w1Status" class="w-status">—</div>
+      </div>
+      <div class="w-card">
+        <div><div class="w-lbl">Tank Sensor 2</div><div class="w-lbl-ar">مستشعر خزان 2</div></div>
+        <div id="w2Status" class="w-status">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- ZONE 3: CLIMATE TREND — Chart + VPD Gauge -->
+<section id="chart" class="climate-row">
+  <section class="panel chart-panel">
     <div class="panel-head">
       <div>
         <h2 class="panel-title" id="chartTitle">All Metrics Overview</h2>
-        <div class="chartTitleAr" id="chartTitleAr">نظرة عامة على جميع المؤشرات</div>
+        <div class="panel-ar" id="chartTitleAr">نظرة عامة على جميع المؤشرات</div>
       </div>
       <div class="chart-controls">
         <div class="time-range">
@@ -545,13 +625,13 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
       </div>
     </div>
     <div class="chart-box"><canvas id="trendChart"></canvas></div>
-    <div class="chart-note" id="chartNote">All metrics — Temperature & Humidity use weighted average (70% canopy + 30% wet wall)</div>
+    <div class="chart-note" id="chartNote">All metrics · Temperature & Humidity show weighted average (70% canopy + 30% wet wall)</div>
     <button class="refresh-btn" id="refreshBtn" style="margin-top:14px" onclick="fetchLive()">
       <i class="ti ti-refresh"></i>Refresh — تحديث
     </button>
   </section>
  
-  <aside class="panel panel-pad gauge-panel" id="gaugePanel">
+  <aside class="panel gauge-panel" id="gaugePanel">
     <div>
       <div class="panel-head">
         <div><h2 class="panel-title">VPD Status</h2><div class="panel-ar">مؤشر عجز ضغط البخار</div></div>
@@ -581,122 +661,62 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
   </aside>
 </section>
  
-<!-- LOWER ROW -->
-<div class="lower">
- 
-  <!-- ALERTS + ZONES -->
-  <div style="display:flex;flex-direction:column;gap:14px">
-    <section id="alerts" class="panel panel-pad">
-      <div class="panel-head">
-        <div><h2 class="panel-title">Active Alerts</h2><div class="panel-ar">التنبيهات النشطة</div></div>
-      </div>
-      <div class="normal-card">
-        <i class="ti ti-shield-check"></i>
-        <div>
-          <b>All systems normal</b>
-          <p>No active alerts at this time.</p>
-          <p style="font-family:var(--ar);direction:rtl;color:var(--muted);font-size:.82rem">لا توجد تنبيهات نشطة حالياً.</p>
-        </div>
-      </div>
-    </section>
- 
-    <div class="panel zones-panel">
-      <div style="font-size:.6rem;font-weight:900;letter-spacing:.15em;text-transform:uppercase;color:var(--deep);display:flex;align-items:center;gap:7px;margin-bottom:12px"><i class="ti ti-building-warehouse"></i>Greenhouse Zones</div>
-      <div class="weighted-row">
-        <div><div class="wt-label">Weighted Avg</div><div class="wt-label-ar">متوسط موزون · 70% محصول + 30% تبريد</div></div>
-        <div style="text-align:right"><div class="wt-val" id="wtTemp">—°C</div><div class="wt-sub" id="wtHum">Humidity: —%</div></div>
-      </div>
-      <div class="zones-grid">
-        <div class="zone-card wet">
-          <div class="zn wet">🌊 Wet Wall</div><div class="zn-ar">الجدار المبلل · 30%</div>
-          <div class="z-readings">
-            <div class="z-val"><div class="z-num" id="hubTemp">—</div><div class="z-lbl">°C</div></div>
-            <div class="z-val"><div class="z-num" id="hubHum">—</div><div class="z-lbl">%</div></div>
-          </div>
-          <div class="z-src">Hub 2 · Near cooling wall</div>
-        </div>
-        <div class="zone-card cnp">
-          <div class="zn cnp">🌿 Canopy</div><div class="zn-ar">منطقة المحصول · 70%</div>
-          <div class="z-readings">
-            <div class="z-val"><div class="z-num" id="canTemp">—</div><div class="z-lbl">°C</div></div>
-            <div class="z-val"><div class="z-num" id="canHum">—</div><div class="z-lbl">%</div></div>
-          </div>
-          <div class="z-src">Meter Pro CO₂ · Middle zone</div>
-        </div>
-      </div>
-      <div class="cooling-row">
-        <div><div class="cl-desc">Cooling Gradient</div><div class="cl-desc-ar" id="clDesc">كفاءة التبريد</div></div>
-        <div style="text-align:right"><div class="cl-val" id="clVal">—</div><div style="font-size:.54rem;color:var(--muted)">°C</div></div>
-      </div>
-      <div class="water-row">
-        <div class="w-card"><div><div class="w-lbl">Tank Sensor 1</div><div class="w-lbl-ar">مستشعر خزان 1</div></div><div id="w1Status" class="w-status">—</div></div>
-        <div class="w-card"><div><div class="w-lbl">Tank Sensor 2</div><div class="w-lbl-ar">مستشعر خزان 2</div></div><div id="w2Status" class="w-status">—</div></div>
-      </div>
+<!-- ZONE 4: VISUAL MONITORING — Cameras -->
+<section id="cameras" class="panel panel-pad cam-row">
+  <div class="panel-head">
+    <div>
+      <h2 class="panel-title"><i class="ti ti-camera" style="margin-right:5px"></i>Camera Monitoring</h2>
+      <div class="panel-ar">مراقبة الكاميرات · Reolink Elite Floodlight WiFi</div>
     </div>
   </div>
- 
-  <!-- CAMERAS + DECISIONS -->
-  <div style="display:flex;flex-direction:column;gap:14px">
-    <section id="cameras" class="panel panel-pad">
-      <div class="panel-head">
-        <div><h2 class="panel-title">Camera Monitoring</h2><div class="panel-ar">مراقبة الكاميرات</div></div>
+  <div class="camera-grid">
+    <article class="cam-card">
+      <div class="cam-head">
+        <span><i class="ti ti-video"></i> Camera 1 — كاميرا 1</span>
+        <div class="cam-right">
+          <span class="live-badge">LIVE</span>
+          <button class="fullscreen-btn" data-fullscreen="feed1"><i class="ti ti-maximize"></i></button>
+        </div>
       </div>
-      <div class="camera-grid">
-        <article class="cam-card">
-          <div class="cam-head">
-            <span><i class="ti ti-video"></i> Camera 1 — كاميرا 1</span>
-            <div class="cam-right">
-              <span class="live-badge">LIVE</span>
-              <button class="fullscreen-btn" data-fullscreen="feed1" aria-label="Fullscreen Camera 1"><i class="ti ti-maximize"></i></button>
-            </div>
-          </div>
-          <div id="feed1" class="camera-feed">
-            <img src="greenhouse-bg.svg" alt="placeholder" style="width:100%;height:100%;object-fit:cover;opacity:0.6"/>
-            <img id="cam1" class="stream-image" src="" alt="Camera 1 stream"/>
-            <div class="camera-placeholder">
-              <div class="placeholder-title">Stream Loading...</div>
-              <div class="placeholder-subtitle">جاري تحميل البث المباشر</div>
-            </div>
-            <div class="cam-strip"><span>Greenhouse 1</span><span class="live-badge">LIVE</span></div>
-          </div>
-        </article>
-        <article class="cam-card">
-          <div class="cam-head">
-            <span><i class="ti ti-video"></i> Camera 2 — كاميرا 2</span>
-            <div class="cam-right">
-              <span class="live-badge">LIVE</span>
-              <button class="fullscreen-btn" data-fullscreen="feed2" aria-label="Fullscreen Camera 2"><i class="ti ti-maximize"></i></button>
-            </div>
-          </div>
-          <div id="feed2" class="camera-feed">
-            <img src="greenhouse-bg.svg" alt="placeholder" style="width:100%;height:100%;object-fit:cover;opacity:0.6"/>
-            <img id="cam2" class="stream-image" src="" alt="Camera 2 stream"/>
-            <div class="camera-placeholder">
-              <div class="placeholder-title">Stream Loading...</div>
-              <div class="placeholder-subtitle">جاري تحميل البث المباشر</div>
-            </div>
-            <div class="cam-strip"><span>Greenhouse 2</span><span class="live-badge">LIVE</span></div>
-          </div>
-        </article>
+      <div id="feed1" class="camera-feed">
+        <img src="assets/images/placeholders/greenhouse-bg.svg" alt="" style="width:100%;height:100%;object-fit:cover;opacity:0.45"/>
+        <img id="cam1" class="stream-image" src="" alt="Camera 1"/>
+        <div class="camera-placeholder">
+          <div class="placeholder-title">Stream Loading...</div>
+          <div class="placeholder-subtitle">جاري تحميل البث المباشر</div>
+        </div>
+        <div class="cam-strip"><span>Greenhouse Zone A</span><span class="live-badge">LIVE</span></div>
       </div>
-    </section>
- 
-    <div class="panel decisions-panel">
-      <div class="dec-header"><i class="ti ti-brain"></i>Farm Recommendations — توصيات المزرعة</div>
-      <div id="decisionsBody"></div>
-    </div>
+    </article>
+    <article class="cam-card">
+      <div class="cam-head">
+        <span><i class="ti ti-video"></i> Camera 2 — كاميرا 2</span>
+        <div class="cam-right">
+          <span class="live-badge">LIVE</span>
+          <button class="fullscreen-btn" data-fullscreen="feed2"><i class="ti ti-maximize"></i></button>
+        </div>
+      </div>
+      <div id="feed2" class="camera-feed">
+        <img src="assets/images/placeholders/greenhouse-bg.svg" alt="" style="width:100%;height:100%;object-fit:cover;opacity:0.45"/>
+        <img id="cam2" class="stream-image" src="" alt="Camera 2"/>
+        <div class="camera-placeholder">
+          <div class="placeholder-title">Stream Loading...</div>
+          <div class="placeholder-subtitle">جاري تحميل البث المباشر</div>
+        </div>
+        <div class="cam-strip"><span>Greenhouse Zone B</span><span class="live-badge">LIVE</span></div>
+      </div>
+    </article>
   </div>
- 
-</div><!-- /lower -->
+</section>
  
 <!-- FOOTER -->
-<footer id="settings" class="panel">
+<footer id="settings" class="panel" style="margin-top:18px">
   <div class="footer-info">
     <div class="foot-item"><i class="ti ti-map-pin-filled"></i><div><b>Diriyah, Riyadh</b><small>Kingdom of Saudi Arabia</small><small>الدرعية، الرياض</small></div></div>
-    <div class="foot-item"><i class="ti ti-leaf"></i><div><b>طازج 100% · عضوي · زراعة مائية</b><small>Fresh 100% · Organic · Hydroponic Farming</small></div></div>
+    <div class="foot-item"><i class="ti ti-leaf"></i><div><b>طازج 100% · عضوي · زراعة مائية</b><small>Fresh 100% · Organic · Hydroponic</small></div></div>
     <div class="foot-item"><i class="ti ti-temperature"></i><div><b>يحفظ في 2–4°C</b><small>Keep at 2–4°C</small></div></div>
     <div class="foot-item">
-      <img class="foot-logo" src="al-waseel-logo.svg" onerror="this.src='al-waseel-logo.svg'" alt="Al-Waseel Farm"/>
+      <img class="foot-logo" src="assets/images/logo/al-waseel-logo.svg" onerror="this.style.display='none'" alt="Al-Waseel Farm"/>
     </div>
   </div>
   <div class="footer-bar">
@@ -707,9 +727,15 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
 </footer>
  
 </main>
-</div><!-- /app -->
+</div>
  
 <script>
+function sbClick(el){
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+  el.classList.add('active');
+}
+ 
+ 
 // SIDEBAR NAV
 function sbClick(el){
   document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
@@ -1096,6 +1122,26 @@ document.querySelectorAll('[data-fullscreen]').forEach(btn=>{
   });
 });
  
+setInterval(updateTimestamp,1000);
+updateTimestamp();
+ 
+ 
+// Timestamp
+function updateTimestamp(){
+  const now=new Date();
+  const ts=document.getElementById('timestamp');
+  if(ts) ts.childNodes[0].nodeValue=now.toLocaleTimeString('en-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const ds=document.getElementById('dateStamp');
+  if(ds) ds.childNodes[0].nodeValue=now.toLocaleDateString('en-SA',{day:'2-digit',month:'short',year:'numeric'});
+}
+// Fullscreen
+document.querySelectorAll('[data-fullscreen]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const t=document.getElementById(btn.dataset.fullscreen);
+    if(!t) return;
+    (t.requestFullscreen||t.webkitRequestFullscreen||t.msRequestFullscreen).call(t);
+  });
+});
 setInterval(updateTimestamp,1000);
 updateTimestamp();
 </script>
