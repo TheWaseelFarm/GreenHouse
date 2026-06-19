@@ -313,6 +313,97 @@
     </aside>
   </section>
  
+  <!-- GREENHOUSE ZONES + WATER -->
+  <section class="panel" style="padding:20px;margin-bottom:18px">
+    <div class="panel-head">
+      <div><h2 class="panel-title">Greenhouse Zones — مناطق المحمية</h2><div class="panel-title-ar">مقارنة بين منطقة التبريد ومنطقة المحصول</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+ 
+      <!-- Zone 1: Wet Wall -->
+      <div style="background:rgba(69,185,255,0.06);border:1px solid rgba(69,185,255,0.2);border-radius:16px;padding:18px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <div style="width:8px;height:8px;border-radius:50%;background:#45b9ff"></div>
+          <span style="font-size:0.75rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:#45b9ff">Wet Wall Zone</span>
+        </div>
+        <div style="font-family:var(--arabic);font-size:0.85rem;color:var(--muted);margin-bottom:12px;direction:rtl">منطقة الجدار المبلل</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px">
+          <div>
+            <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">Temperature</div>
+            <div style="font-family:var(--mono);font-size:2.4rem;font-weight:950;letter-spacing:-0.08em;color:#45b9ff" id="hub-temp">—</div>
+            <div style="font-size:0.8rem;color:var(--muted)">°C</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">Humidity</div>
+            <div style="font-family:var(--mono);font-size:2.4rem;font-weight:950;letter-spacing:-0.08em;color:#45b9ff" id="hub-hum">—</div>
+            <div style="font-size:0.8rem;color:var(--muted)">%</div>
+          </div>
+        </div>
+        <div style="font-size:0.72rem;color:var(--muted);padding-top:10px;border-top:1px solid var(--border)">Hub 2 — Near cooling wall</div>
+      </div>
+ 
+      <!-- Zone 2: Canopy -->
+      <div style="background:rgba(32,245,132,0.06);border:1px solid rgba(32,245,132,0.2);border-radius:16px;padding:18px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--good)"></div>
+          <span style="font-size:0.75rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:var(--good)">Canopy Zone</span>
+        </div>
+        <div style="font-family:var(--arabic);font-size:0.85rem;color:var(--muted);margin-bottom:12px;direction:rtl">منطقة المحصول</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px">
+          <div>
+            <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">Temperature</div>
+            <div style="font-family:var(--mono);font-size:2.4rem;font-weight:950;letter-spacing:-0.08em" id="canopy-temp" style="color:var(--good)">—</div>
+            <div style="font-size:0.8rem;color:var(--muted)">°C</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:0.7rem;color:var(--muted);margin-bottom:4px">Humidity</div>
+            <div style="font-family:var(--mono);font-size:2.4rem;font-weight:950;letter-spacing:-0.08em" id="canopy-hum" style="color:var(--good)">—</div>
+            <div style="font-size:0.8rem;color:var(--muted)">%</div>
+          </div>
+        </div>
+        <div style="font-size:0.72rem;color:var(--muted);padding-top:10px;border-top:1px solid var(--border)">Meter Pro CO2 — Middle of greenhouse</div>
+      </div>
+ 
+      <!-- Zone 3: Cooling Efficiency + Water -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+ 
+        <!-- Cooling Delta -->
+        <div style="background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.2);border-radius:16px;padding:16px;flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--purple)"></div>
+            <span style="font-size:0.72rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:var(--purple)">Cooling Efficiency</span>
+          </div>
+          <div style="font-family:var(--arabic);font-size:0.82rem;color:var(--muted);margin-bottom:10px;direction:rtl">كفاءة التبريد</div>
+          <div style="display:flex;align-items:baseline;gap:6px">
+            <div style="font-family:var(--mono);font-size:2.8rem;font-weight:950;letter-spacing:-0.08em;color:var(--purple)" id="cooling-delta">—</div>
+            <div style="font-size:1rem;color:var(--muted)">°C</div>
+          </div>
+          <div style="font-size:0.7rem;color:var(--muted);margin-top:8px" id="cooling-label">Canopy vs wet wall difference</div>
+        </div>
+ 
+        <!-- Water Sensors -->
+        <div style="background:rgba(255,59,79,0.04);border:1px solid rgba(255,59,79,0.15);border-radius:16px;padding:16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--good)" id="water-dot"></div>
+            <span style="font-size:0.72rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Water Tank Sensors</span>
+          </div>
+          <div style="font-family:var(--arabic);font-size:0.82rem;color:var(--muted);margin-bottom:10px;direction:rtl">مستشعرات خزان المياه</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border-radius:8px">
+              <span style="font-size:0.75rem;color:var(--muted)">Sensor 1</span>
+              <span style="font-size:0.75rem;font-weight:700" id="water1-status">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border-radius:8px">
+              <span style="font-size:0.75rem;color:var(--muted)">Sensor 2</span>
+              <span style="font-size:0.75rem;font-weight:700" id="water2-status">—</span>
+            </div>
+          </div>
+        </div>
+ 
+      </div>
+    </div>
+  </section>
+ 
   <section class="panel camera-section">
     <div class="panel-head">
       <div><h2 class="panel-title">Live Cameras — كاميرات مباشرة</h2><div class="panel-title-ar">Reolink Elite Floodlight WiFi</div></div>
@@ -356,7 +447,7 @@
 // ═══════════════════════════════════════════
 const CAM1_URL = '';
 const CAM2_URL = '';
-const WHATSAPP = '966505199611';
+const WHATSAPP = '966XXXXXXXXX';
  
 // ═══════════════════════════════════════════
 // STRAWBERRY THRESHOLDS — Riyadh premium production
@@ -746,6 +837,69 @@ async function fetchData() {
  
     state.current = {co2,temp,humidity,vpd};
  
+    // Fetch Hub 2 and Water sensors in parallel
+    const HUB_ID      = 'FDD0AE072D7C';
+    const WATER1_ID   = 'E65584467069';
+    const WATER2_ID   = 'E77760186472B';
+ 
+    Promise.all([
+      fetch(`/api/status?id=${HUB_ID}`).then(r=>r.json()),
+      fetch(`/api/status?id=${WATER1_ID}`).then(r=>r.json()),
+      fetch(`/api/status?id=${WATER2_ID}`).then(r=>r.json())
+    ]).then(([hubRes, w1Res, w2Res]) => {
+      const hub = hubRes.body ?? {};
+      const w1  = w1Res.body ?? {};
+      const w2  = w2Res.body ?? {};
+ 
+      const hub_temp     = parseFloat(hub.temperature ?? 0);
+      const hub_humidity = parseFloat(hub.humidity ?? 0);
+      const cooling_delta = parseFloat((hub_temp - temp).toFixed(1));
+ 
+      const leak1 = w1.status==='leak_detected'||w1.detectionState==='detected';
+      const leak2 = w2.status==='leak_detected'||w2.detectionState==='detected';
+ 
+      // Update zones section
+      document.getElementById('hub-temp').textContent    = hub_temp.toFixed(1);
+      document.getElementById('hub-hum').textContent     = hub_humidity;
+      document.getElementById('canopy-temp').textContent = temp.toFixed(1);
+      document.getElementById('canopy-hum').textContent  = humidity;
+ 
+      const deltaEl = document.getElementById('cooling-delta');
+      deltaEl.textContent = (cooling_delta > 0 ? '+' : '') + cooling_delta;
+      deltaEl.style.color = cooling_delta >= 2 ? 'var(--good)' : cooling_delta >= 0 ? 'var(--warning)' : 'var(--danger)';
+      document.getElementById('cooling-label').textContent =
+        cooling_delta >= 2 ? `Wet wall working well — ${cooling_delta}°C cooler at canopy` :
+        cooling_delta >= 0 ? `Wet wall marginal — only ${cooling_delta}°C difference` :
+        `Warning: canopy warmer than wet wall input`;
+ 
+      // Water sensors
+      const w1El = document.getElementById('water1-status');
+      const w2El = document.getElementById('water2-status');
+      const dotEl = document.getElementById('water-dot');
+      w1El.textContent = leak1 ? '🚨 LEAK DETECTED' : '✓ Normal';
+      w2El.textContent = leak2 ? '🚨 LEAK DETECTED' : '✓ Normal';
+      w1El.style.color = leak1 ? 'var(--danger)' : 'var(--good)';
+      w2El.style.color = leak2 ? 'var(--danger)' : 'var(--good)';
+      dotEl.style.background = (leak1||leak2) ? 'var(--danger)' : 'var(--good)';
+ 
+      // Water leak alert
+      if(leak1 || leak2) {
+        document.getElementById('alertBanner').classList.add('active');
+        document.getElementById('alertTitle').textContent = '💧 Water Leak Detected — تسرب مياه!';
+        document.getElementById('alertAr').textContent    = 'تم اكتشاف تسرب في خزان المياه. تحقق فوراً.';
+        document.getElementById('alertDetail').textContent= 'Water tank sensor triggered. Check tank immediately.';
+      }
+ 
+      // Canopy temp color
+      const canopyTempEl = document.getElementById('canopy-temp');
+      const tStatus = getStatus('temp', temp);
+      canopyTempEl.style.color = tStatus==='good'?'var(--good)':tStatus==='warning'?'var(--warning)':'var(--danger)';
+      const canopyHumEl = document.getElementById('canopy-hum');
+      const hStatus = getStatus('hum', humidity);
+      canopyHumEl.style.color = hStatus==='good'?'var(--good)':hStatus==='warning'?'var(--warning)':'var(--danger)';
+ 
+    }).catch(e => console.warn('Secondary sensors error:', e.message));
+ 
     // Save to Supabase
     saveReading(co2,temp,humidity,vpd);
  
@@ -826,4 +980,3 @@ loadHistory(1);
 </script>
 </body>
 </html>
- 
