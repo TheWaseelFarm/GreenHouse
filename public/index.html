@@ -1,3 +1,5 @@
+
+Index · HTML
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -392,16 +394,16 @@ body{font-family:var(--sans);color:var(--text);background:var(--bg);min-height:1
   <div class="sb-nav">
     <div class="sb-section">
       <div class="sb-label">Monitor</div>
-      <div class="sb-item active"><i class="ti ti-layout-dashboard"></i>Overview</div>
-      <div class="sb-item"><i class="ti ti-plant"></i>Environment</div>
-      <div class="sb-item"><i class="ti ti-chart-line"></i>Climate Graphs</div>
-      <div class="sb-item"><i class="ti ti-bell"></i>Alerts</div>
+      <div class="sb-item active" onclick="sbNav('overview')"  id="sbn-overview"><i class="ti ti-layout-dashboard"></i>Overview</div>
+      <div class="sb-item"        onclick="sbNav('environment')" id="sbn-environment"><i class="ti ti-plant"></i>Environment</div>
+      <div class="sb-item"        onclick="sbNav('climate')"   id="sbn-climate"><i class="ti ti-chart-line"></i>Climate Graphs</div>
+      <div class="sb-item"        onclick="sbNav('alerts')"    id="sbn-alerts"><i class="ti ti-bell"></i>Alerts</div>
     </div>
     <div class="sb-section">
       <div class="sb-label">Manage</div>
-      <div class="sb-item"><i class="ti ti-camera"></i>Cameras</div>
-      <div class="sb-item"><i class="ti ti-file-analytics"></i>Reports</div>
-      <div class="sb-item"><i class="ti ti-settings"></i>Settings</div>
+      <div class="sb-item" onclick="sbNav('cameras')"  id="sbn-cameras"><i class="ti ti-camera"></i>Cameras</div>
+      <div class="sb-item" onclick="sbNav('reports')"  id="sbn-reports"><i class="ti ti-file-analytics"></i>Reports</div>
+      <div class="sb-item" onclick="sbNav('settings')" id="sbn-settings"><i class="ti ti-settings"></i>Settings</div>
     </div>
   </div>
   <div class="sb-art">
@@ -1073,6 +1075,54 @@ window.AlWaseelFarmDashboard={
   setData(data){const t=Number(data.temp??S.live.temp),h=Number(data.humidity??S.live.hum);S.live.co2=Number(data.co2??S.live.co2);S.live.temp=t;S.live.hum=h;S.live.vpd=Number(data.vpd??calcVPD(t,h));renderMetrics();renderDecisions();checkAlerts();},
   simulateAlert(){S.live={co2:420,temp:27,hum:45,vpd:1.8,hubTemp:24,hubHum:52,w1:false,w2:false,tempW:25.5,humW:47.4};renderMetrics();renderZones();checkAlerts();renderDecisions();}
 };
+ 
+// SIDEBAR NAVIGATION
+const SB_TARGETS = {
+  overview:    null,                    // top of page
+  environment: '.metrics-grid',
+  climate:     '.climate-grid',
+  alerts:      '#alertBanner',
+  cameras:     '.cam-panel',
+  reports:     null,
+  settings:    null
+};
+ 
+function sbNav(key) {
+  // Update active state
+  document.querySelectorAll('.sb-item').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('sbn-' + key);
+  if (btn) btn.classList.add('active');
+ 
+  // Scroll to section
+  const target = SB_TARGETS[key];
+  if (!target) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  const el = document.querySelector(target);
+  if (el) {
+    const offset = el.getBoundingClientRect().top + window.scrollY - 80;
+    window.scrollTo({ top: offset, behavior: 'smooth' });
+  }
+ 
+  // Special actions
+  if (key === 'cameras') {
+    const cam = document.querySelector('.cam-panel');
+    if (cam) { cam.style.outline = '2px solid var(--gold)'; setTimeout(() => cam.style.outline = '', 1500); }
+  }
+  if (key === 'alerts') {
+    const ab = document.getElementById('alertBanner');
+    if (ab && !ab.classList.contains('active')) {
+      // Flash the status bar to show alert state
+      const dot = document.getElementById('sDot');
+      if (dot) { dot.style.background = 'var(--warn)'; setTimeout(() => renderMetrics(), 1200); }
+    }
+  }
+  if (key === 'climate') {
+    // Switch to all metrics view and scroll to chart
+    setActiveMetric('all');
+  }
+}
  
 buildChart(); setActiveMetric('all'); fetchLive(); loadHistory(1);
 setInterval(fetchLive,60000); setInterval(loadCams,5000);
