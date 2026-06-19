@@ -278,7 +278,7 @@
           return;
         }
 
-        const statusRes = await fetch(`/api/status/${co2Device.deviceId}`);
+        const statusRes = await fetch(`/api/status?id=${co2Device.deviceId}`);
         const statusData = await statusRes.json();
         const b = statusData.body;
 
