@@ -3,330 +3,361 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Al-Waseel Farm — Greenhouse Monitor</title>
+  <title>Al-Waseel Farm</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0a0f0a; font-family: 'Segoe UI', sans-serif; color: #c0d0c0; padding: 20px; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 0.5px solid #1e3a1e; }
-    .header-left h1 { font-size: 22px; font-weight: 500; color: #a8e6a3; }
-    .header-left p { font-size: 13px; color: #4a7a4a; margin-top: 3px; direction: rtl; }
-    .live-badge { display: inline-flex; align-items: center; gap: 6px; background: #0d1f0d; border: 0.5px solid #1e4a1e; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: #4caf50; }
-    .live-dot { width: 7px; height: 7px; background: #4caf50; border-radius: 50%; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-    .time-label { font-size: 11px; color: #3a5a3a; margin-top: 6px; text-align: right; }
-    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-    .metric-card { background: #0d1a0d; border: 0.5px solid #1a3a1a; border-radius: 16px; padding: 20px 18px; position: relative; overflow: hidden; }
-    .metric-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
-    .metric-card.good::before { background: #4caf50; }
-    .metric-card.warn::before { background: #ff9800; }
-    .metric-card.danger::before { background: #f44336; }
-    .metric-card.neutral::before { background: #2196f3; }
-    .metric-icon { font-size: 18px; color: #3a6a3a; margin-bottom: 10px; }
-    .metric-label-en { font-size: 11px; color: #4a6a4a; text-transform: uppercase; letter-spacing: 1px; }
-    .metric-label-ar { font-size: 11px; color: #3a5a3a; direction: rtl; margin-top: 2px; }
-    .metric-value { font-size: 42px; font-weight: 500; line-height: 1; margin: 10px 0 4px; }
-    .metric-value.good { color: #4caf50; }
-    .metric-value.warn { color: #ff9800; }
-    .metric-value.danger { color: #f44336; }
-    .metric-value.neutral { color: #64b5f6; }
-    .metric-unit { font-size: 13px; color: #4a6a4a; }
-    .metric-status { font-size: 11px; margin-top: 8px; padding: 3px 8px; border-radius: 10px; display: inline-block; }
-    .metric-status.good { background: #0a2a0a; color: #4caf50; border: 0.5px solid #1a4a1a; }
-    .metric-status.warn { background: #2a1a00; color: #ff9800; border: 0.5px solid #4a3000; }
-    .metric-status.danger { background: #2a0a0a; color: #f44336; border: 0.5px solid #4a1a1a; }
-    .metric-status.neutral { background: #0a1a2a; color: #64b5f6; border: 0.5px solid #1a3a5a; }
-    .alert-box { background: #1a0a0a; border: 0.5px solid #4a1a1a; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: none; align-items: center; gap: 12px; }
-    .alert-box.visible { display: flex; }
-    .alert-icon { font-size: 22px; color: #f44336; }
-    .alert-text h3 { font-size: 13px; font-weight: 500; color: #f44336; }
-    .alert-text p { font-size: 11px; color: #7a4a4a; margin-top: 2px; }
-    .alert-text .ar { direction: rtl; font-size: 11px; color: #5a3a3a; margin-top: 3px; }
-    .chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 16px; }
-    .chart-card { background: #0d1a0d; border: 0.5px solid #1a3a1a; border-radius: 16px; padding: 18px; }
-    .chart-card h2 { font-size: 13px; font-weight: 500; color: #4a8a4a; margin-bottom: 3px; }
-    .chart-subtitle { font-size: 11px; color: #2a5a2a; margin-bottom: 14px; direction: rtl; }
-    .legend { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
-    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #4a6a4a; }
-    .legend-dot { width: 10px; height: 3px; border-radius: 2px; }
-    .vpd-gauge { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 190px; }
-    .vpd-number { font-size: 54px; font-weight: 500; line-height: 1; }
-    .vpd-unit { font-size: 14px; color: #4a6a4a; margin-top: 4px; }
-    .vpd-scale { width: 100%; margin-top: 18px; }
-    .vpd-bar { height: 6px; border-radius: 3px; background: linear-gradient(to right, #4caf50 0%, #4caf50 26%, #ff9800 26%, #ff9800 53%, #f44336 53%, #f44336 100%); position: relative; margin-bottom: 6px; }
-    .vpd-indicator { position: absolute; top: -4px; width: 14px; height: 14px; background: #0d1a0d; border-radius: 50%; border: 2px solid white; transform: translateX(-50%); transition: left 0.8s ease; }
-    .vpd-labels { display: flex; justify-content: space-between; font-size: 10px; color: #2a5a2a; }
-    .vpd-advice { font-size: 11px; margin-top: 14px; text-align: center; direction: rtl; }
-    .footer { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 0.5px solid #1a2a1a; }
-    .footer-left { font-size: 11px; color: #2a4a2a; line-height: 1.8; }
-    .refresh-btn { background: #0d1a0d; border: 0.5px solid #1e4a1e; border-radius: 8px; padding: 7px 16px; font-size: 12px; color: #4a8a4a; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-    .refresh-btn:hover { background: #121f12; }
-    @media (max-width: 768px) {
-      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
-      .chart-row { grid-template-columns: 1fr; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg:#f5f5f7; --surface:#ffffff; --border:rgba(0,0,0,0.07);
+      --border2:rgba(0,0,0,0.12); --text:#1d1d1f; --text-2:#6e6e73;
+      --text-3:#aeaeb2; --green:#34c759; --orange:#ff9500; --red:#ff3b30;
+      --blue:#007aff; --radius:20px; --shadow:0 2px 20px rgba(0,0,0,0.06);
     }
+    html { font-size: 16px; }
+    body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; padding-bottom:60px; }
+    header { background:rgba(255,255,255,0.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:0.5px solid var(--border2); padding:16px 40px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; }
+    .brand h1 { font-size:17px; font-weight:600; color:var(--text); letter-spacing:-0.3px; }
+    .brand p { font-size:12px; color:var(--text-2); margin-top:1px; direction:rtl; }
+    .live-pill { display:flex; align-items:center; gap:20px; }
+    .live-badge { display:flex; align-items:center; gap:7px; background:#f2fff5; border:0.5px solid rgba(52,199,89,0.3); border-radius:20px; padding:5px 13px; font-size:12px; font-weight:500; color:var(--green); }
+    .pulse { width:7px; height:7px; background:var(--green); border-radius:50%; animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    #timestamp { font-size:12px; color:var(--text-3); font-variant-numeric:tabular-nums; }
+    main { max-width:1200px; margin:0 auto; padding:36px 32px 0; display:flex; flex-direction:column; gap:24px; }
+    .alert-banner { background:#fff2f2; border:0.5px solid rgba(255,59,48,0.25); border-radius:14px; padding:14px 20px; display:none; align-items:center; gap:14px; }
+    .alert-banner.visible { display:flex; }
+    .alert-icon { font-size:20px; color:var(--red); }
+    .alert-title { font-size:13px; font-weight:600; color:var(--red); }
+    .alert-sub { font-size:12px; color:#c0392b; margin-top:2px; }
+    .alert-ar { font-size:11px; color:#c0392b; direction:rtl; margin-top:2px; }
+    .metrics-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+    .metric-card { background:var(--surface); border-radius:var(--radius); padding:28px 24px; box-shadow:var(--shadow); border:0.5px solid var(--border); position:relative; overflow:hidden; transition:box-shadow 0.3s; }
+    .metric-card:hover { box-shadow:0 4px 30px rgba(0,0,0,0.1); }
+    .metric-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
+    .metric-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+    .metric-icon.blue   { background:#e8f0fe; color:var(--blue); }
+    .metric-icon.green  { background:#edfaf1; color:var(--green); }
+    .metric-icon.orange { background:#fff4e5; color:var(--orange); }
+    .metric-icon.red    { background:#fff0ef; color:var(--red); }
+    .status-pill { font-size:11px; font-weight:500; padding:4px 10px; border-radius:20px; }
+    .pill-good   { background:#edfaf1; color:var(--green); }
+    .pill-warn   { background:#fff4e5; color:var(--orange); }
+    .pill-danger { background:#fff0ef; color:var(--red); }
+    .metric-label-en { font-size:13px; font-weight:500; color:var(--text-2); margin-bottom:4px; }
+    .metric-label-ar { font-size:11px; color:var(--text-3); direction:rtl; }
+    .metric-number { font-size:52px; font-weight:700; letter-spacing:-2px; line-height:1; margin:12px 0 6px; font-variant-numeric:tabular-nums; transition:color 0.4s; }
+    .num-good   { color:var(--text); }
+    .num-warn   { color:var(--orange); }
+    .num-danger { color:var(--red); }
+    .metric-unit { font-size:16px; font-weight:400; color:var(--text-2); margin-left:4px; }
+    .metric-target { font-size:11px; color:var(--text-3); margin-top:12px; padding-top:12px; border-top:0.5px solid var(--border); }
+    .middle-row { display:grid; grid-template-columns:3fr 2fr; gap:16px; }
+    .panel { background:var(--surface); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow); border:0.5px solid var(--border); }
+    .panel-label { font-size:13px; font-weight:600; color:var(--text); margin-bottom:2px; }
+    .panel-sub { font-size:11px; color:var(--text-3); direction:rtl; margin-bottom:20px; }
+    .chart-legend { display:flex; gap:18px; margin-bottom:16px; }
+    .legend-item { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-2); }
+    .legend-dot { width:10px; height:3px; border-radius:2px; }
+    .chart-shell { position:relative; height:200px; }
+    .vpd-panel { display:flex; flex-direction:column; gap:20px; }
+    .vpd-big { text-align:center; padding:20px 0 10px; }
+    .vpd-big-num { font-size:72px; font-weight:700; letter-spacing:-3px; line-height:1; font-variant-numeric:tabular-nums; transition:color 0.4s; }
+    .vpd-big-unit { font-size:18px; color:var(--text-2); font-weight:400; }
+    .gauge-wrap { padding:0 4px; }
+    .gauge-track { height:8px; border-radius:4px; background:linear-gradient(to right,#34c759 0%,#34c759 27%,#ff9500 27%,#ff9500 53%,#ff3b30 53%); position:relative; margin-bottom:8px; }
+    .gauge-thumb { position:absolute; top:-5px; width:18px; height:18px; background:white; border-radius:50%; box-shadow:0 1px 8px rgba(0,0,0,0.2); transform:translateX(-50%); transition:left 0.8s cubic-bezier(0.4,0,0.2,1); border:2px solid rgba(0,0,0,0.1); }
+    .gauge-labels { display:flex; justify-content:space-between; font-size:10px; color:var(--text-3); }
+    .vpd-advice-box { background:var(--bg); border-radius:12px; padding:14px 16px; }
+    .advice-en { font-size:12px; color:var(--text-2); line-height:1.6; margin-bottom:6px; }
+    .advice-ar { font-size:11px; color:var(--text-3); direction:rtl; line-height:1.6; }
+    .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .section-title { font-size:17px; font-weight:600; color:var(--text); }
+    .section-sub { font-size:12px; color:var(--text-3); margin-top:2px; }
+    .camera-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .camera-card { background:var(--surface); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); border:0.5px solid var(--border); }
+    .camera-top { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:0.5px solid var(--border); }
+    .camera-label { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:var(--text); }
+    .camera-label i { font-size:16px; color:var(--text-2); }
+    .fullscreen-btn { background:var(--bg); border:0.5px solid var(--border2); border-radius:8px; color:var(--text-2); cursor:pointer; padding:5px 8px; font-size:14px; display:flex; align-items:center; transition:background 0.2s; }
+    .fullscreen-btn:hover { background:#e8e8ed; }
+    .camera-feed { position:relative; width:100%; aspect-ratio:16/9; background:#1c1c1e; overflow:hidden; }
+    .camera-feed img { width:100%; height:100%; object-fit:cover; display:none; }
+    .camera-feed img.loaded { display:block; }
+    .camera-placeholder { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; color:#48484a; }
+    .camera-placeholder i { font-size:32px; }
+    .placeholder-title { font-size:13px; color:#636366; }
+    .placeholder-sub { font-size:11px; color:#48484a; direction:rtl; }
+    footer { display:flex; justify-content:space-between; align-items:center; background:var(--surface); border-radius:var(--radius); padding:16px 24px; box-shadow:var(--shadow); border:0.5px solid var(--border); }
+    .footer-brand { font-size:12px; color:var(--text-3); }
+    .refresh-btn { display:flex; align-items:center; gap:7px; background:var(--blue); border:none; border-radius:10px; color:white; font-size:13px; font-weight:500; padding:8px 18px; cursor:pointer; transition:opacity 0.2s; }
+    .refresh-btn:hover { opacity:0.85; }
+    @media (max-width:960px) { .metrics-grid{grid-template-columns:repeat(2,1fr)} .middle-row{grid-template-columns:1fr} .camera-grid{grid-template-columns:1fr} main{padding:20px 16px 0} header{padding:14px 20px} }
+    @media (max-width:520px) { .metrics-grid{grid-template-columns:1fr 1fr} .metric-number{font-size:38px} .vpd-big-num{font-size:56px} }
   </style>
 </head>
 <body>
-
-  <div class="header">
-    <div class="header-left">
-      <h1>Al-Waseel Farm — Greenhouse Monitor</h1>
-      <p>مزرعة الوصيل — لوحة مراقبة البيئة المحمية</p>
-    </div>
-    <div class="header-right">
-      <div class="live-badge"><span class="live-dot"></span> Live — مباشر</div>
-      <div class="time-label" id="timeLabel">جاري التحميل...</div>
+<header>
+  <div class="brand">
+    <h1>Al-Waseel Farm — Greenhouse</h1>
+    <p>مزرعة الوصيل — مراقبة البيئة المحمية</p>
+  </div>
+  <div class="live-pill">
+    <div class="live-badge"><span class="pulse"></span> Live</div>
+    <div id="timestamp">--:--</div>
+  </div>
+</header>
+<main>
+  <div id="alertBanner" class="alert-banner">
+    <div class="alert-icon"><i class="ti ti-alert-triangle"></i></div>
+    <div>
+      <div class="alert-title" id="alertTitle">Critical Alert</div>
+      <div class="alert-sub" id="alertSub"></div>
+      <div class="alert-ar" id="alertAr"></div>
     </div>
   </div>
-
-  <div class="alert-box" id="alertBox">
-    <i class="ti ti-alert-triangle alert-icon"></i>
-    <div class="alert-text">
-      <h3 id="alertTitle">Warning</h3>
-      <p id="alertMsg"></p>
-      <p class="ar" id="alertAr"></p>
-    </div>
-  </div>
-
-  <div class="metrics-grid">
-    <div class="metric-card neutral" id="card-co2">
-      <div class="metric-icon"><i class="ti ti-wind"></i></div>
+  <section class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-top">
+        <div class="metric-icon blue"><i class="ti ti-wind"></i></div>
+        <span class="status-pill pill-good" id="co2Status">Good</span>
+      </div>
       <div class="metric-label-en">CO₂</div>
       <div class="metric-label-ar">ثاني أكسيد الكربون</div>
-      <div class="metric-value neutral" id="val-co2">—</div>
-      <div class="metric-unit">ppm</div>
-      <span class="metric-status neutral" id="status-co2">Loading...</span>
+      <div><span class="metric-number num-good" id="co2Value">—</span><span class="metric-unit">ppm</span></div>
+      <div class="metric-target">Target 400–1500 ppm</div>
     </div>
-    <div class="metric-card good" id="card-temp">
-      <div class="metric-icon"><i class="ti ti-temperature"></i></div>
+    <div class="metric-card">
+      <div class="metric-top">
+        <div class="metric-icon orange"><i class="ti ti-temperature"></i></div>
+        <span class="status-pill pill-good" id="tempStatus">Good</span>
+      </div>
       <div class="metric-label-en">Temperature</div>
       <div class="metric-label-ar">درجة الحرارة</div>
-      <div class="metric-value good" id="val-temp">—</div>
-      <div class="metric-unit">°C</div>
-      <span class="metric-status good" id="status-temp">Loading...</span>
+      <div><span class="metric-number num-good" id="tempValue">—</span><span class="metric-unit">°C</span></div>
+      <div class="metric-target">Target 18–35 °C</div>
     </div>
-    <div class="metric-card good" id="card-hum">
-      <div class="metric-icon"><i class="ti ti-droplet"></i></div>
+    <div class="metric-card">
+      <div class="metric-top">
+        <div class="metric-icon green"><i class="ti ti-droplet"></i></div>
+        <span class="status-pill pill-good" id="humStatus">Good</span>
+      </div>
       <div class="metric-label-en">Humidity</div>
       <div class="metric-label-ar">الرطوبة النسبية</div>
-      <div class="metric-value good" id="val-hum">—</div>
-      <div class="metric-unit">%</div>
-      <span class="metric-status good" id="status-hum">Loading...</span>
+      <div><span class="metric-number num-good" id="humValue">—</span><span class="metric-unit">%</span></div>
+      <div class="metric-target">Target 50–80%</div>
     </div>
-    <div class="metric-card danger" id="card-vpd">
-      <div class="metric-icon"><i class="ti ti-gauge"></i></div>
+    <div class="metric-card">
+      <div class="metric-top">
+        <div class="metric-icon red"><i class="ti ti-gauge"></i></div>
+        <span class="status-pill pill-good" id="vpdStatus">Good</span>
+      </div>
       <div class="metric-label-en">VPD</div>
       <div class="metric-label-ar">عجز ضغط البخار</div>
-      <div class="metric-value danger" id="val-vpd">—</div>
-      <div class="metric-unit">kPa</div>
-      <span class="metric-status danger" id="status-vpd">Loading...</span>
+      <div><span class="metric-number num-good" id="vpdValue">—</span><span class="metric-unit">kPa</span></div>
+      <div class="metric-target">Target 0.4–1.6 kPa</div>
+    </div>
+  </section>
+  <div class="middle-row">
+    <div class="panel">
+      <div class="panel-label">Trend — الاتجاه الزمني</div>
+      <div class="panel-sub">آخر 30 قراءة</div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#007aff"></div> CO₂</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ff9500"></div> Temp</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#34c759"></div> Humidity</div>
+      </div>
+      <div class="chart-shell"><canvas id="trendChart"></canvas></div>
+    </div>
+    <div class="panel vpd-panel">
+      <div>
+        <div class="panel-label">VPD — عجز ضغط البخار</div>
+        <div class="panel-sub">مؤشر الإجهاد على النباتات</div>
+      </div>
+      <div class="vpd-big">
+        <div class="vpd-big-num num-good" id="vpdGaugeNum">—</div>
+        <div class="vpd-big-unit">kPa</div>
+      </div>
+      <div class="gauge-wrap">
+        <div class="gauge-track"><div class="gauge-thumb" id="gaugeThumb" style="left:0%"></div></div>
+        <div class="gauge-labels"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6+</span></div>
+      </div>
+      <div class="vpd-advice-box">
+        <div class="advice-en" id="adviceEn">Loading...</div>
+        <div class="advice-ar" id="adviceAr">جاري التحميل...</div>
+      </div>
     </div>
   </div>
-
-  <div class="chart-row">
-    <div class="chart-card">
-      <h2><i class="ti ti-chart-line"></i> Trend — الاتجاه الزمني</h2>
-      <div class="chart-subtitle">آخر 30 قراءة — CO₂ / درجة الحرارة / الرطوبة</div>
-      <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#64b5f6;"></div> CO₂ (ppm)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#ff9800;"></div> Temp (°C)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#4caf50;"></div> Humidity (%)</div>
-      </div>
-      <div style="position:relative; width:100%; height:200px;">
-        <canvas id="trendChart"></canvas>
+  <div>
+    <div class="section-header">
+      <div>
+        <div class="section-title">Live Cameras — كاميرات مباشرة</div>
+        <div class="section-sub">Reolink Elite Floodlight WiFi</div>
       </div>
     </div>
-    <div class="chart-card">
-      <h2><i class="ti ti-gauge"></i> VPD Status</h2>
-      <div class="chart-subtitle">حالة عجز ضغط البخار</div>
-      <div class="vpd-gauge">
-        <div class="vpd-number" id="vpd-big">—</div>
-        <div class="vpd-unit">kPa</div>
-        <div class="vpd-scale">
-          <div class="vpd-bar">
-            <div class="vpd-indicator" id="vpd-indicator" style="left:50%"></div>
-          </div>
-          <div class="vpd-labels">
-            <span>0</span><span>1.6</span><span>3.0</span><span>6+</span>
+    <div class="camera-grid">
+      <div class="camera-card">
+        <div class="camera-top">
+          <div class="camera-label"><i class="ti ti-video"></i> Camera 1 — كاميرا 1</div>
+          <button class="fullscreen-btn" onclick="goFullscreen('feed1')"><i class="ti ti-maximize"></i></button>
+        </div>
+        <div id="feed1" class="camera-feed">
+          <img id="cam1" src="" alt="Camera 1">
+          <div class="camera-placeholder">
+            <i class="ti ti-camera"></i>
+            <div class="placeholder-title">Stream Loading...</div>
+            <div class="placeholder-sub">جاري تحميل البث المباشر</div>
           </div>
         </div>
-        <div class="vpd-advice" id="vpd-advice">—</div>
+      </div>
+      <div class="camera-card">
+        <div class="camera-top">
+          <div class="camera-label"><i class="ti ti-video"></i> Camera 2 — كاميرا 2</div>
+          <button class="fullscreen-btn" onclick="goFullscreen('feed2')"><i class="ti ti-maximize"></i></button>
+        </div>
+        <div id="feed2" class="camera-feed">
+          <img id="cam2" src="" alt="Camera 2">
+          <div class="camera-placeholder">
+            <i class="ti ti-camera"></i>
+            <div class="placeholder-title">Stream Loading...</div>
+            <div class="placeholder-sub">جاري تحميل البث المباشر</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+  <footer>
+    <div class="footer-brand">مزرعة الوصيل — Diriyah, Riyadh · Auto-refresh every 60s</div>
+    <button class="refresh-btn" onclick="fetchData()"><i class="ti ti-refresh"></i> Refresh</button>
+  </footer>
+</main>
+<script>
+  const CAM1_URL = '';
+  const CAM2_URL = '';
+  const WHATSAPP = '966505199611';
+  const hist = { labels:[], co2:[], temp:[], hum:[] };
+  const MAX = 30;
+  let chart, lastAlert = 0;
 
-  <div class="footer">
-    <div class="footer-left">
-      <div>مزرعة الوصيل — Diriyah, Riyadh</div>
-      <div>يتجدد تلقائياً كل 60 ثانية</div>
-    </div>
-    <button class="refresh-btn" onclick="fetchData()">
-      <i class="ti ti-refresh"></i> تحديث — Refresh
-    </button>
-  </div>
+  function cls(metric, val) {
+    if (metric==='vpd')  return val<=1.6?'good':val<=3.0?'warn':'danger';
+    if (metric==='temp') return val<=35 ?'good':val<=40 ?'warn':'danger';
+    if (metric==='hum')  return val>=50 ?'good':val>=30 ?'warn':'danger';
+    if (metric==='co2')  return val<=1000?'good':val<=2000?'warn':'danger';
+    return 'good';
+  }
+  const pillLabel = {
+    vpd: {good:'Optimal',warn:'Elevated',danger:'Critical'},
+    temp:{good:'Normal', warn:'Warm',    danger:'Hot'},
+    hum: {good:'Optimal',warn:'Low',     danger:'Critical'},
+    co2: {good:'Normal', warn:'Elevated',danger:'High'}
+  };
+  const advice = {
+    good:  {en:'VPD is optimal. Plants are healthy and transpiring efficiently.',ar:'عجز ضغط البخار مثالي. النباتات بصحة جيدة.'},
+    warn:  {en:'VPD is elevated. Increase humidity or reduce temperature.',ar:'عجز ضغط البخار مرتفع. ارفع الرطوبة أو خفض الحرارة.'},
+    danger:{en:'Critical VPD — severe plant stress. Act immediately.',ar:'عجز ضغط البخار حرج — إجهاد شديد. تدخل فوري مطلوب.'}
+  };
+  function numCls(c){ return c==='good'?'num-good':c==='warn'?'num-warn':'num-danger'; }
+  function pilCls(c){ return c==='good'?'pill-good':c==='warn'?'pill-warn':'pill-danger'; }
+  function setEl(id,t){ document.getElementById(id).textContent=t; }
+  function setCls(id,c){ document.getElementById(id).className=c; }
+  function calcVPD(t,rh){ return parseFloat((0.6108*Math.exp((17.27*t)/(t+237.3))*(1-rh/100)).toFixed(2)); }
 
-  <script>
-    const history = { labels: [], co2: [], temp: [], hum: [] };
-    const MAX = 30;
-    let trendChart;
-
-    function classify(metric, val) {
-      if (metric === 'vpd')  return val <= 1.6 ? 'good' : val <= 3.0 ? 'warn' : 'danger';
-      if (metric === 'temp') return val <= 35  ? 'good' : val <= 40  ? 'warn' : 'danger';
-      if (metric === 'hum')  return val >= 50  ? 'good' : val >= 30  ? 'warn' : 'danger';
-      if (metric === 'co2')  return val <= 1000 ? 'good' : val <= 2000 ? 'warn' : 'danger';
-      return 'neutral';
-    }
-
-    const statusLabels = {
-      vpd:  { good: 'Optimal — مثالي',  warn: 'High — مرتفع',  danger: 'Critical — حرج جداً' },
-      temp: { good: 'Normal — طبيعية',  warn: 'High — مرتفعة', danger: 'Danger — خطرة' },
-      hum:  { good: 'Optimal — مثالي',  warn: 'Low — منخفضة',  danger: 'Critical — حرجة' },
-      co2:  { good: 'Normal — طبيعي',   warn: 'High — مرتفع',  danger: 'Danger — خطر' }
-    };
-
-    function colorHex(cls) {
-      return cls === 'good' ? '#4caf50' : cls === 'warn' ? '#ff9800' : '#f44336';
-    }
-
-    function updateCard(id, metric, val) {
-      const cls = classify(metric, val);
-      const cardCls = metric === 'co2' ? 'neutral' : cls;
-      document.getElementById('card-' + id).className = 'metric-card ' + cardCls;
-      document.getElementById('val-' + id).className = 'metric-value ' + cardCls;
-      document.getElementById('status-' + id).className = 'metric-status ' + cardCls;
-      document.getElementById('status-' + id).textContent = statusLabels[metric][cls];
-    }
-
-    function calcVPD(temp, rh) {
-      const svp = 0.6108 * Math.exp((17.27 * temp) / (temp + 237.3));
-      return parseFloat((svp * (1 - rh / 100)).toFixed(2));
-    }
-
-    function updateVPDGauge(vpd) {
-      const cls = classify('vpd', vpd);
-      const el = document.getElementById('vpd-big');
-      el.textContent = vpd.toFixed(2);
-      el.style.color = colorHex(cls);
-      document.getElementById('vpd-indicator').style.left = Math.min(vpd / 6, 1) * 100 + '%';
-      document.getElementById('vpd-indicator').style.borderColor = colorHex(cls);
-      const advice = vpd <= 1.6
-        ? '✓ النباتات في حالة جيدة'
-        : vpd <= 3.0
-        ? '⚠ إجهاد متوسط — ارفع الرطوبة'
-        : '✗ إجهاد حاد — تدخل فوري';
-      document.getElementById('vpd-advice').textContent = advice;
-      document.getElementById('vpd-advice').style.color = colorHex(cls);
-    }
-
-    function showAlert(vpd, temp) {
-      const box = document.getElementById('alertBox');
-      if (vpd > 3.0) {
-        box.className = 'alert-box visible';
-        document.getElementById('alertTitle').textContent = 'Critical VPD — تحذير عاجل';
-        document.getElementById('alertMsg').textContent = `VPD at ${vpd.toFixed(2)} kPa — severe plant stress.`;
-        document.getElementById('alertAr').textContent = `عجز ضغط البخار ${vpd.toFixed(2)} — تدخل فوري مطلوب`;
-      } else if (temp > 40) {
-        box.className = 'alert-box visible';
-        document.getElementById('alertTitle').textContent = 'High Temperature — ارتفاع حرارة';
-        document.getElementById('alertMsg').textContent = `Temperature at ${temp}°C — above safe limit.`;
-        document.getElementById('alertAr').textContent = `درجة الحرارة ${temp}°C — تجاوزت الحد الآمن`;
-      } else {
-        box.className = 'alert-box';
+  function updateMetric(vid,sid,metric,raw,display){
+    const c=cls(metric,raw);
+    setEl(vid,display); setEl(sid,pillLabel[metric][c]);
+    setCls(vid,'metric-number '+numCls(c));
+    setCls(sid,'status-pill '+pilCls(c));
+  }
+  function updateVPD(vpd){
+    const c=cls('vpd',vpd);
+    const el=document.getElementById('vpdGaugeNum');
+    el.textContent=vpd.toFixed(2); el.className='vpd-big-num '+numCls(c);
+    document.getElementById('gaugeThumb').style.left=Math.min(vpd/6,1)*100+'%';
+    setEl('adviceEn',advice[c].en); setEl('adviceAr',advice[c].ar);
+  }
+  function updateAlert(vpd,temp){
+    const banner=document.getElementById('alertBanner');
+    const msgs=[];
+    if(vpd>3.0)  msgs.push(`VPD ${vpd.toFixed(2)} kPa`);
+    if(temp>40)  msgs.push(`Temp ${temp.toFixed(1)}°C`);
+    if(msgs.length){
+      banner.classList.add('visible');
+      setEl('alertTitle','Critical Alert — '+msgs.join(' · '));
+      setEl('alertSub','Immediate action required in the greenhouse.');
+      setEl('alertAr','تدخل فوري مطلوب في المحمية الزراعية.');
+      const now=Date.now();
+      if(now-lastAlert>30*60*1000){
+        lastAlert=now;
+        const t=new Date().toLocaleTimeString('ar-SA');
+        const msg=encodeURIComponent(`🚨 تنبيه مزرعة الوصيل\nالوقت: ${t}\nVPD: ${vpd.toFixed(2)} kPa\nالحرارة: ${temp.toFixed(1)}°C\nhttps://green-house-iota.vercel.app`);
+        window.open(`https://wa.me/${WHATSAPP}?text=${msg}`,'_blank');
       }
-    }
-
-    function initChart() {
-      trendChart = new Chart(document.getElementById('trendChart').getContext('2d'), {
-        type: 'line',
-        data: {
-          labels: [],
-          datasets: [
-            { label: 'CO₂', data: [], borderColor: '#64b5f6', backgroundColor: 'transparent', tension: 0.4, pointRadius: 2, yAxisID: 'y1' },
-            { label: 'Temp', data: [], borderColor: '#ff9800', backgroundColor: 'transparent', tension: 0.4, pointRadius: 2, borderDash: [4,2], yAxisID: 'y2' },
-            { label: 'Humidity', data: [], borderColor: '#4caf50', backgroundColor: 'transparent', tension: 0.4, pointRadius: 2, borderDash: [2,3], yAxisID: 'y2' }
-          ]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x:  { ticks: { color: '#2a5a2a', font: { size: 10 } }, grid: { color: '#111f11' } },
-            y1: { position: 'left',  ticks: { color: '#64b5f6', font: { size: 10 } }, grid: { color: '#111f11' } },
-            y2: { position: 'right', ticks: { color: '#ff9800', font: { size: 10 } }, grid: { display: false } }
-          }
+    } else { banner.classList.remove('visible'); }
+  }
+  function loadCameras(){
+    ['cam1','cam2'].forEach((id,i)=>{
+      const url=i===0?CAM1_URL:CAM2_URL;
+      if(!url) return;
+      const img=document.getElementById(id);
+      img.src=url+'&t='+Date.now();
+      img.onload=()=>img.classList.add('loaded');
+    });
+  }
+  function goFullscreen(id){
+    const el=document.getElementById(id);
+    (el.requestFullscreen||el.webkitRequestFullscreen).call(el);
+  }
+  function initChart(){
+    chart=new Chart(document.getElementById('trendChart').getContext('2d'),{
+      type:'line',
+      data:{labels:[],datasets:[
+        {label:'CO₂',    data:[],borderColor:'#007aff',backgroundColor:'rgba(0,122,255,0.05)',tension:0.4,pointRadius:2,fill:true,yAxisID:'y1'},
+        {label:'Temp',   data:[],borderColor:'#ff9500',backgroundColor:'transparent',tension:0.4,pointRadius:2,borderDash:[4,2],yAxisID:'y2'},
+        {label:'Humidity',data:[],borderColor:'#34c759',backgroundColor:'transparent',tension:0.4,pointRadius:2,yAxisID:'y2'}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{
+          x: {ticks:{color:'#aeaeb2',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},
+          y1:{position:'left', ticks:{color:'#007aff',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},
+          y2:{position:'right',ticks:{color:'#ff9500',font:{size:10}},grid:{display:false}}
         }
-      });
-    }
-
-    async function fetchData() {
-      try {
-        // Call our Vercel serverless function — no CORS issues
-        const devRes = await fetch('/api/devices');
-        const devData = await devRes.json();
-        const devices = devData.body?.deviceList || [];
-
-        const co2Device = devices.find(d =>
-          d.deviceType?.toLowerCase().includes('co2') ||
-          d.deviceName?.toLowerCase().includes('co2') ||
-          d.deviceName?.toLowerCase().includes('meter pro')
-        );
-        if (!co2Device) {
-          document.getElementById('timeLabel').textContent = 'No CO2 device found';
-          return;
-        }
-
-        // Get live status from our serverless function
-        const statusRes = await fetch(`/api/status?id=${co2Device.deviceId}`);
-        const statusData = await statusRes.json();
-        const b = statusData.body;
-
-        const co2  = b.CO2 ?? b.co2 ?? 0;
-        const temp = parseFloat(b.temperature ?? 0);
-        const hum  = parseFloat(b.humidity ?? 0);
-        const vpd  = calcVPD(temp, hum);
-
-        document.getElementById('val-co2').textContent  = co2;
-        document.getElementById('val-temp').textContent = temp.toFixed(1);
-        document.getElementById('val-hum').textContent  = hum;
-        document.getElementById('val-vpd').textContent  = vpd.toFixed(2);
-
-        updateCard('co2',  'co2',  co2);
-        updateCard('temp', 'temp', temp);
-        updateCard('hum',  'hum',  hum);
-        updateCard('vpd',  'vpd',  vpd);
-        updateVPDGauge(vpd);
-        showAlert(vpd, temp);
-
-        const now = new Date();
-        document.getElementById('timeLabel').textContent =
-          now.toLocaleTimeString('ar-SA') + ' — ' + now.toLocaleDateString('en-GB');
-
-        const label = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-        history.labels.push(label);
-        history.co2.push(co2);
-        history.temp.push(temp);
-        history.hum.push(hum);
-        if (history.labels.length > MAX) {
-          history.labels.shift(); history.co2.shift();
-          history.temp.shift(); history.hum.shift();
-        }
-        trendChart.data.labels = [...history.labels];
-        trendChart.data.datasets[0].data = [...history.co2];
-        trendChart.data.datasets[1].data = [...history.temp];
-        trendChart.data.datasets[2].data = [...history.hum];
-        trendChart.update();
-
-      } catch(e) {
-        document.getElementById('timeLabel').textContent = 'Error: ' + e.message;
       }
-    }
-
-    initChart();
-    fetchData();
-    setInterval(fetchData, 60000);
-  </script>
+    });
+  }
+  async function fetchData(){
+    try{
+      const devRes=await fetch('/api/devices');
+      const devData=await devRes.json();
+      const devices=devData.body?.deviceList||[];
+      const device=devices.find(d=>d.deviceType?.toLowerCase().includes('co2')||d.deviceName?.toLowerCase().includes('co2')||d.deviceName?.toLowerCase().includes('meter pro'));
+      if(!device){setEl('timestamp','No device found');return;}
+      const sRes=await fetch(`/api/status?id=${device.deviceId}`);
+      const sData=await sRes.json();
+      const b=sData.body;
+      const co2=b.CO2??b.co2??0;
+      const temp=parseFloat(b.temperature??0);
+      const hum=parseFloat(b.humidity??0);
+      const vpd=calcVPD(temp,hum);
+      updateMetric('co2Value', 'co2Status', 'co2', co2,  co2);
+      updateMetric('tempValue','tempStatus','temp',temp, temp.toFixed(1));
+      updateMetric('humValue', 'humStatus', 'hum', hum,  hum);
+      updateMetric('vpdValue', 'vpdStatus', 'vpd', vpd,  vpd.toFixed(2));
+      updateVPD(vpd); updateAlert(vpd,temp); loadCameras();
+      const now=new Date();
+      const label=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      setEl('timestamp',now.toLocaleTimeString('ar-SA')+'  ·  '+now.toLocaleDateString('en-GB'));
+      hist.labels.push(label);hist.co2.push(co2);hist.temp.push(temp);hist.hum.push(hum);
+      if(hist.labels.length>MAX){hist.labels.shift();hist.co2.shift();hist.temp.shift();hist.hum.shift();}
+      chart.data.labels=         [...hist.labels];
+      chart.data.datasets[0].data=[...hist.co2];
+      chart.data.datasets[1].data=[...hist.temp];
+      chart.data.datasets[2].data=[...hist.hum];
+      chart.update();
+    }catch(e){setEl('timestamp','Error: '+e.message);}
+  }
+  initChart();fetchData();
+  setInterval(fetchData,60000);setInterval(loadCameras,5000);
+</script>
 </body>
 </html>
