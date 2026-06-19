@@ -171,6 +171,7 @@
   <script>
     const TOKEN = 'bb77244495df0915c2aea5ada08e47e41b000169bd7f9196a42ea36ab3d487ef3c4ca8510e11d557ffe77e275ab8f2da';
     const SECRET = 'eae4e50e44663c4e99091f26f781774d';
+    const PROXY = 'https://corsproxy.io/?';
 
     const history = { labels: [], co2: [], temp: [], hum: [] };
     const MAX = 30;
@@ -190,18 +191,18 @@
     }
 
     function classify(metric, val) {
-      if (metric === 'vpd') return val <= 1.6 ? 'good' : val <= 3.0 ? 'warn' : 'danger';
-      if (metric === 'temp') return val <= 35 ? 'good' : val <= 40 ? 'warn' : 'danger';
-      if (metric === 'hum') return val >= 50 ? 'good' : val >= 30 ? 'warn' : 'danger';
-      if (metric === 'co2') return val <= 1000 ? 'good' : val <= 2000 ? 'warn' : 'danger';
+      if (metric === 'vpd')  return val <= 1.6 ? 'good' : val <= 3.0 ? 'warn' : 'danger';
+      if (metric === 'temp') return val <= 35  ? 'good' : val <= 40  ? 'warn' : 'danger';
+      if (metric === 'hum')  return val >= 50  ? 'good' : val >= 30  ? 'warn' : 'danger';
+      if (metric === 'co2')  return val <= 1000 ? 'good' : val <= 2000 ? 'warn' : 'danger';
       return 'neutral';
     }
 
     const statusLabels = {
-      vpd:  { good: 'Optimal — مثالي', warn: 'High — مرتفع', danger: 'Critical — حرج جداً' },
-      temp: { good: 'Normal — طبيعية', warn: 'High — مرتفعة', danger: 'Danger — خطرة' },
-      hum:  { good: 'Optimal — مثالي', warn: 'Low — منخفضة', danger: 'Critical — حرجة' },
-      co2:  { good: 'Normal — طبيعي', warn: 'High — مرتفع', danger: 'Danger — خطر' }
+      vpd:  { good: 'Optimal — مثالي',  warn: 'High — مرتفع',     danger: 'Critical — حرج جداً' },
+      temp: { good: 'Normal — طبيعية',  warn: 'High — مرتفعة',    danger: 'Danger — خطرة' },
+      hum:  { good: 'Optimal — مثالي',  warn: 'Low — منخفضة',     danger: 'Critical — حرجة' },
+      co2:  { good: 'Normal — طبيعي',   warn: 'High — مرتفع',     danger: 'Danger — خطر' }
     };
 
     function colorHex(cls) {
@@ -210,9 +211,10 @@
 
     function updateCard(id, metric, val) {
       const cls = classify(metric, val);
-      document.getElementById('card-' + id).className = 'metric-card ' + (metric === 'co2' ? 'neutral' : cls);
-      document.getElementById('val-' + id).className = 'metric-value ' + (metric === 'co2' ? 'neutral' : cls);
-      document.getElementById('status-' + id).className = 'metric-status ' + (metric === 'co2' ? 'neutral' : cls);
+      const cardCls = metric === 'co2' ? 'neutral' : cls;
+      document.getElementById('card-' + id).className = 'metric-card ' + cardCls;
+      document.getElementById('val-'  + id).className = 'metric-value ' + cardCls;
+      document.getElementById('status-' + id).className = 'metric-status ' + cardCls;
       document.getElementById('status-' + id).textContent = statusLabels[metric][cls];
     }
 
@@ -228,7 +230,11 @@
       el.style.color = colorHex(cls);
       document.getElementById('vpd-indicator').style.left = Math.min(vpd / 6, 1) * 100 + '%';
       document.getElementById('vpd-indicator').style.borderColor = colorHex(cls);
-      const advice = vpd <= 1.6 ? '✓ النباتات في حالة جيدة' : vpd <= 3.0 ? '⚠ إجهاد متوسط — ارفع الرطوبة' : '✗ إجهاد حاد — تدخل فوري';
+      const advice = vpd <= 1.6
+        ? '✓ النباتات في حالة جيدة'
+        : vpd <= 3.0
+        ? '⚠ إجهاد متوسط — ارفع الرطوبة'
+        : '✗ إجهاد حاد — تدخل فوري';
       document.getElementById('vpd-advice').textContent = advice;
       document.getElementById('vpd-advice').style.color = colorHex(cls);
     }
@@ -265,8 +271,8 @@
           responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { ticks: { color: '#2a5a2a', font: { size: 10 } }, grid: { color: '#111f11' } },
-            y1: { position: 'left', ticks: { color: '#64b5f6', font: { size: 10 } }, grid: { color: '#111f11' } },
+            x:  { ticks: { color: '#2a5a2a', font: { size: 10 } }, grid: { color: '#111f11' } },
+            y1: { position: 'left',  ticks: { color: '#64b5f6', font: { size: 10 } }, grid: { color: '#111f11' } },
             y2: { position: 'right', ticks: { color: '#ff9800', font: { size: 10 } }, grid: { display: false } }
           }
         }
@@ -275,17 +281,30 @@
 
     async function fetchData() {
       try {
-        const devRes = await fetch('/api/devices', { headers: getHeaders() });
+        // Fetch device list via CORS proxy
+        const devRes = await fetch(
+          PROXY + encodeURIComponent('https://api.switch-bot.com/v1.1/devices'),
+          { headers: getHeaders() }
+        );
         const devData = await devRes.json();
         const devices = devData.body?.deviceList || [];
+
+        // Find the CO2 meter
         const co2Device = devices.find(d =>
           d.deviceType?.toLowerCase().includes('co2') ||
           d.deviceName?.toLowerCase().includes('co2') ||
           d.deviceName?.toLowerCase().includes('meter pro')
         );
-        if (!co2Device) { document.getElementById('timeLabel').textContent = 'No device found'; return; }
+        if (!co2Device) {
+          document.getElementById('timeLabel').textContent = 'No CO2 device found';
+          return;
+        }
 
-        const statusRes = await fetch(`/api/status?id=${co2Device.deviceId}`, { headers: getHeaders() });
+        // Fetch device status via CORS proxy
+        const statusRes = await fetch(
+          PROXY + encodeURIComponent(`https://api.switch-bot.com/v1.1/devices/${co2Device.deviceId}/status`),
+          { headers: getHeaders() }
+        );
         const statusData = await statusRes.json();
         const b = statusData.body;
 
@@ -294,6 +313,7 @@
         const hum  = parseFloat(b.humidity ?? 0);
         const vpd  = calcVPD(temp, hum);
 
+        // Update metric cards
         document.getElementById('val-co2').textContent  = co2;
         document.getElementById('val-temp').textContent = temp.toFixed(1);
         document.getElementById('val-hum').textContent  = hum;
@@ -306,15 +326,20 @@
         updateVPDGauge(vpd);
         showAlert(vpd, temp);
 
+        // Update timestamp
         const now = new Date();
         document.getElementById('timeLabel').textContent =
           now.toLocaleTimeString('ar-SA') + ' — ' + now.toLocaleDateString('en-GB');
 
+        // Update trend chart
         const label = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-        history.labels.push(label); history.co2.push(co2);
-        history.temp.push(temp); history.hum.push(hum);
+        history.labels.push(label);
+        history.co2.push(co2);
+        history.temp.push(temp);
+        history.hum.push(hum);
         if (history.labels.length > MAX) {
-          history.labels.shift(); history.co2.shift(); history.temp.shift(); history.hum.shift();
+          history.labels.shift(); history.co2.shift();
+          history.temp.shift(); history.hum.shift();
         }
         trendChart.data.labels = [...history.labels];
         trendChart.data.datasets[0].data = [...history.co2];
