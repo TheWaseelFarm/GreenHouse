@@ -723,21 +723,24 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
       </div>
     </div>
     
-    <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:10px;padding:0 2px;display:none" id="sstemp">
-      <span style="font-size:.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">Temp Zone:</span>
-      <button class="mbtn active" id="sstemp-weighted" onclick="zoneClick(this,'temp','weighted')"><span class="mdot" style="background:var(--gold)"></span>Weighted</button>
-      <button class="mbtn" id="sstemp-canopy"  onclick="zoneClick(this,'temp','canopy')"><span class="mdot" style="background:#06442E"></span>Canopy</button>
-      <button class="mbtn" id="sstemp-wetwall" onclick="zoneClick(this,'temp','wetwall')"><span class="mdot" style="background:#1976D2"></span>Wet Wall</button>
-      <button class="mbtn" id="sstemp-compare" onclick="zoneClick(this,'temp','compare')"><span class="mdot" style="background:#aaa"></span>Compare</button>
-    </div>
-    <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:10px;padding:0 2px;display:none" id="sshum">
-      <span style="font-size:.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">Humidity Zone:</span>
-      <button class="mbtn active" id="sshum-weighted" onclick="zoneClick(this,'hum','weighted')"><span class="mdot" style="background:var(--gold)"></span>Weighted</button>
-      <button class="mbtn" id="sshum-canopy"  onclick="zoneClick(this,'hum','canopy')"><span class="mdot" style="background:#06442E"></span>Canopy</button>
-      <button class="mbtn" id="sshum-wetwall" onclick="zoneClick(this,'hum','wetwall')"><span class="mdot" style="background:#1976D2"></span>Wet Wall</button>
-      <button class="mbtn" id="sshum-compare" onclick="zoneClick(this,'hum','compare')"><span class="mdot" style="background:#aaa"></span>Compare</button>
-    </div>
+    
+    
     <div class="chart-box"><canvas id="trendChart"></canvas></div>
+    <!-- ZONE SELECTORS -->
+    <div id="sstemp" style="display:none;padding:8px 0 4px;gap:6px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:.62rem;font-weight:900;color:#6F765F;text-transform:uppercase;letter-spacing:.1em">Temp Zone:</span>
+      <button onclick="zoneClick(this,'temp','weighted')" id="sstemp-weighted" style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#06442E;font-size:.68rem;font-weight:700;cursor:pointer">● Weighted 70/30</button>
+      <button onclick="zoneClick(this,'temp','canopy')"   id="sstemp-canopy"   style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#06442E;font-size:.68rem;font-weight:700;cursor:pointer">🌿 Canopy</button>
+      <button onclick="zoneClick(this,'temp','wetwall')"  id="sstemp-wetwall"  style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#1976D2;font-size:.68rem;font-weight:700;cursor:pointer">🌊 Wet Wall</button>
+      <button onclick="zoneClick(this,'temp','compare')"  id="sstemp-compare"  style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#6F765F;font-size:.68rem;font-weight:700;cursor:pointer">⚖ Compare</button>
+    </div>
+    <div id="sshum" style="display:none;padding:8px 0 4px;gap:6px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:.62rem;font-weight:900;color:#6F765F;text-transform:uppercase;letter-spacing:.1em">Humidity Zone:</span>
+      <button onclick="zoneClick(this,'hum','weighted')" id="sshum-weighted" style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#C49A3A;font-size:.68rem;font-weight:700;cursor:pointer">● Weighted 70/30</button>
+      <button onclick="zoneClick(this,'hum','canopy')"   id="sshum-canopy"   style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#06442E;font-size:.68rem;font-weight:700;cursor:pointer">🌿 Canopy</button>
+      <button onclick="zoneClick(this,'hum','wetwall')"  id="sshum-wetwall"  style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#1976D2;font-size:.68rem;font-weight:700;cursor:pointer">🌊 Wet Wall</button>
+      <button onclick="zoneClick(this,'hum','compare')"  id="sshum-compare"  style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#6F765F;font-size:.68rem;font-weight:700;cursor:pointer">⚖ Compare</button>
+    </div>
     <div class="chart-note" id="chartNote">All metrics · Temperature & Humidity show weighted average (70% canopy + 30% wet wall)</div>
     <button class="refresh-btn" id="refreshBtn" style="margin-top:14px" id="refreshBtn" onclick="doRefresh(this)">
       <i class="ti ti-refresh"></i>Refresh — تحديث
@@ -1190,10 +1193,10 @@ function toggleMetric(m){
 function setActiveMetric(m){
   S.metric=m;
   const cardMap={co2:'co2Card',temp:'tempCard',hum:'humidityCard',vpd:'vpdCard'};['co2','temp','hum','vpd'].forEach(k=>{const mc=$(cardMap[k]);if(mc)mc.classList.toggle('selected',k===m);});
-  const ssTemp=document.getElementById('sstemp');
-  const ssHum=document.getElementById('sshum');
-  if(ssTemp) ssTemp.style.display=(m==='temp')?'flex':'none';
-  if(ssHum)  ssHum.style.display=(m==='hum') ?'flex':'none';
+  var _st=document.getElementById('sstemp');
+  var _sh=document.getElementById('sshum');
+  if(_st) _st.style.display=(m==='temp')?'flex':'none';
+  if(_sh) _sh.style.display=(m==='hum')?'flex':'none';
   // Only deactivate top metric buttons (not sub-selector buttons)
   document.querySelectorAll('.chart-metric-btns .mbtn').forEach(b=>b.classList.remove('active'));
   const mbtn=document.getElementById('mb-'+(m==='all'?'all':m));
@@ -1382,10 +1385,15 @@ function renderReport(data, days){
     const day=byDay[key];
     day.readings++;
     // Use weighted if available, fall back to raw
-    const tw=r.temp_weighted||r.temperature;
-    const hw=r.hum_weighted||r.humidity;
-    if(tw&&tw>5&&tw<40) day.tempW.push(parseFloat(tw));
-    if(hw&&hw>0&&hw<100) day.humW.push(parseFloat(hw));
+    // Use weighted if available, calculate from raw if not
+    let tw=r.temp_weighted;
+    if(!tw&&r.temperature&&r.hub_temp) tw=parseFloat((r.temperature*0.7+r.hub_temp*0.3).toFixed(1));
+    if(!tw&&r.temperature) tw=parseFloat(r.temperature);
+    let hw=r.hum_weighted;
+    if(!hw&&r.humidity&&r.hub_humidity) hw=parseFloat((r.humidity*0.7+r.hub_humidity*0.3).toFixed(1));
+    if(!hw&&r.humidity) hw=parseFloat(r.humidity);
+    if(tw&&tw>5&&tw<40) day.tempW.push(tw);
+    if(hw&&hw>0&&hw<100) day.humW.push(hw);
     if(r.vpd&&r.vpd>0&&r.vpd<3) day.vpds.push(parseFloat(r.vpd));
     if(r.co2&&r.co2>300&&r.co2<2000) day.co2s.push(parseFloat(r.co2));
     if(r.water_leak_1||r.water_leak_2) day.leaks++;
@@ -1398,8 +1406,18 @@ function renderReport(data, days){
   const days_sorted=Object.entries(byDay).sort((a,b)=>b[1].date-a[1].date);
  
   // Overall summaries
-  const allT=data.map(r=>r.temp_weighted||r.temperature).filter(v=>v&&v>5&&v<40).map(Number);
-  const allH=data.map(r=>r.hum_weighted||r.humidity).filter(v=>v&&v>0&&v<100).map(Number);
+  const allT=data.map(r=>{
+    let v=r.temp_weighted;
+    if(!v&&r.temperature&&r.hub_temp) v=r.temperature*0.7+r.hub_temp*0.3;
+    if(!v) v=r.temperature;
+    return v?parseFloat(v):null;
+  }).filter(v=>v&&v>5&&v<40);
+  const allH=data.map(r=>{
+    let v=r.hum_weighted;
+    if(!v&&r.humidity&&r.hub_humidity) v=r.humidity*0.7+r.hub_humidity*0.3;
+    if(!v) v=r.humidity;
+    return v?parseFloat(v):null;
+  }).filter(v=>v&&v>0&&v<100);
   const allV=data.map(r=>r.vpd).filter(v=>v&&v>0&&v<3).map(Number);
   const allC=data.map(r=>r.co2).filter(v=>v&&v>300&&v<2000).map(Number);
  
