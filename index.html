@@ -726,11 +726,11 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
           <button class="range-btn"        onclick="setRange(168)" id="rng-7d">7D</button>
         </div>
         <div class="metric-btns">
-          <button class="mbtn active" onclick="selectMetricBtn('all')"  id="mb-all"><span class="mdot" style="background:var(--muted)"></span>All</button>
+          <button class="mbtn active" onclick="selectMetricBtn('all')"  id="mb-all"><span class="mdot" style="background:#aaa"></span>All</button>
           <button class="mbtn"        onclick="selectMetricBtn('co2')"  id="mb-co2"><span class="mdot" style="background:#8FAF7A"></span>CO₂</button>
-          <button class="mbtn"        onclick="selectMetricBtn('temp')" id="mb-temp"><span class="mdot" style="background:var(--deep)"></span>Temp</button>
-          <button class="mbtn"        onclick="selectMetricBtn('hum')"  id="mb-hum"><span class="mdot" style="background:var(--blue)"></span>Humidity</button>
-          <button class="mbtn"        onclick="selectMetricBtn('vpd')"  id="mb-vpd"><span class="mdot" style="background:var(--gold)"></span>VPD</button>
+          <button class="mbtn"        onclick="selectMetricBtn('temp')" id="mb-temp"><span class="mdot" style="background:#06442E"></span>Temp</button>
+          <button class="mbtn"        onclick="selectMetricBtn('hum')"  id="mb-hum"><span class="mdot" style="background:#1976D2"></span>Humidity</button>
+          <button class="mbtn"        onclick="selectMetricBtn('vpd')"  id="mb-vpd"><span class="mdot" style="background:#C49A3A"></span>VPD</button>
         </div>
       </div>
     </div>
@@ -1123,22 +1123,34 @@ function getDatasets(data,metric,subView){
   let datasets=[],note='';
   if(metric==='all'){
     datasets=[
-      {label:'CO2 ppm',data:data.map(r=>r.co2),borderColor:'#8FAF7A',backgroundColor:'rgba(143,175,122,0.1)',tension:0.38,borderWidth:2,pointRadius:0,pointHoverRadius:3,yAxisID:'y1'},
-      {label:'Temp C (W)',data:data.map(r=>r.temp_weighted??calcW(r,'temp')),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.38,borderWidth:2,pointRadius:0,pointHoverRadius:3,yAxisID:'y2',borderDash:[4,2]},
-      {label:'Hum % (W)', data:data.map(r=>r.hum_weighted??calcW(r,'hum')), borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:2,pointRadius:0,pointHoverRadius:3,yAxisID:'y2',borderDash:[2,3]},
-      {label:'VPD kPa',   data:data.map(r=>r.vpd),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.38,borderWidth:2,pointRadius:0,pointHoverRadius:3,yAxisID:'y3'}
+      {label:'CO₂ ppm',  data:data.map(r=>r.co2),
+        borderColor:'#8FAF7A',backgroundColor:'rgba(143,175,122,0.08)',
+        tension:0.3,borderWidth:2,pointRadius:0,pointHoverRadius:4,
+        fill:false,yAxisID:'y1'},
+      {label:'Temp °C (W)',data:data.map(r=>r.temp_weighted??calcW(r,'temp')),
+        borderColor:'#06442E',backgroundColor:'transparent',
+        tension:0.3,borderWidth:2.5,pointRadius:0,pointHoverRadius:4,
+        fill:false,yAxisID:'y2'},
+      {label:'Humidity % (W)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),
+        borderColor:'#1976D2',backgroundColor:'transparent',
+        tension:0.3,borderWidth:2,pointRadius:0,pointHoverRadius:4,
+        fill:false,yAxisID:'y2'},
+      {label:'VPD kPa',data:data.map(r=>r.vpd),
+        borderColor:'#C49A3A',backgroundColor:'transparent',
+        tension:0.3,borderWidth:2,pointRadius:0,pointHoverRadius:4,
+        fill:false,yAxisID:'y3'}
     ];
-    note='All metrics - Temperature & Humidity show weighted average (70% canopy + 30% wet wall)';
+    note='All metrics — Temperature & Humidity weighted average (70% canopy + 30% wet wall) · right axis';
   } else if(metric==='co2'){
-    datasets=[{label:'CO2 ppm',data:data.map(r=>r.co2),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y1'}];
+    datasets=[{label:'CO₂ ppm',data:data.map(r=>r.co2),borderColor:'#8FAF7A',backgroundColor:'rgba(143,175,122,0.1)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y1'}];
     note='CO2 from Meter Pro - No enrichment system, baseline 350-500 ppm is normal';
   } else if(metric==='vpd'){
-    datasets=[{label:'VPD kPa',data:data.map(r=>r.vpd),borderColor:'#C49A3A',backgroundColor:'rgba(196,154,58,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y3'}];
+    datasets=[{label:'VPD kPa',data:data.map(r=>r.vpd),borderColor:'#C49A3A',backgroundColor:'rgba(196,154,58,0.1)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y2'}];
     note='VPD calculated from canopy temperature and humidity - Target: 0.5-1.0 kPa for strawberries';
   } else if(metric==='temp'){
     const sv=subView||S.subView.temp;
-    if(sv==='weighted'){datasets=[{label:'Weighted Temp C (70/30)',data:data.map(r=>r.temp_weighted??calcW(r,'temp')),borderColor:'#C49A3A',backgroundColor:'rgba(196,154,58,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Weighted: 70% canopy + 30% wet wall - Target 16-22C';}
-    else if(sv==='canopy'){datasets=[{label:'Canopy Temp C',data:data.map(r=>r.temperature??r.temp),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Canopy (Meter Pro middle zone, 70% weight) - Where strawberries grow';}
+    if(sv==='weighted'){datasets=[{label:'Weighted Temp °C (70/30)',data:data.map(r=>r.temp_weighted??calcW(r,'temp')),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y2'}];note='Weighted: 70% canopy + 30% wet wall - Target 16-22C';}
+    else if(sv==='canopy'){datasets=[{label:'Canopy Temp °C',data:data.map(r=>r.temperature??r.temp),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y2'}];note='Canopy (Meter Pro middle zone, 70% weight) - Where strawberries grow';}
     else if(sv==='wetwall'){datasets=[{label:'Wet Wall Temp C',data:data.map(r=>r.hub_temp),borderColor:'#3B82C4',backgroundColor:'rgba(59,130,196,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Wet wall (Hub 2 near cooling, 30% weight) - Cooled air input';}
     else{datasets=[{label:'Canopy Temp',data:data.map(r=>r.temperature??r.temp),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y2'},{label:'Wet Wall Temp',data:data.map(r=>r.hub_temp),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y2'},{label:'Weighted (70/30)',data:data.map(r=>r.temp_weighted??calcW(r,'temp')),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.38,borderWidth:1.6,pointRadius:0,borderDash:[2,4],yAxisID:'y2'}];note='Comparison: cooling gradient visible as gap between canopy and wet wall lines';}
   } else if(metric==='hum'){
