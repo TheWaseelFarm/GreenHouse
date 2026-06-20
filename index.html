@@ -1303,6 +1303,7 @@ window.AlWaseelFarmDashboard={
  
 document.addEventListener('DOMContentLoaded', function(){
   buildChart(); setActiveMetric('all'); fetchLive(); loadHistory(1);
+  wireZoneButtons();
   setInterval(fetchLive,60000); setInterval(loadCams,5000);
   setInterval(()=>{
     const n=new Date();
@@ -1583,56 +1584,57 @@ document.addEventListener('DOMContentLoaded', function(){
   if(ov) ov.addEventListener('click', function(e){ if(e.target===this) closeReports(); });
 });
  
-// Sub-selector click handler using event delegation - no onclick quoting issues
-document.addEventListener('click', function(e){
-  const btn = e.target.closest('[data-metric][data-view]');
-  if(!btn) return;
-  const metric = btn.dataset.metric;
-  const view   = btn.dataset.view;
-  if(!metric || !view) return;
-  
-  // Update active state
-  const container = document.getElementById('ss'+metric);
-  if(container) container.querySelectorAll('[data-view]').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  
-  // Update state
-  S.subView[metric] = view;
-  S.metric = metric;
-  
-  // Update chart title
-  const titles = {
-    weighted:{t:'Weighted Average (70/30)',ar:'المتوسط الموزون 70% محصول + 30% تبريد'},
-    canopy:  {t:'Canopy Zone — Meter Pro', ar:'منطقة المحصول — Meter Pro'},
-    wetwall: {t:'Wet Wall Zone — Hub 2',   ar:'منطقة التبريد — Hub 2'},
-    compare: {t:'Zone Comparison',         ar:'مقارنة المناطق — جميع الخطوط'}
-  };
-  const meta = titles[view]||titles.weighted;
-  const ct=document.getElementById('chartTitle');
-  const ca=document.getElementById('chartTitleAr');
-  if(ct) ct.textContent=(metric==='temp'?'Temperature: ':'Humidity: ')+meta.t;
-  if(ca) ca.textContent=meta.ar;
-  
-  // Fetch data and apply chart
-  const applyWithView = function(data){
-    if(!S.chart||!data||!data.length) return;
-    const result = getDatasets(data, metric, view);
-    S.chart.data.labels   = result.labels;
-    S.chart.data.datasets = result.datasets;
-    S.chart.update();
-    const cn=document.getElementById('chartNote');
-    if(cn) cn.textContent=result.note;
-  };
-  
-  if(S.range===1 && S.localHist.length>0){
-    applyWithView(S.localHist.map(r=>({...r,recorded_at:r.time})));
-  } else {
-    fetch('/api/history?hours='+S.range+'&limit=500')
-      .then(r=>r.json())
-      .then(applyWithView)
-      .catch(e=>console.warn('Zone fetch error:',e.message));
-  }
-});
+// Sub-selector zone buttons — wire up after DOM ready
+function wireZoneButtons(){
+  document.querySelectorAll('[data-metric][data-view]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const metric = this.dataset.metric;
+      const view   = this.dataset.view;
+      
+      // Update active state
+      const container = document.getElementById('ss'+metric);
+      if(container) container.querySelectorAll('[data-view]').forEach(function(b){ b.classList.remove('active'); });
+      this.classList.add('active');
+      
+      // Update state
+      S.subView[metric] = view;
+      S.metric = metric;
+      
+      // Update chart title
+      const titles = {
+        weighted:{t:'Weighted Average (70/30)',ar:'المتوسط الموزون 70% محصول + 30% تبريد'},
+        canopy:  {t:'Canopy Zone — Meter Pro', ar:'منطقة المحصول — Meter Pro'},
+        wetwall: {t:'Wet Wall Zone — Hub 2',   ar:'منطقة التبريد — Hub 2'},
+        compare: {t:'Zone Comparison',         ar:'مقارنة المناطق — جميع الخطوط'}
+      };
+      const meta = titles[view]||titles.weighted;
+      const ct=document.getElementById('chartTitle');
+      const ca=document.getElementById('chartTitleAr');
+      if(ct) ct.textContent=(metric==='temp'?'Temperature: ':'Humidity: ')+meta.t;
+      if(ca) ca.textContent=meta.ar;
+      
+      // Apply chart with selected zone
+      function applyWithView(data){
+        if(!S.chart||!data||!data.length) return;
+        const result = getDatasets(data, metric, view);
+        S.chart.data.labels   = result.labels;
+        S.chart.data.datasets = result.datasets;
+        S.chart.update();
+        const cn=document.getElementById('chartNote');
+        if(cn) cn.textContent=result.note;
+      }
+      
+      if(S.range===1 && S.localHist.length>0){
+        applyWithView(S.localHist.map(function(r){ return Object.assign({},r,{recorded_at:r.time}); }));
+      } else {
+        fetch('/api/history?hours='+S.range+'&limit=500')
+          .then(function(r){ return r.json(); })
+          .then(applyWithView)
+          .catch(function(e){ console.warn('Zone fetch:',e.message); });
+      }
+    });
+  });
+}
  
 </script>
  
