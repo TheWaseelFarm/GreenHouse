@@ -624,19 +624,19 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
 </section>
  
 <!-- SUB-SELECTORS (appear only when temp/hum selected) -->
-<div class="sub-row" id="sstemp" style="display:none">
-  <span class="sub-label" style="font-size:.7rem;font-weight:900;color:var(--deep);margin-right:4px">📊 View:</span>
-  <button class="sbtn active" onclick="setSubView('temp','weighted')" id="sstemp-weighted"><span class="sdot" style="background:var(--gold)"></span>Weighted 70/30</button>
-  <button class="sbtn" onclick="setSubView('temp','canopy')"  id="sstemp-canopy"><span class="sdot" style="background:#16894E"></span>Canopy Only</button>
-  <button class="sbtn" onclick="setSubView('temp','wetwall')" id="sstemp-wetwall"><span class="sdot" style="background:var(--blue)"></span>Wet Wall Only</button>
-  <button class="sbtn" onclick="setSubView('temp','compare')" id="sstemp-compare"><span class="sdot" style="background:var(--muted)"></span>Compare Both</button>
+<div class="sub-row metric-btns" id="sstemp" style="display:none;margin-bottom:14px;gap:6px;align-items:center;flex-wrap:wrap">
+  <span style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px">Temp View:</span>
+  <button class="mbtn active" onclick="setSubView('temp','weighted')" id="sstemp-weighted"><span class="mdot" style="background:var(--gold)"></span>Weighted 70/30</button>
+  <button class="mbtn" onclick="setSubView('temp','canopy')"  id="sstemp-canopy"><span class="mdot" style="background:#06442E"></span>Canopy Only</button>
+  <button class="mbtn" onclick="setSubView('temp','wetwall')" id="sstemp-wetwall"><span class="mdot" style="background:#1976D2"></span>Wet Wall Only</button>
+  <button class="mbtn" onclick="setSubView('temp','compare')" id="sstemp-compare"><span class="mdot" style="background:#aaa"></span>Compare Both</button>
 </div>
-<div class="sub-row" id="sshum" style="display:none">
-  <span class="sub-label" style="font-size:.7rem;font-weight:900;color:var(--deep);margin-right:4px">📊 View:</span>
-  <button class="sbtn active" onclick="setSubView('hum','weighted')" id="sshum-weighted"><span class="sdot" style="background:var(--gold)"></span>Weighted 70/30</button>
-  <button class="sbtn" onclick="setSubView('hum','canopy')"  id="sshum-canopy"><span class="sdot" style="background:#16894E"></span>Canopy Only</button>
-  <button class="sbtn" onclick="setSubView('hum','wetwall')" id="sshum-wetwall"><span class="sdot" style="background:var(--blue)"></span>Wet Wall Only</button>
-  <button class="sbtn" onclick="setSubView('hum','compare')" id="sshum-compare"><span class="sdot" style="background:var(--muted)"></span>Compare Both</button>
+<div class="sub-row metric-btns" id="sshum" style="display:none;margin-bottom:14px;gap:6px;align-items:center;flex-wrap:wrap">
+  <span style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px">Humidity View:</span>
+  <button class="mbtn active" onclick="setSubView('hum','weighted')" id="sshum-weighted"><span class="mdot" style="background:var(--gold)"></span>Weighted 70/30</button>
+  <button class="mbtn" onclick="setSubView('hum','canopy')"  id="sshum-canopy"><span class="mdot" style="background:#06442E"></span>Canopy Only</button>
+  <button class="mbtn" onclick="setSubView('hum','wetwall')" id="sshum-wetwall"><span class="mdot" style="background:#1976D2"></span>Wet Wall Only</button>
+  <button class="mbtn" onclick="setSubView('hum','compare')" id="sshum-compare"><span class="mdot" style="background:#aaa"></span>Compare Both</button>
 </div>
  
 <!-- ZONE 2: ACTION CENTER — Recommendations (left, large) + Zones (right) -->
@@ -1210,7 +1210,7 @@ function setSubView(metric,view){
   S.metric=metric;
   // Deactivate all sibling buttons
   const container=document.getElementById('ss'+metric);
-  if(container) container.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('active'));
+  if(container) container.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
   // Activate selected button
   const btn=document.getElementById('ss'+metric+'-'+view);
   if(btn) btn.classList.add('active');
