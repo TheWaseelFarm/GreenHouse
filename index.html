@@ -720,22 +720,22 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
           <button class="mbtn"        onclick="selectMetricBtn('hum')"  id="mb-hum"><span class="mdot" style="background:#1976D2"></span>Humidity</button>
           <button class="mbtn"        onclick="selectMetricBtn('vpd')"  id="mb-vpd"><span class="mdot" style="background:#C49A3A"></span>VPD</button>
         </div>
-        <!-- Sub-selectors: shown when Temp or Humidity metric selected -->
-        <div id="sstemp" style="display:none;margin-top:6px;gap:5px;flex-wrap:wrap;align-items:center">
-          <span style="font-size:.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-right:3px">Zone:</span>
-          <button class="mbtn active" id="sstemp-weighted" onclick="zoneClick(this,'temp','weighted')"><span class="mdot" style="background:var(--gold)"></span>Weighted</button>
-          <button class="mbtn" id="sstemp-canopy"   onclick="zoneClick(this,'temp','canopy')"><span class="mdot" style="background:#06442E"></span>Canopy</button>
-          <button class="mbtn" id="sstemp-wetwall"  onclick="zoneClick(this,'temp','wetwall')"><span class="mdot" style="background:#1976D2"></span>Wet Wall</button>
-          <button class="mbtn" id="sstemp-compare"  onclick="zoneClick(this,'temp','compare')"><span class="mdot" style="background:#aaa"></span>Compare</button>
-        </div>
-        <div id="sshum" style="display:none;margin-top:6px;gap:5px;flex-wrap:wrap;align-items:center">
-          <span style="font-size:.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-right:3px">Zone:</span>
-          <button class="mbtn active" id="sshum-weighted" onclick="zoneClick(this,'hum','weighted')"><span class="mdot" style="background:var(--gold)"></span>Weighted</button>
-          <button class="mbtn" id="sshum-canopy"   onclick="zoneClick(this,'hum','canopy')"><span class="mdot" style="background:#06442E"></span>Canopy</button>
-          <button class="mbtn" id="sshum-wetwall"  onclick="zoneClick(this,'hum','wetwall')"><span class="mdot" style="background:#1976D2"></span>Wet Wall</button>
-          <button class="mbtn" id="sshum-compare"  onclick="zoneClick(this,'hum','compare')"><span class="mdot" style="background:#aaa"></span>Compare</button>
-        </div>
       </div>
+    </div>
+    
+    <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:10px;padding:0 2px;display:none" id="sstemp">
+      <span style="font-size:.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">Temp Zone:</span>
+      <button class="mbtn active" id="sstemp-weighted" onclick="zoneClick(this,'temp','weighted')"><span class="mdot" style="background:var(--gold)"></span>Weighted</button>
+      <button class="mbtn" id="sstemp-canopy"  onclick="zoneClick(this,'temp','canopy')"><span class="mdot" style="background:#06442E"></span>Canopy</button>
+      <button class="mbtn" id="sstemp-wetwall" onclick="zoneClick(this,'temp','wetwall')"><span class="mdot" style="background:#1976D2"></span>Wet Wall</button>
+      <button class="mbtn" id="sstemp-compare" onclick="zoneClick(this,'temp','compare')"><span class="mdot" style="background:#aaa"></span>Compare</button>
+    </div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:10px;padding:0 2px;display:none" id="sshum">
+      <span style="font-size:.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">Humidity Zone:</span>
+      <button class="mbtn active" id="sshum-weighted" onclick="zoneClick(this,'hum','weighted')"><span class="mdot" style="background:var(--gold)"></span>Weighted</button>
+      <button class="mbtn" id="sshum-canopy"  onclick="zoneClick(this,'hum','canopy')"><span class="mdot" style="background:#06442E"></span>Canopy</button>
+      <button class="mbtn" id="sshum-wetwall" onclick="zoneClick(this,'hum','wetwall')"><span class="mdot" style="background:#1976D2"></span>Wet Wall</button>
+      <button class="mbtn" id="sshum-compare" onclick="zoneClick(this,'hum','compare')"><span class="mdot" style="background:#aaa"></span>Compare</button>
     </div>
     <div class="chart-box"><canvas id="trendChart"></canvas></div>
     <div class="chart-note" id="chartNote">All metrics · Temperature & Humidity show weighted average (70% canopy + 30% wet wall)</div>
@@ -1371,133 +1371,185 @@ async function loadReport(){
 }
  
 function renderReport(data, days){
-  // Group by day
+  // Group by day using Gregorian dates
   const byDay={};
   data.forEach(r=>{
     const d=new Date(r.recorded_at);
-    const key=d.toLocaleDateString('en-SA',{year:'numeric',month:'short',day:'2-digit'});
+    const key=d.toLocaleDateString('en-GB',{year:'numeric',month:'short',day:'2-digit',calendar:'gregory'});
     if(!byDay[key]) byDay[key]={
-      temps:[],hums:[],vpds:[],co2s:[],
-      tempW:[],humW:[],leaks:0,readings:0,date:d
+      temps:[],hums:[],vpds:[],co2s:[],tempW:[],humW:[],leaks:0,readings:0,date:d,key:key
     };
     const day=byDay[key];
     day.readings++;
-    if(r.temperature) day.temps.push(r.temperature);
-    if(r.humidity)    day.hums.push(r.humidity);
-    if(r.vpd)         day.vpds.push(r.vpd);
-    if(r.co2)         day.co2s.push(r.co2);
-    if(r.temp_weighted) day.tempW.push(r.temp_weighted);
-    if(r.hum_weighted)  day.humW.push(r.hum_weighted);
+    // Use weighted if available, fall back to raw
+    const tw=r.temp_weighted||r.temperature;
+    const hw=r.hum_weighted||r.humidity;
+    if(tw&&tw>5&&tw<40) day.tempW.push(parseFloat(tw));
+    if(hw&&hw>0&&hw<100) day.humW.push(parseFloat(hw));
+    if(r.vpd&&r.vpd>0&&r.vpd<3) day.vpds.push(parseFloat(r.vpd));
+    if(r.co2&&r.co2>300&&r.co2<2000) day.co2s.push(parseFloat(r.co2));
     if(r.water_leak_1||r.water_leak_2) day.leaks++;
   });
  
   const avg=arr=>arr.length?parseFloat((arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1)):null;
-  const max=arr=>arr.length?Math.max(...arr):null;
-  const min=arr=>arr.length?Math.min(...arr):null;
+  const mx=arr=>arr.length?parseFloat(Math.max(...arr).toFixed(1)):null;
+  const mn=arr=>arr.length?parseFloat(Math.min(...arr).toFixed(1)):null;
  
   const days_sorted=Object.entries(byDay).sort((a,b)=>b[1].date-a[1].date);
  
-  // Overall summary cards
-  const allTemps=data.filter(r=>r.temp_weighted).map(r=>r.temp_weighted);
-  const allHums=data.filter(r=>r.hum_weighted).map(r=>r.hum_weighted);
-  const allVpds=data.filter(r=>r.vpd).map(r=>r.vpd);
-  const allCo2s=data.filter(r=>r.co2).map(r=>r.co2);
+  // Overall summaries
+  const allT=data.map(r=>r.temp_weighted||r.temperature).filter(v=>v&&v>5&&v<40).map(Number);
+  const allH=data.map(r=>r.hum_weighted||r.humidity).filter(v=>v&&v>0&&v<100).map(Number);
+  const allV=data.map(r=>r.vpd).filter(v=>v&&v>0&&v<3).map(Number);
+  const allC=data.map(r=>r.co2).filter(v=>v&&v>300&&v<2000).map(Number);
  
-  const avgTemp=avg(allTemps), avgHum=avg(allHums), avgVpd=avg(allVpds), avgCo2=avg(allCo2s);
+  const avgT=avg(allT), avgH=avg(allH), avgV=avg(allV), avgC=avg(allC);
  
-  function tempClass(v){ return v<16||v>26?'rep-bad':v>22?'rep-warn':'rep-good'; }
-  function humClass(v){ return v>85||v<50?'rep-bad':v>75||v<60?'rep-warn':'rep-good'; }
-  function vpdClass(v){ return v>1.3?'rep-bad':v>1.0?'rep-warn':'rep-good'; }
+  function cls(m,v){
+    if(v===null) return '';
+    if(m==='t') return v<16||v>26?'rep-bad':v>22?'rep-warn':'rep-good';
+    if(m==='h') return v>85||v<50?'rep-bad':v>75||v<60?'rep-warn':'rep-good';
+    if(m==='v') return v>1.3?'rep-bad':v>1.0?'rep-warn':'rep-good';
+    return '';
+  }
  
   document.getElementById('repSummary').innerHTML=`
-    <div class="rep-sum-card">
-      <div class="rep-sum-val ${tempClass(avgTemp)}">${avgTemp??'—'}°C</div>
-      <div class="rep-sum-lbl">Avg Temperature</div>
-      <div class="rep-sum-sub">متوسط درجة الحرارة</div>
-    </div>
-    <div class="rep-sum-card">
-      <div class="rep-sum-val ${humClass(avgHum)}">${avgHum??'—'}%</div>
-      <div class="rep-sum-lbl">Avg Humidity</div>
-      <div class="rep-sum-sub">متوسط الرطوبة</div>
-    </div>
-    <div class="rep-sum-card">
-      <div class="rep-sum-val ${vpdClass(avgVpd)}">${avgVpd??'—'}</div>
-      <div class="rep-sum-lbl">Avg VPD kPa</div>
-      <div class="rep-sum-sub">متوسط عجز ضغط البخار</div>
-    </div>
-    <div class="rep-sum-card">
-      <div class="rep-sum-val" style="color:var(--deep)">${avgCo2??'—'}</div>
-      <div class="rep-sum-lbl">Avg CO₂ ppm</div>
-      <div class="rep-sum-sub">متوسط ثاني أكسيد الكربون</div>
-    </div>
+    <div class="rep-sum-card"><div class="rep-sum-val ${cls('t',avgT)}">${avgT!==null?avgT+'°C':'—'}</div><div class="rep-sum-lbl">Avg Temperature</div><div class="rep-sum-sub">متوسط درجة الحرارة</div></div>
+    <div class="rep-sum-card"><div class="rep-sum-val ${cls('h',avgH)}">${avgH!==null?avgH+'%':'—'}</div><div class="rep-sum-lbl">Avg Humidity</div><div class="rep-sum-sub">متوسط الرطوبة</div></div>
+    <div class="rep-sum-card"><div class="rep-sum-val ${cls('v',avgV)}">${avgV!==null?avgV:'-'}</div><div class="rep-sum-lbl">Avg VPD kPa</div><div class="rep-sum-sub">متوسط عجز ضغط البخار</div></div>
+    <div class="rep-sum-card"><div class="rep-sum-val">${avgC!==null?Math.round(avgC):'-'}</div><div class="rep-sum-lbl">Avg CO₂ ppm</div><div class="rep-sum-sub">متوسط ثاني أكسيد الكربون</div></div>
   `;
  
-  // Build daily table
   let rows='';
-  days_sorted.forEach(([date, d])=>{
-    const avgT=avg(d.tempW)||avg(d.temps);
-    const avgH=avg(d.humW)||avg(d.hums);
-    const avgV=avg(d.vpds);
-    const avgC=avg(d.co2s);
-    const maxT=max(d.tempW)||max(d.temps);
-    const minT=min(d.tempW)||min(d.temps);
-    const maxH=max(d.humW)||max(d.hums);
-    const maxV=max(d.vpds);
+  days_sorted.forEach(([date,d])=>{
+    const t=avg(d.tempW), h=avg(d.humW), v=avg(d.vpds), co2=avg(d.co2s);
+    const maxT=mx(d.tempW), minT=mn(d.tempW), maxH=mx(d.humW);
  
-    // Day health score
     let score=100;
-    if(avgT>22) score-=15; if(avgT>26) score-=25;
-    if(avgH>75) score-=10; if(avgH>85) score-=20;
-    if(avgV>1.0) score-=10; if(avgV>1.3) score-=20;
+    if(t&&t>22) score-=15; if(t&&t>26) score-=25;
+    if(h&&h>75) score-=10; if(h&&h>85) score-=20;
+    if(v&&v>1.0) score-=10; if(v&&v>1.3) score-=20;
     if(d.leaks>0) score-=30;
     score=Math.max(0,score);
+    const sc=score>=80?'rep-badge g':score>=60?'rep-badge w':'rep-badge d';
+    const sl=score>=80?'Good':score>=60?'Moderate':'Critical';
  
-    const scoreClass=score>=80?'rep-badge g':score>=60?'rep-badge w':'rep-badge d';
-    const scoreLabel=score>=80?'Good':score>=60?'Moderate':'Critical';
- 
-    // Conditions summary
     const conds=[];
-    if(avgH>85) conds.push('🍄 Botrytis risk');
-    else if(avgH>75) conds.push('💧 High humidity');
-    if(avgT>22) conds.push('🌡 Warm');
-    if(avgT>26) conds.push('🔥 Critical temp');
-    if(avgV>1.3) conds.push('⚠️ High VPD');
-    if(d.leaks>0) conds.push('🚨 Leak detected');
-    if(conds.length===0) conds.push('✅ All optimal');
+    if(h&&h>85) conds.push('🍄 Botrytis risk');
+    else if(h&&h>75) conds.push('💧 High humidity');
+    if(t&&t>22) conds.push('🌡 Warm'); if(t&&t>26) conds.push('🔥 Critical temp');
+    if(v&&v>1.3) conds.push('⚠️ High VPD');
+    if(d.leaks>0) conds.push('🚨 Leak');
+    if(!conds.length) conds.push('✅ Optimal');
  
-    rows+=`<tr>
+    rows+=`<tr style="cursor:pointer" onclick="drillDay('${date}',${JSON.stringify(d)})">
       <td style="font-weight:800;color:var(--deep)">${date}</td>
-      <td style="text-align:center"><span class="${scoreClass}">${score}% ${scoreLabel}</span></td>
-      <td class="${tempClass(avgT)}">${avgT??'—'}°C <span style="color:var(--muted);font-size:0.68rem">(${minT??'—'}–${maxT??'—'})</span></td>
-      <td class="${humClass(avgH)}">${avgH??'—'}% <span style="color:var(--muted);font-size:0.68rem">max ${maxH??'—'}%</span></td>
-      <td class="${vpdClass(avgV)}">${avgV??'—'} <span style="color:var(--muted);font-size:0.68rem">max ${maxV??'—'}</span></td>
-      <td style="color:var(--deep)">${avgC??'—'}</td>
-      <td style="color:var(--muted);font-size:0.72rem">${d.readings}</td>
-      <td style="font-size:0.76rem">${conds.join(', ')}</td>
+      <td style="text-align:center"><span class="${sc}">${score}% ${sl}</span></td>
+      <td class="${cls('t',t)}">${t!==null?t+'°C':'—'}<small style="color:var(--muted);display:block;font-size:.65rem">${minT!==null?minT+'–'+maxT+'°C':''}</small></td>
+      <td class="${cls('h',h)}">${h!==null?h+'%':'—'}<small style="color:var(--muted);display:block;font-size:.65rem">${maxH!==null?'max '+maxH+'%':''}</small></td>
+      <td class="${cls('v',v)}">${v!==null?v:'—'}</td>
+      <td>${co2!==null?Math.round(co2):'—'}</td>
+      <td style="color:var(--muted);font-size:.72rem">${d.readings}</td>
+      <td style="font-size:.74rem">${conds.join(', ')}</td>
     </tr>`;
   });
  
   document.getElementById('repContent').innerHTML=`
+    <p style="font-size:.72rem;color:var(--muted);margin-bottom:10px">💡 Click any row to see detailed breakdown for that day</p>
     <div class="rep-table-wrap">
       <table class="rep-table">
         <thead><tr>
-          <th>Date — التاريخ</th>
-          <th>Day Health</th>
-          <th>Avg Temp °C</th>
-          <th>Avg Humidity %</th>
-          <th>Avg VPD kPa</th>
-          <th>Avg CO₂</th>
-          <th>Readings</th>
-          <th>Conditions — الحالة</th>
+          <th>Date</th><th>Day Health</th><th>Avg Temp</th>
+          <th>Avg Humidity</th><th>Avg VPD</th><th>Avg CO₂</th>
+          <th>Readings</th><th>Conditions</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>
   `;
- 
-  // Generate insights
-  generateInsights(days_sorted, avgTemp, avgHum, avgVpd);
+  generateInsights(days_sorted,avgT,avgH,avgV);
 }
+ 
+function drillDay(date, d){
+  const avg=arr=>arr.length?parseFloat((arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1)):null;
+  const t=avg(d.tempW||[]), h=avg(d.humW||[]), v=avg(d.vpds||[]), co2=avg(d.co2s||[]);
+ 
+  function cls(m,v){
+    if(v===null) return 'color:var(--muted)';
+    if(m==='t') return v>26?'color:var(--danger)':v>22?'color:var(--gold)':'color:#16894E';
+    if(m==='h') return v>85||v<50?'color:var(--danger)':v>75||v<60?'color:var(--gold)':'color:#16894E';
+    if(m==='v') return v>1.3?'color:var(--danger)':v>1.0?'color:var(--gold)':'color:#16894E';
+    return 'color:var(--deep)';
+  }
+ 
+  const analysis=[];
+  if(t!==null){
+    if(t>26) analysis.push({i:'🔥',en:`Temperature averaged ${t}°C — critical for strawberries. Sugar development stops above 26°C.`,ar:`درجة الحرارة ${t}°م - حرجة للفراولة. تطور السكر يتوقف فوق 26°م.`});
+    else if(t>22) analysis.push({i:'🌡',en:`Temperature averaged ${t}°C — above optimal (16–22°C). Mild stress on strawberry production.`,ar:`درجة الحرارة ${t}°م - فوق المثالي. إجهاد خفيف على الإنتاج.`});
+    else analysis.push({i:'✅',en:`Temperature averaged ${t}°C — within optimal strawberry range (16–22°C).`,ar:`درجة الحرارة ${t}°م - ضمن النطاق المثالي للفراولة.`});
+  }
+  if(h!==null){
+    if(h>85) analysis.push({i:'🍄',en:`Humidity averaged ${h}% — Botrytis fungus risk. Ventilation needed.`,ar:`الرطوبة ${h}% - خطر فطر البوتريتيس. التهوية ضرورية.`});
+    else if(h>75) analysis.push({i:'💧',en:`Humidity averaged ${h}% — slightly above optimal (60–75%). Monitor for disease.`,ar:`الرطوبة ${h}% - فوق المثالي قليلاً. راقب للأمراض.`});
+    else if(h<60) analysis.push({i:'🏜',en:`Humidity averaged ${h}% — below optimal. Risk of flower desiccation.`,ar:`الرطوبة ${h}% - أقل من المثالي. خطر جفاف الأزهار.`});
+    else analysis.push({i:'✅',en:`Humidity averaged ${h}% — optimal for strawberry production.`,ar:`الرطوبة ${h}% - مثالية لإنتاج الفراولة.`});
+  }
+  if(v!==null){
+    if(v>1.3) analysis.push({i:'⚠️',en:`VPD averaged ${v} kPa — high stress. Stomata closed, photosynthesis reduced.`,ar:`عجز ضغط البخار ${v} - إجهاد عال. الثغور مغلقة.`});
+    else if(v<0.5) analysis.push({i:'💦',en:`VPD averaged ${v} kPa — too low. Reduce misting frequency.`,ar:`عجز ضغط البخار ${v} - منخفض جداً. قلل الرذاذ.`});
+    else analysis.push({i:'✅',en:`VPD averaged ${v} kPa — optimal transpiration conditions.`,ar:`عجز ضغط البخار ${v} - ظروف نتح مثالية.`});
+  }
+ 
+  const html=`
+    <div style="background:var(--card);border:1px solid var(--border-gold);border-radius:16px;padding:18px;margin-top:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:.62rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Day Drill-Down</div>
+          <div style="font-weight:950;color:var(--deep);font-size:1rem">${date}</div>
+        </div>
+        <button onclick="this.closest('div[style]').remove()" style="border:1px solid var(--border);border-radius:8px;padding:4px 10px;background:var(--card);cursor:pointer;font-size:.72rem;color:var(--muted)">✕ Close</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+        <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px">
+          <div style="font-family:var(--mono);font-size:1.4rem;font-weight:950;${cls('t',t)}">${t!==null?t+'°C':'—'}</div>
+          <div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-top:3px">AVG TEMP</div>
+        </div>
+        <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px">
+          <div style="font-family:var(--mono);font-size:1.4rem;font-weight:950;${cls('h',h)}">${h!==null?h+'%':'—'}</div>
+          <div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-top:3px">AVG HUMIDITY</div>
+        </div>
+        <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px">
+          <div style="font-family:var(--mono);font-size:1.4rem;font-weight:950;${cls('v',v)}">${v!==null?v:'—'}</div>
+          <div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-top:3px">AVG VPD</div>
+        </div>
+        <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px">
+          <div style="font-family:var(--mono);font-size:1.4rem;font-weight:950;color:var(--deep)">${co2!==null?Math.round(co2):'—'}</div>
+          <div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-top:3px">AVG CO₂</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${analysis.map(a=>`
+          <div style="display:flex;gap:10px;padding:10px;border-radius:10px;background:rgba(248,244,234,0.8);border:1px solid var(--border)">
+            <span style="font-size:1.1rem;flex-shrink:0">${a.i}</span>
+            <div>
+              <div style="font-size:.82rem;color:var(--deep);line-height:1.5">${a.en}</div>
+              <div style="font-family:var(--ar);font-size:.76rem;color:var(--muted);direction:rtl;margin-top:4px">${a.ar}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="margin-top:10px;font-size:.66rem;color:var(--muted);font-family:var(--mono)">${d.readings||0} readings · ${d.leaks>0?'🚨 Leak detected':'✓ No leaks'}</div>
+    </div>
+  `;
+ 
+  // Insert after table
+  const content=document.getElementById('repContent');
+  const existing=content.querySelector('div[style*="border-gold"]');
+  if(existing) existing.remove();
+  content.insertAdjacentHTML('beforeend', html);
+  content.lastElementChild.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+ 
  
 function generateInsights(days, avgTemp, avgHum, avgVpd){
   const insights=[];
