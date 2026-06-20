@@ -158,7 +158,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
   border:1px solid rgba(196,154,58,0.25);
   animation:slideDown 0.2s ease;
 }
-.sub-row.visible{display:flex}
+.sub-row.visible{display:flex} /* visibility now also controlled by JS style.display */
 @keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 .sub-label{font-size:.58rem;color:var(--muted);font-weight:700;
   letter-spacing:.08em;text-transform:uppercase}
@@ -624,14 +624,14 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
 </section>
  
 <!-- SUB-SELECTORS (appear only when temp/hum selected) -->
-<div class="sub-row" id="sstemp">
+<div class="sub-row" id="sstemp" style="display:none">
   <span class="sub-label" style="font-size:.7rem;font-weight:900;color:var(--deep);margin-right:4px">📊 View:</span>
   <button class="sbtn active" onclick="setSubView('temp','weighted')" id="sstemp-weighted"><span class="sdot" style="background:var(--gold)"></span>Weighted 70/30</button>
   <button class="sbtn" onclick="setSubView('temp','canopy')"  id="sstemp-canopy"><span class="sdot" style="background:#16894E"></span>Canopy Only</button>
   <button class="sbtn" onclick="setSubView('temp','wetwall')" id="sstemp-wetwall"><span class="sdot" style="background:var(--blue)"></span>Wet Wall Only</button>
   <button class="sbtn" onclick="setSubView('temp','compare')" id="sstemp-compare"><span class="sdot" style="background:var(--muted)"></span>Compare Both</button>
 </div>
-<div class="sub-row" id="sshum">
+<div class="sub-row" id="sshum" style="display:none">
   <span class="sub-label" style="font-size:.7rem;font-weight:900;color:var(--deep);margin-right:4px">📊 View:</span>
   <button class="sbtn active" onclick="setSubView('hum','weighted')" id="sshum-weighted"><span class="sdot" style="background:var(--gold)"></span>Weighted 70/30</button>
   <button class="sbtn" onclick="setSubView('hum','canopy')"  id="sshum-canopy"><span class="sdot" style="background:#16894E"></span>Canopy Only</button>
@@ -1116,8 +1116,8 @@ function buildChart(){
           title:{display:true,text:'Humidity %',color:'#1976D2'},
           grid:{display:false},
           ticks:{color:'#1976D2',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-        y3:{position:'right',display:false,min:0,max:3},
-        y4:{position:'right',display:false,min:0,max:60}
+        y3:{position:'right',display:false,min:0,max:2.5},
+        y4:{position:'right',display:false,min:0,max:55}
       }
     }
   });
@@ -1134,7 +1134,7 @@ function getDatasets(data,metric,subView){
         borderColor:'#8FAF7A',backgroundColor:'rgba(143,175,122,0.08)',
         tension:0.3,borderWidth:2,pointRadius:0,pointHoverRadius:4,
         fill:false,yAxisID:'y1'},
-      {label:'Temp °C (W)',data:data.map(r=>r.temp_weighted??calcW(r,'temp')),
+      {label:'Temp °C (W)',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>5&&v<45)?v:null;}),
         borderColor:'#06442E',backgroundColor:'transparent',
         tension:0.3,borderWidth:2.5,pointRadius:0,pointHoverRadius:4,
         fill:false,yAxisID:'y4'},
@@ -1142,7 +1142,7 @@ function getDatasets(data,metric,subView){
         borderColor:'#1976D2',backgroundColor:'transparent',
         tension:0.3,borderWidth:2,pointRadius:0,pointHoverRadius:4,
         fill:false,yAxisID:'y2'},
-      {label:'VPD kPa',data:data.map(r=>r.vpd),
+      {label:'VPD kPa',data:data.map(r=>{const v=r.vpd; return(v!==null&&v!==undefined&&v>0&&v<2.0)?parseFloat(Number(v).toFixed(2)):null;}),
         borderColor:'#C49A3A',backgroundColor:'transparent',
         tension:0.3,borderWidth:2,pointRadius:0,pointHoverRadius:4,
         fill:false,yAxisID:'y3'}
@@ -1156,16 +1156,16 @@ function getDatasets(data,metric,subView){
     note='VPD calculated from canopy temperature and humidity - Target: 0.5-1.0 kPa for strawberries';
   } else if(metric==='temp'){
     const sv=subView||S.subView.temp;
-    if(sv==='weighted'){datasets=[{label:'Weighted Temp °C (70/30)',data:data.map(r=>r.temp_weighted??calcW(r,'temp')),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y2'}];note='Weighted: 70% canopy + 30% wet wall - Target 16-22C';}
-    else if(sv==='canopy'){datasets=[{label:'Canopy Temp °C',data:data.map(r=>r.temperature??r.temp),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y2'}];note='Canopy (Meter Pro middle zone, 70% weight) - Where strawberries grow';}
-    else if(sv==='wetwall'){datasets=[{label:'Wet Wall Temp C',data:data.map(r=>r.hub_temp),borderColor:'#3B82C4',backgroundColor:'rgba(59,130,196,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Wet wall (Hub 2 near cooling, 30% weight) - Cooled air input';}
-    else{datasets=[{label:'Canopy Temp °C',data:data.map(r=>r.temperature??r.temp),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.3,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y4'},{label:'Wet Wall Temp',data:data.map(r=>r.hub_temp),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y2'},{label:'Weighted Temp °C',data:data.map(r=>r.temp_weighted??calcW(r,'temp')),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.3,borderWidth:2,pointRadius:0,yAxisID:'y4'}];note='Comparison: cooling gradient visible as gap between canopy and wet wall lines';}
+    if(sv==='weighted'){datasets=[{label:'Weighted Temp °C (70/30)',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>5&&v<45)?v:null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y2'}];note='Weighted: 70% canopy + 30% wet wall - Target 16-22C';}
+    else if(sv==='canopy'){datasets=[{label:'Canopy Temp °C',data:data.map(r=>{const v=r.temperature??r.temp;return(v&&v>5&&v<45)?v:null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y2'}];note='Canopy (Meter Pro middle zone, 70% weight) - Where strawberries grow';}
+    else if(sv==='wetwall'){datasets=[{label:'Wet Wall Temp C',data:data.map(r=>(r.hub_temp&&r.hub_temp>5&&r.hub_temp<45)?r.hub_temp:null),borderColor:'#3B82C4',backgroundColor:'rgba(59,130,196,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Wet wall (Hub 2 near cooling, 30% weight) - Cooled air input';}
+    else{datasets=[{label:'Canopy Temp °C',data:data.map(r=>{const v=r.temperature??r.temp;return(v&&v>5&&v<45)?v:null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.3,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y4'},{label:'Wet Wall Temp',data:data.map(r=>(r.hub_temp&&r.hub_temp>5&&r.hub_temp<45)?r.hub_temp:null),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y2'},{label:'Weighted Temp °C',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>5&&v<45)?v:null;}),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.3,borderWidth:2,pointRadius:0,yAxisID:'y4'}];note='Comparison: cooling gradient visible as gap between canopy and wet wall lines';}
   } else if(metric==='hum'){
     const sv=subView||S.subView.hum;
     if(sv==='weighted'){datasets=[{label:'Weighted Humidity % (70/30)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C49A3A',backgroundColor:'rgba(196,154,58,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Weighted: 70% canopy + 30% wet wall - Target 60-75%';}
-    else if(sv==='canopy'){datasets=[{label:'Canopy Humidity %',data:data.map(r=>r.humidity),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Canopy humidity (Meter Pro, 70% weight)';}
+    else if(sv==='canopy'){datasets=[{label:'Canopy Humidity %',data:data.map(r=>(r.humidity&&r.humidity>0&&r.humidity<100)?r.humidity:null),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Canopy humidity (Meter Pro, 70% weight)';}
     else if(sv==='wetwall'){datasets=[{label:'Wet Wall Humidity %',data:data.map(r=>r.hub_humidity),borderColor:'#3B82C4',backgroundColor:'rgba(59,130,196,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Wet wall humidity (Hub 2, 30% weight) - Usually higher near wet wall';}
-    else{datasets=[{label:'Canopy Hum',data:data.map(r=>r.humidity),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y2'},{label:'Wet Wall Hum',data:data.map(r=>r.hub_humidity),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y2'},{label:'Weighted (70/30)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.38,borderWidth:1.6,pointRadius:0,borderDash:[2,4],yAxisID:'y2'}];note='Comparison: canopy vs wet wall vs weighted average humidity';}
+    else{datasets=[{label:'Canopy Hum',data:data.map(r=>(r.humidity&&r.humidity>0&&r.humidity<100)?r.humidity:null),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y2'},{label:'Wet Wall Hum',data:data.map(r=>r.hub_humidity),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y2'},{label:'Weighted (70/30)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.38,borderWidth:1.6,pointRadius:0,borderDash:[2,4],yAxisID:'y2'}];note='Comparison: canopy vs wet wall vs weighted average humidity';}
   }
   return {labels,datasets,note};
 }
@@ -1187,11 +1187,13 @@ function toggleMetric(m){
 function setActiveMetric(m){
   S.metric=m;
   const cardMap={co2:'co2Card',temp:'tempCard',hum:'humidityCard',vpd:'vpdCard'};['co2','temp','hum','vpd'].forEach(k=>{const mc=$(cardMap[k]);if(mc)mc.classList.toggle('selected',k===m);});
-  $('sstemp').classList.toggle('visible',m==='temp');
-  $('sshum').classList.toggle('visible',m==='hum');
-  if(m==='temp'||m==='hum'){
+  const ssTemp=document.getElementById('sstemp');
+  const ssHum=document.getElementById('sshum');
+  if(ssTemp){ ssTemp.style.display=(m==='temp')?'flex':'none'; }
+  if(ssHum){  ssHum.style.display=(m==='hum') ?'flex':'none'; }
+  if((m==='temp'||m==='hum')){
     const sr=document.getElementById('ss'+m);
-    if(sr) setTimeout(()=>sr.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+    if(sr) setTimeout(()=>sr.scrollIntoView({behavior:'smooth',block:'nearest'}),80);
   }
   document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
   const mbtn=document.getElementById('mb-'+(m==='all'?'all':m));
