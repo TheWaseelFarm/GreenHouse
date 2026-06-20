@@ -725,7 +725,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
           <button class="range-btn"        onclick="setRange(24)"  id="rng-24h">24H</button>
           <button class="range-btn"        onclick="setRange(168)" id="rng-7d">7D</button>
         </div>
-        <div class="metric-btns">
+        <div class="metric-btns chart-metric-btns">
           <button class="mbtn active" onclick="selectMetricBtn('all')"  id="mb-all"><span class="mdot" style="background:#aaa"></span>All</button>
           <button class="mbtn"        onclick="selectMetricBtn('co2')"  id="mb-co2"><span class="mdot" style="background:#8FAF7A"></span>CO₂</button>
           <button class="mbtn"        onclick="selectMetricBtn('temp')" id="mb-temp"><span class="mdot" style="background:#06442E"></span>Temp</button>
@@ -1142,7 +1142,7 @@ function getDatasets(data,metric,subView){
         borderColor:'#1976D2',backgroundColor:'transparent',
         tension:0.45,borderWidth:2,pointRadius:0,pointHoverRadius:4,
         fill:false,yAxisID:'y2'},
-      {label:'VPD kPa',data:data.map(r=>{const v=r.vpd; return(v!==null&&v!==undefined&&v>0&&v<2.0)?parseFloat(Number(v).toFixed(2)):null;}),
+      {label:'VPD kPa',data:data.map(r=>{const v=r.vpd; return(v!==null&&v!==undefined&&v>0&&v<3.0)?parseFloat(Number(v).toFixed(2)):null;}),
         borderColor:'#C49A3A',backgroundColor:'transparent',
         tension:0.3,borderWidth:2,pointRadius:0,pointHoverRadius:4,
         fill:false,yAxisID:'y3'}
@@ -1195,7 +1195,8 @@ function setActiveMetric(m){
     const sr=document.getElementById('ss'+m);
     if(sr) setTimeout(()=>sr.scrollIntoView({behavior:'smooth',block:'nearest'}),80);
   }
-  document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
+  // Only deactivate top metric buttons (not sub-selector buttons)
+  document.querySelectorAll('.chart-metric-btns .mbtn').forEach(b=>b.classList.remove('active'));
   const mbtn=document.getElementById('mb-'+(m==='all'?'all':m));
   if(mbtn) mbtn.classList.add('active');
   const meta=CHART_META[m]||CHART_META.all;
@@ -1593,7 +1594,7 @@ document.addEventListener('click', function(e){
   
   // Update active state
   const container = document.getElementById('ss'+metric);
-  if(container) container.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
+  if(container) container.querySelectorAll('[data-view]').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   
   // Update state
