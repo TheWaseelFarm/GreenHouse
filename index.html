@@ -1135,7 +1135,7 @@ function getDatasets(data,metric,subView){
  
 function applyChart(data){
   if(!S.chart) buildChart();
-  const {labels,datasets,note}=getDatasets(data,S.metric);
+  const {labels,datasets,note}=getDatasets(data,S.metric,S.subView[S.metric]);
   S.chart.data.labels=labels; S.chart.data.datasets=datasets; S.chart.update();
   if($('chartNote')) $('chartNote').textContent=note;
 }
@@ -1163,14 +1163,36 @@ function selectMetricBtn(m){setActiveMetric(m);}
  
 function setSubView(metric,view){
   S.subView[metric]=view;
-  document.querySelectorAll(`#ss${metric} .sbtn`).forEach(b=>b.classList.remove('active'));
-  const activeBtn=$('ss'+metric+'-'+view); if(activeBtn) activeBtn.classList.add('active');
+  // Deactivate all sibling buttons
+  const container=document.getElementById('ss'+metric);
+  if(container) container.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('active'));
+  // Activate selected button
+  const btn=document.getElementById('ss'+metric+'-'+view);
+  if(btn) btn.classList.add('active');
+  // Update chart immediately
+  S.metric=metric;
   refreshChart();
+  // Update chart title
+  const titles={
+    weighted:{t:'Weighted Average (70/30)',ar:'المتوسط الموزون 70% محصول + 30% تبريد'},
+    canopy:  {t:'Canopy Zone — Meter Pro',ar:'منطقة المحصول — Meter Pro'},
+    wetwall: {t:'Wet Wall Zone — Hub 2',ar:'منطقة التبريد — Hub 2'},
+    compare: {t:'Zone Comparison — All Lines',ar:'مقارنة المناطق — جميع الخطوط'}
+  };
+  const meta=titles[view]||titles.weighted;
+  const ct=document.getElementById('chartTitle');
+  const ca=document.getElementById('chartTitleAr');
+  if(ct) ct.textContent=(metric==='temp'?'Temperature: ':'Humidity: ')+meta.t;
+  if(ca) ca.textContent=meta.ar;
 }
  
 function refreshChart(){
-  if(S.range===1) applyChart(S.localHist.map(r=>({...r,recorded_at:r.time})));
-  else loadHistory(S.range);
+  if(S.range===1){
+    const data=S.localHist.map(r=>({...r,recorded_at:r.time}));
+    applyChart(data);
+  } else {
+    loadHistory(S.range);
+  }
 }
  
 function setRange(h){
