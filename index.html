@@ -1187,7 +1187,8 @@ function setActiveMetric(m){
     if(sr) setTimeout(()=>sr.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
   }
   document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
-  $('mb-'+(m==='all'?'all':m))?.classList.add('active');
+  const mbtn=document.getElementById('mb-'+(m==='all'?'all':m));
+  if(mbtn) mbtn.classList.add('active');
   const meta=CHART_META[m]||CHART_META.all;
   $('chartTitle').textContent=meta.t; $('chartTitleAr').textContent=meta.ar;
   refreshChart();
@@ -1232,14 +1233,18 @@ function refreshChart(){
 function setRange(h){
   S.range=h;
   document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
-  const map={1:'1h',6:'6h',24:'24h',168:'7d'};
-  $('t-'+map[h])?.classList.add('active');
+  const map={1:'rng-1h',6:'rng-6h',24:'rng-24h',168:'rng-7d'};
+  const btn=$(map[h]); if(btn) btn.classList.add('active');
   if(h===1) applyChart(S.localHist.map(r=>({...r,recorded_at:r.time})));
   else loadHistory(h);
 }
  
 async function loadHistory(hours){
-  try{const res=await fetch(`/api/history?hours=${hours}&limit=500`);const data=await res.json();if(Array.isArray(data)&&data.length>0) applyChart(data);}catch(e){console.warn('History:',e.message);}
+  try{
+    const res=await fetch('/api/history?hours='+hours+'&limit=500');
+    const data=await res.json();
+    if(Array.isArray(data)&&data.length>0) applyChart(data);
+  }catch(e){console.warn('History:',e.message);}
 }
  
 function calcDP(t,rh){const a=17.27,b=237.3,al=(a*t)/(b+t)+Math.log(rh/100);return parseFloat((b*al/(a-al)).toFixed(1));}
