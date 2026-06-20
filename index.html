@@ -626,17 +626,17 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
 <!-- SUB-SELECTORS (appear only when temp/hum selected) -->
 <div class="sub-row metric-btns" id="sstemp" style="display:none;margin-bottom:14px;gap:6px;align-items:center;flex-wrap:wrap">
   <span style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px">Temp View:</span>
-  <button class="mbtn active" onclick="setSubView('temp','weighted')" id="sstemp-weighted"><span class="mdot" style="background:var(--gold)"></span>Weighted 70/30</button>
-  <button class="mbtn" onclick="setSubView('temp','canopy')"  id="sstemp-canopy"><span class="mdot" style="background:#06442E"></span>Canopy Only</button>
-  <button class="mbtn" onclick="setSubView('temp','wetwall')" id="sstemp-wetwall"><span class="mdot" style="background:#1976D2"></span>Wet Wall Only</button>
-  <button class="mbtn" onclick="setSubView('temp','compare')" id="sstemp-compare"><span class="mdot" style="background:#aaa"></span>Compare Both</button>
+  <button class="mbtn active" data-metric="temp" data-view="weighted" id="sstemp-weighted"><span class="mdot" style="background:var(--gold)"></span>Weighted 70/30</button>
+  <button class="mbtn" data-metric="temp" data-view="canopy"   id="sstemp-canopy"><span class="mdot" style="background:#06442E"></span>Canopy Only</button>
+  <button class="mbtn" data-metric="temp" data-view="wetwall"  id="sstemp-wetwall"><span class="mdot" style="background:#1976D2"></span>Wet Wall Only</button>
+  <button class="mbtn" data-metric="temp" data-view="compare"  id="sstemp-compare"><span class="mdot" style="background:#aaa"></span>Compare Both</button>
 </div>
 <div class="sub-row metric-btns" id="sshum" style="display:none;margin-bottom:14px;gap:6px;align-items:center;flex-wrap:wrap">
   <span style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px">Humidity View:</span>
-  <button class="mbtn active" onclick="setSubView('hum','weighted')" id="sshum-weighted"><span class="mdot" style="background:var(--gold)"></span>Weighted 70/30</button>
-  <button class="mbtn" onclick="setSubView('hum','canopy')"  id="sshum-canopy"><span class="mdot" style="background:#06442E"></span>Canopy Only</button>
-  <button class="mbtn" onclick="setSubView('hum','wetwall')" id="sshum-wetwall"><span class="mdot" style="background:#1976D2"></span>Wet Wall Only</button>
-  <button class="mbtn" onclick="setSubView('hum','compare')" id="sshum-compare"><span class="mdot" style="background:#aaa"></span>Compare Both</button>
+  <button class="mbtn active" data-metric="hum" data-view="weighted" id="sshum-weighted"><span class="mdot" style="background:var(--gold)"></span>Weighted 70/30</button>
+  <button class="mbtn" data-metric="hum" data-view="canopy"   id="sshum-canopy"><span class="mdot" style="background:#06442E"></span>Canopy Only</button>
+  <button class="mbtn" data-metric="hum" data-view="wetwall"  id="sshum-wetwall"><span class="mdot" style="background:#1976D2"></span>Wet Wall Only</button>
+  <button class="mbtn" data-metric="hum" data-view="compare"  id="sshum-compare"><span class="mdot" style="background:#aaa"></span>Compare Both</button>
 </div>
  
 <!-- ZONE 2: ACTION CENTER — Recommendations (left, large) + Zones (right) -->
@@ -907,7 +907,7 @@ function doRefresh(btn){
  
  
 // CONFIG
-const CAM1_URL='', CAM2_URL='', WHATSAPP='966505199611';
+const CAM1_URL='', CAM2_URL='';
 const HUB_ID='FDD0AE072D7C', WATER1_ID='E77760186472B', WATER2_ID=null;
 const W_CANOPY=0.70, W_WETWALL=0.30, ALERT_TEMP=26, ALERT_VPD=1.3;
  
@@ -1086,7 +1086,7 @@ function checkAlerts(){
       S.lastAlert=now;
       const t=new Date().toLocaleTimeString('ar-SA');
       const msg=encodeURIComponent('⚠️ تنبيه مزرعة الوصيل\n'+t+'\n'+issuesAr.join('\n')+'\n'+actions.join(' · ')+'\nhttps://green-house-iota.vercel.app');
-      window.open(`https://wa.me/${WHATSAPP}?text=${msg}`,'_blank');
+      
     }
   } else $('alertBanner').classList.remove('active');
 }
@@ -1205,47 +1205,7 @@ function setActiveMetric(m){
  
 function selectMetricBtn(m){setActiveMetric(m);}
  
-function setSubView(metric,view){
-  S.subView[metric]=view;
-  S.metric=metric;
-  // Deactivate all sibling buttons
-  const container=document.getElementById('ss'+metric);
-  if(container) container.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
-  // Activate selected button
-  const btn=document.getElementById('ss'+metric+'-'+view);
-  if(btn) btn.classList.add('active');
-  // Update chart with correct subView regardless of current range
-  if(S.range===1 && S.localHist.length>0){
-    const data=S.localHist.map(r=>({...r,recorded_at:r.time}));
-    const {labels,datasets,note}=getDatasets(data,metric,view);
-    if(S.chart){S.chart.data.labels=labels;S.chart.data.datasets=datasets;S.chart.update();}
-    const cn=document.getElementById('chartNote'); if(cn) cn.textContent=note;
-  } else {
-    // Fetch history and apply with subView
-    fetch('/api/history?hours='+S.range+'&limit=500')
-      .then(r=>r.json())
-      .then(data=>{
-        if(!Array.isArray(data)||data.length===0) return;
-        const {labels,datasets,note}=getDatasets(data,metric,view);
-        if(S.chart){S.chart.data.labels=labels;S.chart.data.datasets=datasets;S.chart.update();}
-        const cn=document.getElementById('chartNote'); if(cn) cn.textContent=note;
-      })
-      .catch(e=>console.warn('SubView fetch:',e));
-  }
-  // Update chart title
-  const titles={
-    weighted:{t:'Weighted Average (70/30)',ar:'المتوسط الموزون 70% محصول + 30% تبريد'},
-    canopy:  {t:'Canopy Zone — Meter Pro',ar:'منطقة المحصول — Meter Pro'},
-    wetwall: {t:'Wet Wall Zone — Hub 2',ar:'منطقة التبريد — Hub 2'},
-    compare: {t:'Zone Comparison — All Lines',ar:'مقارنة المناطق — جميع الخطوط'}
-  };
-  const meta=titles[view]||titles.weighted;
-  const ct=document.getElementById('chartTitle');
-  const ca=document.getElementById('chartTitleAr');
-  if(ct) ct.textContent=(metric==='temp'?'Temperature: ':'Humidity: ')+meta.t;
-  if(ca) ca.textContent=meta.ar;
-}
- 
+function setSubView(m,v){ /* handled by event delegation */ }
 function refreshChart(){
   if(S.range===1){
     const data=S.localHist.map(r=>({...r,recorded_at:r.time}));
@@ -1621,6 +1581,57 @@ function generateInsights(days, avgTemp, avgHum, avgVpd){
 document.addEventListener('DOMContentLoaded', function(){
   const ov=document.getElementById('reportsOverlay');
   if(ov) ov.addEventListener('click', function(e){ if(e.target===this) closeReports(); });
+});
+ 
+// Sub-selector click handler using event delegation - no onclick quoting issues
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('[data-metric][data-view]');
+  if(!btn) return;
+  const metric = btn.dataset.metric;
+  const view   = btn.dataset.view;
+  if(!metric || !view) return;
+  
+  // Update active state
+  const container = document.getElementById('ss'+metric);
+  if(container) container.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  
+  // Update state
+  S.subView[metric] = view;
+  S.metric = metric;
+  
+  // Update chart title
+  const titles = {
+    weighted:{t:'Weighted Average (70/30)',ar:'المتوسط الموزون 70% محصول + 30% تبريد'},
+    canopy:  {t:'Canopy Zone — Meter Pro', ar:'منطقة المحصول — Meter Pro'},
+    wetwall: {t:'Wet Wall Zone — Hub 2',   ar:'منطقة التبريد — Hub 2'},
+    compare: {t:'Zone Comparison',         ar:'مقارنة المناطق — جميع الخطوط'}
+  };
+  const meta = titles[view]||titles.weighted;
+  const ct=document.getElementById('chartTitle');
+  const ca=document.getElementById('chartTitleAr');
+  if(ct) ct.textContent=(metric==='temp'?'Temperature: ':'Humidity: ')+meta.t;
+  if(ca) ca.textContent=meta.ar;
+  
+  // Fetch data and apply chart
+  const applyWithView = function(data){
+    if(!S.chart||!data||!data.length) return;
+    const result = getDatasets(data, metric, view);
+    S.chart.data.labels   = result.labels;
+    S.chart.data.datasets = result.datasets;
+    S.chart.update();
+    const cn=document.getElementById('chartNote');
+    if(cn) cn.textContent=result.note;
+  };
+  
+  if(S.range===1 && S.localHist.length>0){
+    applyWithView(S.localHist.map(r=>({...r,recorded_at:r.time})));
+  } else {
+    fetch('/api/history?hours='+S.range+'&limit=500')
+      .then(r=>r.json())
+      .then(applyWithView)
+      .catch(e=>console.warn('Zone fetch error:',e.message));
+  }
 });
  
 </script>
