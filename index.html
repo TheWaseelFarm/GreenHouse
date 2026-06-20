@@ -151,13 +151,22 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
 .metric.selected .mc-hint{color:var(--gold)}
  
 /* ── SUB-SELECTORS ── */
-.sub-row{display:none;margin:-10px 0 14px;flex-wrap:wrap;gap:5px;align-items:center}
+.sub-row{
+  display:none;margin:0 0 14px;flex-wrap:wrap;gap:6px;align-items:center;
+  padding:10px 14px;border-radius:12px;
+  background:linear-gradient(135deg,var(--soft-sage),rgba(230,211,163,0.2));
+  border:1px solid rgba(196,154,58,0.25);
+  animation:slideDown 0.2s ease;
+}
 .sub-row.visible{display:flex}
+@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 .sub-label{font-size:.58rem;color:var(--muted);font-weight:700;
   letter-spacing:.08em;text-transform:uppercase}
-.sbtn{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;
+.sbtn{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:999px;
   border:1px solid var(--border);background:var(--card);color:var(--muted);
-  font-size:.64rem;font-weight:700;cursor:pointer;font-family:var(--mono);transition:all .18s}
+  font-size:.72rem;font-weight:700;cursor:pointer;font-family:var(--mono);
+  transition:all .18s;min-height:34px;user-select:none}
+.sbtn:hover{border-color:var(--gold);color:var(--deep);background:rgba(196,154,58,0.08)}
 .sbtn .sdot{width:6px;height:6px;border-radius:50%}
 .sbtn.active{background:var(--soft-sage);border-color:rgba(6,68,46,.2);color:var(--deep);font-weight:800}
  
@@ -616,14 +625,14 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
  
 <!-- SUB-SELECTORS (appear only when temp/hum selected) -->
 <div class="sub-row" id="sstemp">
-  <span class="sub-label">Temp view:</span>
+  <span class="sub-label" style="font-size:.7rem;font-weight:900;color:var(--deep);margin-right:4px">📊 View:</span>
   <button class="sbtn active" onclick="setSubView('temp','weighted')" id="sstemp-weighted"><span class="sdot" style="background:var(--gold)"></span>Weighted 70/30</button>
   <button class="sbtn" onclick="setSubView('temp','canopy')"  id="sstemp-canopy"><span class="sdot" style="background:#16894E"></span>Canopy Only</button>
   <button class="sbtn" onclick="setSubView('temp','wetwall')" id="sstemp-wetwall"><span class="sdot" style="background:var(--blue)"></span>Wet Wall Only</button>
   <button class="sbtn" onclick="setSubView('temp','compare')" id="sstemp-compare"><span class="sdot" style="background:var(--muted)"></span>Compare Both</button>
 </div>
 <div class="sub-row" id="sshum">
-  <span class="sub-label">Humidity view:</span>
+  <span class="sub-label" style="font-size:.7rem;font-weight:900;color:var(--deep);margin-right:4px">📊 View:</span>
   <button class="sbtn active" onclick="setSubView('hum','weighted')" id="sshum-weighted"><span class="sdot" style="background:var(--gold)"></span>Weighted 70/30</button>
   <button class="sbtn" onclick="setSubView('hum','canopy')"  id="sshum-canopy"><span class="sdot" style="background:#16894E"></span>Canopy Only</button>
   <button class="sbtn" onclick="setSubView('hum','wetwall')" id="sshum-wetwall"><span class="sdot" style="background:var(--blue)"></span>Wet Wall Only</button>
@@ -711,7 +720,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
       </div>
       <div class="chart-controls">
         <div class="time-range">
-          <button class="range-btn active" onclick="setRange(1)"   id="rng-1h">1H</button>
+          <button class="range-btn active" onclick="setRange(1)" id="rng-1h">1H</button>
           <button class="range-btn"        onclick="setRange(6)"   id="rng-6h">6H</button>
           <button class="range-btn"        onclick="setRange(24)"  id="rng-24h">24H</button>
           <button class="range-btn"        onclick="setRange(168)" id="rng-7d">7D</button>
@@ -993,11 +1002,20 @@ function renderZones(){
   $('wtHum').textContent=humW!==null?'Humidity: '+humW.toFixed(0)+'%':'Humidity: --%';
   const delta=parseFloat((temp-hubTemp).toFixed(1));
   const cv=$('clVal');
-  cv.textContent=(delta>0?'+':'')+delta+'C';
-  if(delta>=3)      {cv.style.color='var(--good)';   $('clDesc').textContent='Excellent - wet wall very effective, '+delta+'C gradient';}
-  else if(delta>=1) {cv.style.color='var(--good)';   $('clDesc').textContent='Good cooling gradient - '+delta+'C across greenhouse';}
-  else if(delta>=0) {cv.style.color='var(--warning)';$('clDesc').textContent='Low gradient - check wet wall water flow';}
-  else              {cv.style.color='var(--danger)'; $('clDesc').textContent='Warning - wet wall zone warmer than canopy';}
+  cv.textContent=(delta>0?'+':'')+delta+'°C';
+  if(delta>=3){
+    cv.style.color='#16894E';
+    $('clDesc').innerHTML='✅ Excellent cooling — wet wall working well<br><small style="font-family:var(--ar);direction:rtl;display:block;margin-top:2px">تبريد ممتاز — الجدار المبلل يعمل بكفاءة عالية</small>';
+  } else if(delta>=1){
+    cv.style.color='#16894E';
+    $('clDesc').innerHTML='👍 Good gradient — air cooling as it moves from wet wall to canopy<br><small style="font-family:var(--ar);direction:rtl;display:block;margin-top:2px">تدرج جيد — الهواء يبرد أثناء انتقاله من الجدار للمحصول</small>';
+  } else if(delta>=0){
+    cv.style.color='var(--gold)';
+    $('clDesc').innerHTML='⚠️ Weak cooling — only '+delta+'°C difference. Check wet wall water pump & pads<br><small style="font-family:var(--ar);direction:rtl;display:block;margin-top:2px">تبريد ضعيف — فرق '+delta+'°م فقط. تحقق من مضخة الجدار المبلل</small>';
+  } else {
+    cv.style.color='var(--danger)';
+    $('clDesc').innerHTML='🚨 Reverse gradient — wet wall zone hotter than canopy. Check immediately<br><small style="font-family:var(--ar);direction:rtl;display:block;margin-top:2px">تدرج عكسي — منطقة التبريد أحر من المحصول. تحقق فوراً</small>';
+  }
   const w1El=$('w1Status'), w2El=$('w2Status');
   if(w1El){ w1El.textContent=w1?'🚨 LEAK':'✓ Dry'; w1El.style.color=w1?'var(--danger)':'#16894E'; w1El.style.fontWeight='800'; }
   if(w2El){ w2El.textContent=w2?'🚨 LEAK':'✓ Dry'; w2El.style.color=w2?'var(--danger)':'#16894E'; w2El.style.fontWeight='800'; }
@@ -1092,7 +1110,7 @@ function buildChart(){
         x: {grid:{color:'rgba(6,68,46,0.07)'},ticks:{color:'#6F765F',maxTicksLimit:10,font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
         y1:{position:'left', min:300,max:1800,title:{display:true,text:'CO2 ppm',color:'#6F765F'},grid:{color:'rgba(6,68,46,0.07)'},ticks:{color:'#06442E',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
         y2:{position:'right',min:0,  max:100, title:{display:true,text:'C / %', color:'#6F765F'},grid:{display:false},ticks:{color:'#C49A3A',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-        y3:{position:'right',display:false,min:0,max:4}
+        y3:{position:'right',display:false,min:0,max:3}
       }
     }
   });
@@ -1152,6 +1170,10 @@ function setActiveMetric(m){
   const cardMap={co2:'co2Card',temp:'tempCard',hum:'humidityCard',vpd:'vpdCard'};['co2','temp','hum','vpd'].forEach(k=>{const mc=$(cardMap[k]);if(mc)mc.classList.toggle('selected',k===m);});
   $('sstemp').classList.toggle('visible',m==='temp');
   $('sshum').classList.toggle('visible',m==='hum');
+  if(m==='temp'||m==='hum'){
+    const sr=document.getElementById('ss'+m);
+    if(sr) setTimeout(()=>sr.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+  }
   document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
   $('mb-'+(m==='all'?'all':m))?.classList.add('active');
   const meta=CHART_META[m]||CHART_META.all;
