@@ -727,19 +727,19 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
     
     <div class="chart-box"><canvas id="trendChart"></canvas></div>
     <!-- ZONE SELECTORS -->
-    <div id="sstemp" style="display:none;padding:8px 0 4px;gap:6px;flex-wrap:wrap;align-items:center">
-      <span style="font-size:.62rem;font-weight:900;color:#6F765F;text-transform:uppercase;letter-spacing:.1em">Temp Zone:</span>
-      <button onclick="zoneClick(this,'temp','weighted')" id="sstemp-weighted" style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#06442E;font-size:.68rem;font-weight:700;cursor:pointer">● Weighted 70/30</button>
-      <button onclick="zoneClick(this,'temp','canopy')"   id="sstemp-canopy"   style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#06442E;font-size:.68rem;font-weight:700;cursor:pointer">🌿 Canopy</button>
-      <button onclick="zoneClick(this,'temp','wetwall')"  id="sstemp-wetwall"  style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#1976D2;font-size:.68rem;font-weight:700;cursor:pointer">🌊 Wet Wall</button>
-      <button onclick="zoneClick(this,'temp','compare')"  id="sstemp-compare"  style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#6F765F;font-size:.68rem;font-weight:700;cursor:pointer">⚖ Compare</button>
+    <div id="sstemp" style="display:none;padding:10px 14px;gap:8px;flex-wrap:wrap;align-items:center;background:linear-gradient(135deg,#E8F0E2,rgba(230,211,163,0.3));border-radius:12px;border:1px solid rgba(196,154,58,0.25);margin-top:10px">
+      <span style="font-size:.65rem;font-weight:900;color:#06442E;text-transform:uppercase;letter-spacing:.1em;margin-right:4px">🌡 Temp Zone:</span>
+      <button onclick="zoneClick(this,'temp','weighted')" id="sstemp-weighted" style="padding:6px 14px;border-radius:999px;border:2px solid #C49A3A;background:#06442E;color:#E6D3A3;font-size:.72rem;font-weight:800;cursor:pointer">Weighted 70/30</button>
+      <button onclick="zoneClick(this,'temp','canopy')"   id="sstemp-canopy"   style="padding:6px 14px;border-radius:999px;border:1px solid rgba(6,68,46,.2);background:#FFFDF7;color:#06442E;font-size:.72rem;font-weight:700;cursor:pointer">🌿 Canopy Only</button>
+      <button onclick="zoneClick(this,'temp','wetwall')"  id="sstemp-wetwall"  style="padding:6px 14px;border-radius:999px;border:1px solid rgba(6,68,46,.2);background:#FFFDF7;color:#1976D2;font-size:.72rem;font-weight:700;cursor:pointer">🌊 Wet Wall Only</button>
+      <button onclick="zoneClick(this,'temp','compare')"  id="sstemp-compare"  style="padding:6px 14px;border-radius:999px;border:1px solid rgba(6,68,46,.2);background:#FFFDF7;color:#6F765F;font-size:.72rem;font-weight:700;cursor:pointer">⚖ Compare Both</button>
     </div>
-    <div id="sshum" style="display:none;padding:8px 0 4px;gap:6px;flex-wrap:wrap;align-items:center">
-      <span style="font-size:.62rem;font-weight:900;color:#6F765F;text-transform:uppercase;letter-spacing:.1em">Humidity Zone:</span>
-      <button onclick="zoneClick(this,'hum','weighted')" id="sshum-weighted" style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#C49A3A;font-size:.68rem;font-weight:700;cursor:pointer">● Weighted 70/30</button>
-      <button onclick="zoneClick(this,'hum','canopy')"   id="sshum-canopy"   style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#06442E;font-size:.68rem;font-weight:700;cursor:pointer">🌿 Canopy</button>
-      <button onclick="zoneClick(this,'hum','wetwall')"  id="sshum-wetwall"  style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#1976D2;font-size:.68rem;font-weight:700;cursor:pointer">🌊 Wet Wall</button>
-      <button onclick="zoneClick(this,'hum','compare')"  id="sshum-compare"  style="padding:5px 12px;border-radius:999px;border:1px solid rgba(100,75,26,.16);background:#FFFDF7;color:#6F765F;font-size:.68rem;font-weight:700;cursor:pointer">⚖ Compare</button>
+    <div id="sshum" style="display:none;padding:10px 14px;gap:8px;flex-wrap:wrap;align-items:center;background:linear-gradient(135deg,#E8F0E2,rgba(230,211,163,0.3));border-radius:12px;border:1px solid rgba(196,154,58,0.25);margin-top:10px">
+      <span style="font-size:.65rem;font-weight:900;color:#06442E;text-transform:uppercase;letter-spacing:.1em;margin-right:4px">💧 Humidity Zone:</span>
+      <button onclick="zoneClick(this,'hum','weighted')" id="sshum-weighted" style="padding:6px 14px;border-radius:999px;border:2px solid #C49A3A;background:#06442E;color:#E6D3A3;font-size:.72rem;font-weight:800;cursor:pointer">Weighted 70/30</button>
+      <button onclick="zoneClick(this,'hum','canopy')"   id="sshum-canopy"   style="padding:6px 14px;border-radius:999px;border:1px solid rgba(6,68,46,.2);background:#FFFDF7;color:#06442E;font-size:.72rem;font-weight:700;cursor:pointer">🌿 Canopy Only</button>
+      <button onclick="zoneClick(this,'hum','wetwall')"  id="sshum-wetwall"  style="padding:6px 14px;border-radius:999px;border:1px solid rgba(6,68,46,.2);background:#FFFDF7;color:#1976D2;font-size:.72rem;font-weight:700;cursor:pointer">🌊 Wet Wall Only</button>
+      <button onclick="zoneClick(this,'hum','compare')"  id="sshum-compare"  style="padding:6px 14px;border-radius:999px;border:1px solid rgba(6,68,46,.2);background:#FFFDF7;color:#6F765F;font-size:.72rem;font-weight:700;cursor:pointer">⚖ Compare Both</button>
     </div>
     <div class="chart-note" id="chartNote">All metrics · Temperature & Humidity show weighted average (70% canopy + 30% wet wall)</div>
     <button class="refresh-btn" id="refreshBtn" style="margin-top:14px" id="refreshBtn" onclick="doRefresh(this)">
@@ -1119,11 +1119,10 @@ function buildChart(){
           grid:{color:'rgba(6,68,46,0.06)'},
           ticks:{color:'#8FAF7A',font:{family:'SFMono-Regular,Consolas,monospace',size:10}},border:{color:'rgba(143,175,122,0.3)'}},
         y2:{position:'right',min:0,max:100,
-          title:{display:true,text:'Humidity %',color:'#1976D2'},
+          title:{display:true,text:'°C / %',color:'#6F765F'},
           grid:{display:false},
           ticks:{color:'#1976D2',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},
-        y3:{position:'right',display:false,min:0,max:2.5},
-        y4:{position:'right',display:false,min:8,max:38}
+        y3:{position:'right',display:false,min:0,max:2.5}
       }
     }
   });
@@ -1143,7 +1142,7 @@ function getDatasets(data,metric,subView){
       {label:'Temp °C (W)',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),
         borderColor:'#06442E',backgroundColor:'transparent',
         tension:0.45,borderWidth:2,pointRadius:0,pointHoverRadius:4,
-        fill:false,yAxisID:'y4'},
+        fill:false,yAxisID:'y2'},
       {label:'Humidity % (W)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),
         borderColor:'#1976D2',backgroundColor:'transparent',
         tension:0.45,borderWidth:2,pointRadius:0,pointHoverRadius:4,
@@ -1162,10 +1161,10 @@ function getDatasets(data,metric,subView){
     note='VPD calculated from canopy temperature and humidity - Target: 0.5-1.0 kPa for strawberries';
   } else if(metric==='temp'){
     const sv=subView||S.subView.temp;
-    if(sv==='weighted'){datasets=[{label:'Weighted Temp °C (70/30)',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y2'}];note='Weighted: 70% canopy + 30% wet wall - Target 16-22C';}
-    else if(sv==='canopy'){datasets=[{label:'Canopy Temp °C',data:data.map(r=>{const v=r.temperature??r.temp;return(v&&v>5&&v<45)?v:null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y2'}];note='Canopy (Meter Pro middle zone, 70% weight) - Where strawberries grow';}
-    else if(sv==='wetwall'){datasets=[{label:'Wet Wall Temp C',data:data.map(r=>(r.hub_temp&&r.hub_temp>5&&r.hub_temp<45)?r.hub_temp:null),borderColor:'#3B82C4',backgroundColor:'rgba(59,130,196,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Wet wall (Hub 2 near cooling, 30% weight) - Cooled air input';}
-    else{datasets=[{label:'Canopy Temp °C',data:data.map(r=>{const v=r.temperature??r.temp;return(v&&v>5&&v<45)?v:null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.3,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y4'},{label:'Wet Wall Temp',data:data.map(r=>(r.hub_temp&&r.hub_temp>5&&r.hub_temp<45)?r.hub_temp:null),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y2'},{label:'Weighted Temp °C',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.3,borderWidth:2,pointRadius:0,yAxisID:'y4'}];note='Comparison: cooling gradient visible as gap between canopy and wet wall lines';}
+    if(sv==='weighted'){datasets=[{label:'Weighted Temp °C (70/30)',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y1'}];note='Weighted Temp — left axis shows real °C · Target 16–22°C';}
+    else if(sv==='canopy'){datasets=[{label:'Canopy Temp °C',data:data.map(r=>{const v=r.temperature??r.temp;return(v&&v>5&&v<45)?v:null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y1'}];note='Canopy Temp — Meter Pro sensor · Left axis shows real °C';}
+    else if(sv==='wetwall'){datasets=[{label:'Wet Wall Temp C',data:data.map(r=>(r.hub_temp&&r.hub_temp>5&&r.hub_temp<45)?r.hub_temp:null),borderColor:'#3B82C4',backgroundColor:'rgba(59,130,196,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y1'}];note='Wet Wall Temp — Hub 2 sensor · Left axis shows real °C';}
+    else{datasets=[{label:'Canopy Temp °C',data:data.map(r=>{const v=r.temperature??r.temp;return(v&&v>5&&v<45)?v:null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.3,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y1'},{label:'Wet Wall Temp',data:data.map(r=>(r.hub_temp&&r.hub_temp>5&&r.hub_temp<45)?r.hub_temp:null),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y1'},{label:'Weighted Temp °C',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.3,borderWidth:2,pointRadius:0,yAxisID:'y1'}];note='Zone comparison · Left axis in real °C · Gap between lines = cooling efficiency';}
   } else if(metric==='hum'){
     const sv=subView||S.subView.hum;
     if(sv==='weighted'){datasets=[{label:'Weighted Humidity % (70/30)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C49A3A',backgroundColor:'rgba(196,154,58,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Weighted: 70% canopy + 30% wet wall - Target 60-75%';}
@@ -1179,8 +1178,54 @@ function getDatasets(data,metric,subView){
 function applyChart(data){
   if(!S.chart) buildChart();
   const {labels,datasets,note}=getDatasets(data,S.metric,S.subView[S.metric]);
-  S.chart.data.labels=labels; S.chart.data.datasets=datasets; S.chart.update();
+  S.chart.data.labels=labels;
+  S.chart.data.datasets=datasets;
+  // Dynamic axes based on selected metric
+  updateChartAxes(S.metric, S.subView[S.metric]);
+  S.chart.update();
   if($('chartNote')) $('chartNote').textContent=note;
+}
+ 
+function updateChartAxes(metric, subView){
+  if(!S.chart) return;
+  const sc=S.chart.options.scales;
+  // Reset all axes to hidden first
+  sc.y1.display=false;
+  sc.y2.display=false;
+  sc.y3.display=false;
+ 
+  if(metric==='all'){
+    // Show CO2 on left, temp+humidity+VPD on right
+    sc.y1.display=true; sc.y1.min=350; sc.y1.max=650;
+    sc.y1.title.text='CO₂ ppm'; sc.y1.ticks.color='#8FAF7A';
+    sc.y2.display=true; sc.y2.min=0; sc.y2.max=100;
+    sc.y2.title.text='% / °C / kPa×40'; sc.y2.ticks.color='#06442E';
+    sc.y2.grid.display=false;
+ 
+  } else if(metric==='co2'){
+    sc.y1.display=true; sc.y1.min=350; sc.y1.max=700;
+    sc.y1.title.text='CO₂ ppm'; sc.y1.ticks.color='#8FAF7A';
+    sc.y2.display=false;
+ 
+  } else if(metric==='temp'){
+    // Show temp in real degrees — left axis
+    sc.y1.display=true; sc.y1.min=10; sc.y1.max=40;
+    sc.y1.title.text='Temperature °C'; sc.y1.ticks.color='#06442E';
+    sc.y1.grid.color='rgba(6,68,46,0.06)';
+    sc.y2.display=false;
+ 
+  } else if(metric==='hum'){
+    sc.y2.display=true; sc.y2.min=0; sc.y2.max=100;
+    sc.y2.title.text='Humidity %'; sc.y2.ticks.color='#1976D2';
+    sc.y1.display=false;
+ 
+  } else if(metric==='vpd'){
+    sc.y3.display=true; sc.y3.min=0; sc.y3.max=3;
+    sc.y3.title={display:true,text:'VPD kPa',color:'#C49A3A'};
+    sc.y3.ticks={color:'#C49A3A',font:{family:'SFMono-Regular,Consolas,monospace',size:10}};
+    sc.y3.position='left';
+    sc.y1.display=false; sc.y2.display=false;
+  }
 }
  
 const CHART_META={all:{t:'All Metrics Overview',ar:'نظرة عامة على جميع المؤشرات'},co2:{t:'CO2 Analysis',ar:'تحليل ثاني أكسيد الكربون'},temp:{t:'Temperature Analysis',ar:'تحليل درجة الحرارة - استخدم المحددات أدناه'},hum:{t:'Humidity Analysis',ar:'تحليل الرطوبة - استخدم المحددات أدناه'},vpd:{t:'VPD Analysis',ar:'تحليل عجز ضغط البخار'}};
@@ -1195,8 +1240,8 @@ function setActiveMetric(m){
   const cardMap={co2:'co2Card',temp:'tempCard',hum:'humidityCard',vpd:'vpdCard'};['co2','temp','hum','vpd'].forEach(k=>{const mc=$(cardMap[k]);if(mc)mc.classList.toggle('selected',k===m);});
   var _st=document.getElementById('sstemp');
   var _sh=document.getElementById('sshum');
-  if(_st) _st.style.display=(m==='temp')?'flex':'none';
-  if(_sh) _sh.style.display=(m==='hum')?'flex':'none';
+  if(_st){ _st.style.display=(m==='temp')?'flex':'none'; console.log('sstemp display set to:',(m==='temp')?'flex':'none'); }
+  if(_sh){ _sh.style.display=(m==='hum')?'flex':'none'; }
   // Only deactivate top metric buttons (not sub-selector buttons)
   document.querySelectorAll('.chart-metric-btns .mbtn').forEach(b=>b.classList.remove('active'));
   const mbtn=document.getElementById('mb-'+(m==='all'?'all':m));
@@ -1373,6 +1418,7 @@ async function loadReport(){
   }
 }
  
+var _repDays={};
 function renderReport(data, days){
   // Group by day using Gregorian dates
   const byDay={};
@@ -1460,7 +1506,7 @@ function renderReport(data, days){
     if(d.leaks>0) conds.push('🚨 Leak');
     if(!conds.length) conds.push('✅ Optimal');
  
-    rows+=`<tr style="cursor:pointer" onclick="drillDay('${date}',${JSON.stringify(d)})">
+    _repDays[date]=d; rows+=`<tr style="cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(196,154,58,0.06)'" onmouseout="this.style.background=''" onclick="drillDay('${date}')">
       <td style="font-weight:800;color:var(--deep)">${date}</td>
       <td style="text-align:center"><span class="${sc}">${score}% ${sl}</span></td>
       <td class="${cls('t',t)}">${t!==null?t+'°C':'—'}<small style="color:var(--muted);display:block;font-size:.65rem">${minT!==null?minT+'–'+maxT+'°C':''}</small></td>
@@ -1488,7 +1534,8 @@ function renderReport(data, days){
   generateInsights(days_sorted,avgT,avgH,avgV);
 }
  
-function drillDay(date, d){
+function drillDay(date){
+  var d=_repDays[date]||{};
   const avg=arr=>arr.length?parseFloat((arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1)):null;
   const t=avg(d.tempW||[]), h=avg(d.humW||[]), v=avg(d.vpds||[]), co2=avg(d.co2s||[]);
  
@@ -1710,8 +1757,19 @@ function zoneClick(btn, metric, view){
   S.subView[metric]=view;
   S.metric=metric;
   var container=document.getElementById('ss'+metric);
-  if(container){ var btns=container.querySelectorAll('.mbtn'); for(var i=0;i<btns.length;i++) btns[i].classList.remove('active'); }
-  btn.classList.add('active');
+  if(container){
+    var btns=container.querySelectorAll('button');
+    for(var i=0;i<btns.length;i++){
+      btns[i].style.background='#FFFDF7';
+      btns[i].style.border='1px solid rgba(6,68,46,.2)';
+      btns[i].style.fontWeight='700';
+      btns[i].style.color='';
+    }
+  }
+  btn.style.background='#06442E';
+  btn.style.border='2px solid #C49A3A';
+  btn.style.color='#E6D3A3';
+  btn.style.fontWeight='800';
   var ct=document.getElementById('chartTitle');
   var ca=document.getElementById('chartTitleAr');
   var labels={weighted:'Weighted 70/30',canopy:'Canopy — Meter Pro',wetwall:'Wet Wall — Hub 2',compare:'Compare Zones'};
@@ -1721,7 +1779,9 @@ function zoneClick(btn, metric, view){
   function applyZone(data){
     if(!S.chart||!Array.isArray(data)||!data.length) return;
     var r=getDatasets(data,metric,view);
-    S.chart.data.labels=r.labels; S.chart.data.datasets=r.datasets; S.chart.update();
+    S.chart.data.labels=r.labels; S.chart.data.datasets=r.datasets;
+    updateChartAxes(metric, view);
+    S.chart.update();
     var cn=document.getElementById('chartNote'); if(cn) cn.textContent=r.note;
   }
   if(S.range===1 && S.localHist.length>0){
