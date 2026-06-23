@@ -4,6 +4,18 @@ const cookie = require('cookie');
 const jwt = require('jsonwebtoken');
 
 module.exports = async (req, res) => {
+  const url = req.url.split('?')[0];
+
+  // Serve login page without auth
+  if (url === '/login' || url === '/login.html') {
+    const filePath = path.join(process.cwd(), 'login.html');
+    const html = fs.readFileSync(filePath, 'utf8');
+    res.setHeader('Content-Type', 'text/html');
+    res.status(200).send(html);
+    return;
+  }
+
+  // Check session
   const cookies = cookie.parse(req.headers.cookie || '');
   const token = cookies['wf_session'];
 
@@ -22,6 +34,7 @@ module.exports = async (req, res) => {
     return;
   }
 
+  // Serve dashboard
   const filePath = path.join(process.cwd(), '_index.html');
   const html = fs.readFileSync(filePath, 'utf8');
   res.setHeader('Content-Type', 'text/html');
