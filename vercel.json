@@ -3,6 +3,7 @@
   "routes": [
     { "src": "/api/auth/login", "dest": "/api/auth/login.js" },
     { "src": "/api/auth/logout", "dest": "/api/auth/logout.js" },
+    { "src": "/api/auth/check", "dest": "/api/auth/check.js" },
     { "src": "/api/devices", "dest": "/api/devices.js" },
     { "src": "/api/status", "dest": "/api/status.js" },
     { "src": "/api/save-reading", "dest": "/api/save-reading.js" },
