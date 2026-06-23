@@ -11,6 +11,6 @@
     { "src": "/api/incidents",    "dest": "/api/incidents.js"    },
     { "src": "/api/gen-hash",     "dest": "/api/gen-hash.js"     },
     { "src": "/login",            "dest": "/login.html"          },
-    { "src": "/(.*)",             "dest": "/api/page.js"         }
+    { "src": "/(.*)",             "dest": "/index.html"          }
   ]
 }
