@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Al-Waseel Farm — Sign In</title>
+<style>
+:root{
+  --deep:#06442E;--forest:#032D21;--sage:#8FAF7A;--soft-sage:#E8F0E2;
+  --gold:#C49A3A;--light-gold:#E6D3A3;--cream:#F8F4EA;--card:#FFFDF7;
+  --muted:#6F765F;--danger:#C0392B;--soft-danger:#FDECEA;
+  --border:rgba(100,75,26,.16);--shadow:0 8px 32px rgba(48,39,18,.12);
+  --radius:22px;
+  --ar:"Segoe UI",Tahoma,Arial,sans-serif;
+  --sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --mono:"SFMono-Regular","Cascadia Code",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--sans);color:var(--deep);
+  background:
+    radial-gradient(circle at 10% 0%,rgba(196,154,58,.18),transparent 36%),
+    radial-gradient(circle at 88% 8%,rgba(143,175,122,.20),transparent 32%),
+    linear-gradient(180deg,var(--cream),#fffaf0 55%,#f3ead9);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  overflow:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(6,68,46,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(6,68,46,.03) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.5),transparent 80%);
+}
+.card{
+  position:relative;z-index:1;
+  width:100%;max-width:420px;
+  background:rgba(255,253,247,.96);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:40px 36px 36px;
+  backdrop-filter:blur(12px);
+}
+/* Logo */
+.logo-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:32px}
+.logo-svg{width:90px;height:90px}
+.brand-ar{font-family:var(--ar);font-size:1.4rem;font-weight:900;color:var(--deep);direction:rtl}
+.brand-en{font-weight:900;letter-spacing:.14em;color:var(--deep);font-size:.72rem;text-transform:uppercase;opacity:.7}
+.brand-sub{font-size:.7rem;color:var(--muted);font-weight:700;margin-top:2px}
+
+/* Divider */
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin-bottom:28px}
+
+/* Form */
+.field{margin-bottom:18px}
+label{display:block;font-size:.72rem;font-weight:900;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--muted);margin-bottom:7px}
+.input-wrap{position:relative}
+input[type="text"],input[type="password"]{
+  width:100%;padding:12px 16px;
+  border:1.5px solid var(--border);border-radius:12px;
+  background:rgba(255,253,247,.9);color:var(--deep);
+  font-size:.9rem;font-family:var(--sans);font-weight:600;
+  outline:none;transition:border-color .18s,box-shadow .18s;
+}
+input[type="text"]:focus,input[type="password"]:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(196,154,58,.12);
+}
+input::placeholder{color:var(--muted);font-weight:500;opacity:.7}
+
+/* Show/hide password toggle */
+.eye-btn{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:var(--muted);
+  font-size:1rem;padding:4px;line-height:1;transition:color .18s;
+}
+.eye-btn:hover{color:var(--deep)}
+
+/* Submit */
+.submit-btn{
+  width:100%;padding:14px;margin-top:8px;
+  background:linear-gradient(135deg,var(--deep),var(--forest));
+  color:#fff;border:none;border-radius:14px;
+  font-size:.9rem;font-weight:950;font-family:var(--sans);
+  letter-spacing:.02em;cursor:pointer;
+  box-shadow:0 8px 22px rgba(6,68,46,.22);
+  transition:all .18s;position:relative;overflow:hidden;
+}
+.submit-btn:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(6,68,46,.3)}
+.submit-btn:active{transform:translateY(0)}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.submit-btn .btn-text{transition:opacity .18s}
+.submit-btn .btn-loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center}
+.submit-btn.loading .btn-text{opacity:0}
+.submit-btn.loading .btn-loading{display:flex}
+
+/* Spinner */
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Error */
+.error-box{
+  display:none;align-items:center;gap:10px;
+  padding:12px 14px;border-radius:12px;margin-top:16px;
+  background:var(--soft-danger);border:1px solid rgba(192,57,43,.2);
+  color:var(--danger);font-size:.8rem;font-weight:700;
+}
+.error-box.visible{display:flex}
+.error-box svg{flex-shrink:0;width:16px;height:16px}
+
+/* Attempts warning */
+.attempts-warn{
+  font-size:.66rem;color:var(--muted);font-family:var(--mono);
+  text-align:center;margin-top:14px;
+}
+
+/* Footer */
+.login-footer{
+  text-align:center;margin-top:28px;
+  font-size:.66rem;color:var(--muted);font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.login-footer::before,.login-footer::after{
+  content:"";flex:1;height:1px;background:var(--border);
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <!-- Logo -->
+  <div class="logo-wrap">
+    <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#E7D29A"/>
+          <stop offset=".52" stop-color="#C8A96E"/>
+          <stop offset="1" stop-color="#8B6914"/>
+        </linearGradient>
+        <filter id="sh"><feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000" flood-opacity="0.18"/></filter>
+      </defs>
+      <rect width="900" height="900" rx="220" fill="#F7F0E3"/>
+      <rect x="44" y="44" width="812" height="812" rx="188" fill="none" stroke="url(#g1)" stroke-width="20"/>
+      <g filter="url(#sh)">
+        <path d="M202 598 C270 526 318 520 384 564 C432 596 490 607 548 576 C602 547 658 535 708 568 L708 642 L202 642 Z" fill="url(#g1)" opacity=".92"/>
+        <path d="M236 590 L236 526 L272 526 L272 558 L306 558 L306 494 L352 494 L352 564 L392 564 L392 516 L444 516 L444 570 L489 570 L489 498 L537 498 L537 558 L590 558 L590 510 L634 510 L634 585" fill="none" stroke="#8B6914" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>
+      </g>
+      <text x="450" y="330" text-anchor="middle" font-family="Tahoma,'Segoe UI',Arial,sans-serif" font-size="116" font-weight="800" fill="#1E2D1A">الوصيل</text>
+      <text x="450" y="404" text-anchor="middle" font-family="Arial,sans-serif" font-size="39" font-weight="700" letter-spacing="8" fill="#4A6741">ALWASEEL FARM</text>
+      <line x1="260" y1="448" x2="640" y2="448" stroke="url(#g1)" stroke-width="6" stroke-linecap="round"/>
+    </svg>
+    <div class="brand-ar">مزرعة الوصيل</div>
+    <div class="brand-en">AL-WASEEL FARM</div>
+    <div class="brand-sub">Greenhouse Monitor — لوحة مراقبة المحمية</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Form -->
+  <form id="loginForm" autocomplete="on">
+    <div class="field">
+      <label for="username">Username — اسم المستخدم</label>
+      <div class="input-wrap">
+        <input
+          type="text"
+          id="username"
+          name="username"
+          placeholder="Enter your username"
+          autocomplete="username"
+          maxlength="64"
+          required
+        />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="password">Password — كلمة المرور</label>
+      <div class="input-wrap">
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          maxlength="128"
+          required
+        />
+        <button type="button" class="eye-btn" id="eyeBtn" aria-label="Show password" tabindex="-1">
+          👁
+        </button>
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">
+      <span class="btn-text">Sign In — دخول</span>
+      <span class="btn-loading"><span class="spinner"></span></span>
+    </button>
+
+    <div class="error-box" id="errorBox" role="alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="errorMsg">Invalid credentials</span>
+    </div>
+
+    <div class="attempts-warn" id="attemptsWarn" style="display:none">
+      ⚠️ <span id="attemptsText"></span>
+    </div>
+  </form>
+
+  <div class="login-footer">Diriyah · Riyadh · الدرعية · الرياض</div>
+</div>
+
+<script>
+(function(){
+  var form       = document.getElementById('loginForm');
+  var submitBtn  = document.getElementById('submitBtn');
+  var errorBox   = document.getElementById('errorBox');
+  var errorMsg   = document.getElementById('errorMsg');
+  var eyeBtn     = document.getElementById('eyeBtn');
+  var pwdInput   = document.getElementById('password');
+  var attemptsW  = document.getElementById('attemptsWarn');
+  var attemptsT  = document.getElementById('attemptsText');
+  var attempts   = 0;
+  var MAX        = 5;
+
+  // Show/hide password toggle
+  eyeBtn.addEventListener('click', function(){
+    if(pwdInput.type === 'password'){
+      pwdInput.type = 'text';
+      eyeBtn.textContent = '🙈';
+    } else {
+      pwdInput.type = 'password';
+      eyeBtn.textContent = '👁';
+    }
+    pwdInput.focus();
+  });
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    if(submitBtn.disabled) return;
+
+    var username = document.getElementById('username').value.trim();
+    var password = pwdInput.value;
+
+    if(!username || !password){
+      showError('Please enter username and password');
+      return;
+    }
+
+    // Set loading state
+    submitBtn.classList.add('loading');
+    submitBtn.disabled = true;
+    errorBox.classList.remove('visible');
+
+    try {
+      var res = await fetch('/api/auth/login', {
+        method:  'POST',
+        headers: {'Content-Type': 'application/json'},
+        credentials: 'same-origin',
+        body: JSON.stringify({ username, password })
+      });
+
+      var data = await res.json();
+
+      if(res.ok && data.success){
+        // Success — redirect to dashboard
+        window.location.href = '/';
+      } else if(res.status === 429){
+        showError('Too many attempts. Please wait 15 minutes.');
+        submitBtn.disabled = true;
+      } else {
+        attempts++;
+        var remaining = MAX - attempts;
+        if(remaining > 0 && remaining < MAX){
+          attemptsT.textContent = remaining + ' attempt' + (remaining===1?'':'s') + ' remaining before lockout';
+          attemptsW.style.display = 'block';
+        }
+        showError(data.error || 'Invalid credentials');
+        // Clear password field on failed attempt
+        pwdInput.value = '';
+        pwdInput.focus();
+      }
+    } catch(err) {
+      showError('Connection error. Please try again.');
+    } finally {
+      submitBtn.classList.remove('loading');
+      if(!submitBtn.disabled || attempts < MAX) submitBtn.disabled = false;
+    }
+  });
+
+  function showError(msg){
+    errorMsg.textContent = msg;
+    errorBox.classList.add('visible');
+  }
+
+  // Auto-focus username
+  document.getElementById('username').focus();
+})();
+</script>
+</body>
+</html>
