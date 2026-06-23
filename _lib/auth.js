@@ -1,13 +1,6 @@
-// _lib/auth.js — shared session validator for all API routes
-// Import this at the top of every protected API file.
-
 const cookie = require('cookie');
 const jwt    = require('jsonwebtoken');
 
-/**
- * Validates the session cookie on an API request.
- * Returns true if valid, sends 401 and returns false if not.
- */
 function requireAuth(req, res) {
   const cookies = cookie.parse(req.headers.cookie || '');
   const token   = cookies['wf_session'];
