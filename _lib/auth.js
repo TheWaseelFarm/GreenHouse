@@ -22,3 +22,4 @@ function requireAuth(req, res) {
 }
 
 module.exports = { requireAuth };
+
