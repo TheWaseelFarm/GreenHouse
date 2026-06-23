@@ -24,3 +24,4 @@ module.exports = async (req, res) => {
     instruction: 'Copy the hash value above into DASHBOARD_PASSWORD_HASH in Vercel env vars. Then DELETE this file immediately.'
   });
 };
+
