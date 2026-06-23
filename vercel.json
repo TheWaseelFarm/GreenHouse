@@ -11,13 +11,7 @@
     { "src": "/api/incidents",    "dest": "/api/incidents.js"    },
     { "src": "/api/gen-hash",     "dest": "/api/gen-hash.js"     },
     { "src": "/login",            "dest": "/login.html"          },
-    { "src": "/login.html",       "dest": "/login.html"          },
     { "src": "/assets/(.*)",      "dest": "/assets/$1"           },
-    { "src": "/(.*)\\.css",       "dest": "/$1.css"              },
-    { "src": "/(.*)\\.js",        "dest": "/$1.js"               },
-    { "src": "/(.*)\\.png",       "dest": "/$1.png"              },
-    { "src": "/(.*)\\.svg",       "dest": "/$1.svg"              },
-    { "src": "/(.*)\\.ico",       "dest": "/$1.ico"              },
     { "src": "/(.*)",             "dest": "/api/page.js"         }
   ],
   "headers": [
@@ -27,3 +21,9 @@
         { "key": "X-Content-Type-Options",    "value": "nosniff"                         },
         { "key": "X-Frame-Options",           "value": "DENY"                            },
         { "key": "X-XSS-Protection",          "value": "1; mode=block"                   },
+        { "key": "Referrer-Policy",           "value": "strict-origin-when-cross-origin" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }
+      ]
+    }
+  ]
+}
