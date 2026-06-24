@@ -1113,6 +1113,16 @@ window.AlWaseelFarmDashboard={
   simulateAlert(){S.live={co2:420,temp:27,hum:45,vpd:1.8,hubTemp:24,hubHum:52,w1:false,tempW:25.5,humW:47.4};renderMetrics();renderZones();checkAlerts();renderDecisions();}
 };
  
+// ── AUTH CHECK — redirect to login if no valid session ──
+(async function(){
+  try{
+    const r=await fetch('/api/auth/check',{credentials:'same-origin'});
+    if(r.status===401) window.location.replace('/login');
+  }catch(e){
+    window.location.replace('/login');
+  }
+})();
+ 
 document.addEventListener('DOMContentLoaded',function(){
   buildChart();setActiveMetric('all');fetchLive();loadHistory(1);
   setInterval(fetchLive,60000);setInterval(loadCams,5000);
