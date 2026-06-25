@@ -2245,7 +2245,7 @@ function renderCoolingScore(){
   const deltaEl=document.getElementById('coolingDeltaOut');
   const badgeEl=document.getElementById('outsideBadge');
   if(deltaEl){
-    if(ot===null){deltaEl.textContent='—'; }
+    if(ot===null||tw===null){deltaEl.textContent='—'; }
     else{
     const delta=parseFloat((ot-tw).toFixed(1));
     deltaEl.textContent=(delta>0?'+':'')+delta+'°C';
