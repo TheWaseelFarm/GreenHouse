@@ -1422,7 +1422,8 @@ window.AlWaseelFarmDashboard={
 document.addEventListener('DOMContentLoaded', function(){
   buildChart(); setActiveMetric('all'); fetchLive(); loadHistory(1);
   wireZoneButtons();
-  setInterval(fetchLive,60000); setInterval(loadCams,5000);
+  fetchOutsideTemp();
+  setInterval(fetchLive,60000); setInterval(loadCams,5000); setInterval(fetchOutsideTemp,600000);
   setInterval(()=>{
     const n=new Date();
     const ts=document.getElementById('timestamp'); if(ts) ts.textContent=n.toLocaleTimeString('en-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
