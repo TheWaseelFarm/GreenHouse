@@ -1423,6 +1423,7 @@ document.addEventListener('DOMContentLoaded', function(){
   buildChart(); setActiveMetric('all'); fetchLive(); loadHistory(1);
   wireZoneButtons();
   fetchOutsideTemp();
+  renderStressTracker();
   setInterval(fetchLive,60000); setInterval(loadCams,5000); setInterval(fetchOutsideTemp,600000);
   setInterval(()=>{
     const n=new Date();
@@ -2126,6 +2127,7 @@ async function fetchOutsideTemp(){
     const d=await r.json();
     S.live.outsideTemp=parseFloat(d.current?.temperature_2m??null);
     renderOutsideTemp();
+    renderCoolingScore();
   }catch(e){ console.warn('Weather fetch:',e.message); }
 }
  
