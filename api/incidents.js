@@ -6,6 +6,18 @@ module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  // Parse body manually for POST requests
+  if (req.method === 'POST' && typeof req.body === 'undefined') {
+    await new Promise((resolve) => {
+      let raw = '';
+      req.on('data', chunk => { raw += chunk; });
+      req.on('end', () => {
+        try { req.body = JSON.parse(raw); } catch(e) { req.body = {}; }
+        resolve();
+      });
+    });
+  }
+
   if (req.method === 'GET') {
     const limit = parseInt(req.query.limit) || 50;
     const { data, error } = await supabase
@@ -18,11 +30,7 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'POST') {
-    let body = {};
-    try {
-      if (typeof req.body === 'string') body = JSON.parse(req.body);
-      else body = req.body || {};
-    } catch(e) { body = {}; }
+    const body = req.body || {};
 
     if (body.action === 'resolve') {
       const now = new Date();
