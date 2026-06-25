@@ -2127,7 +2127,7 @@ async function fetchOutsideTemp(){
     const d=await r.json();
     S.live.outsideTemp=parseFloat(d.current?.temperature_2m??null);
     renderOutsideTemp();
-    renderCoolingScore();
+    if(S.live.tempW!==null) renderCoolingScore();
   }catch(e){ console.warn('Weather fetch:',e.message); }
 }
  
@@ -2221,7 +2221,7 @@ function calcCoolingScore(outsideTemp, insideTemp, gradient){
  
 function renderCoolingScore(){
   const ot=S.live.outsideTemp;
-  const tw=S.live.tempW??S.live.temp;
+  const tw=S.live.tempW!==null?S.live.tempW:(S.live.temp!==null?S.live.temp:null);
   const grad=S.live.temp&&S.live.hubTemp?parseFloat((S.live.temp-S.live.hubTemp).toFixed(1)):0;
   console.log('[CoolingScore] outside='+ot+' inside='+tw+' gradient='+grad);
   const el=document.getElementById('coolingScore');
