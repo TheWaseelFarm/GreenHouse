@@ -1,50 +1,72 @@
-const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+const https = require('https');
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
+
+function supabaseRequest(method, path, body) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(SUPABASE_URL + '/rest/v1/' + path);
+    const data = body ? JSON.stringify(body) : null;
+    const options = {
+      hostname: url.hostname,
+      path: url.pathname + url.search,
+      method,
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': method === 'POST' ? 'return=representation' : ''
+      }
+    };
+    if (data) options.headers['Content-Length'] = Buffer.byteLength(data);
+    const req = https.request(options, res => {
+      let raw = '';
+      res.on('data', c => raw += c);
+      res.on('end', () => {
+        try { resolve({ status: res.statusCode, data: JSON.parse(raw) }); }
+        catch(e) { resolve({ status: res.statusCode, data: raw }); }
+      });
+    });
+    req.on('error', reject);
+    if (data) req.write(data);
+    req.end();
+  });
+}
 
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // Parse body manually for POST requests
-  if (req.method === 'POST' && typeof req.body === 'undefined') {
-    await new Promise((resolve) => {
-      let raw = '';
-      req.on('data', chunk => { raw += chunk; });
-      req.on('end', () => {
-        try { req.body = JSON.parse(raw); } catch(e) { req.body = {}; }
-        resolve();
-      });
-    });
-  }
-
   if (req.method === 'GET') {
-    const limit = parseInt(req.query.limit) || 50;
-    const { data, error } = await supabase
-      .from('incidents')
-      .select('*')
-      .order('started_at', { ascending: false })
-      .limit(limit);
-    if (error) return res.status(500).json({ error: error.message });
-    return res.json(data || []);
+    const limit = req.query.limit || 50;
+    const r = await supabaseRequest('GET',
+      `incidents?order=started_at.desc&limit=${limit}`);
+    if (r.status >= 400) return res.status(500).json({ error: r.data });
+    return res.json(Array.isArray(r.data) ? r.data : []);
   }
 
   if (req.method === 'POST') {
-    const body = req.body || {};
-
-    if (body.action === 'resolve') {
-      const now = new Date();
-      const { data: inc } = await supabase
-        .from('incidents').select('started_at').eq('id', body.id).single();
-      const duration_minutes = inc
-        ? Math.round((now - new Date(inc.started_at)) / 60000) : null;
-      const { error } = await supabase.from('incidents').update({
-        ended_at: now.toISOString(), duration_minutes, resolved: true
-      }).eq('id', body.id);
-      return res.json({ ok: !error, error: error?.message });
+    // Parse body
+    let body = req.body || {};
+    if (!body || typeof body === 'string') {
+      try { body = JSON.parse(body); } catch(e) { body = {}; }
     }
 
-    const { data, error } = await supabase.from('incidents').insert([{
+    if (body.action === 'resolve') {
+      // Get started_at
+      const gr = await supabaseRequest('GET',
+        `incidents?id=eq.${body.id}&select=started_at`);
+      const inc = Array.isArray(gr.data) ? gr.data[0] : null;
+      const now = new Date();
+      const duration_minutes = inc
+        ? Math.round((now - new Date(inc.started_at)) / 60000) : null;
+      const r = await supabaseRequest('PATCH',
+        `incidents?id=eq.${body.id}`,
+        { ended_at: now.toISOString(), duration_minutes, resolved: true });
+      return res.json({ ok: r.status < 400 });
+    }
+
+    const r = await supabaseRequest('POST', 'incidents', {
       started_at:      body.started_at || new Date().toISOString(),
       type:            body.type,
       severity:        body.severity,
@@ -58,9 +80,9 @@ module.exports = async (req, res) => {
       plant_impact_ar: body.plant_impact_ar,
       stress_score:    body.stress_score    || 0,
       resolved:        false
-    }]).select().single();
-
-    return res.json({ ok: !error, id: data?.id, error: error?.message });
+    });
+    const created = Array.isArray(r.data) ? r.data[0] : r.data;
+    return res.json({ ok: r.status < 400, id: created?.id });
   }
 
   res.status(405).json({ error: 'Method not allowed' });
