@@ -699,6 +699,76 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
 </div>
  
 <!-- ZONE 3: CLIMATE TREND — Chart + VPD Gauge -->
+ 
+<!-- OUTSIDE TEMP + COOLING SCORE + STRESS TRACKER -->
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px">
+ 
+  <!-- Outside Temperature Card -->
+  <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Outside Temp</div>
+        <div style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">درجة حرارة الخارج · الدرعية</div>
+        <div style="font-size:.56rem;color:var(--muted);margin-top:2px;font-family:var(--mono)">📡 Open-Meteo API · updated every 10 min</div>
+      </div>
+      <div id="outsideBadge" class="badge">—</div>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:6px">
+      <span id="outsideTempVal" style="font-family:var(--mono);font-size:2.6rem;font-weight:950;letter-spacing:-.08em;color:var(--deep)">—</span>
+      <span style="font-weight:900;color:var(--muted)">°C</span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--soft-sage);border-radius:10px">
+      <span style="font-size:.72rem;font-weight:700;color:var(--deep)">Inside vs Outside</span>
+      <span id="coolingDeltaOut" style="font-family:var(--mono);font-weight:950;font-size:.9rem;color:var(--deep)">—</span>
+    </div>
+    <div style="font-size:.62rem;color:var(--muted)">⚠️ Sensor-based reading coming soon — order SwitchBot Outdoor Meter</div>
+  </div>
+ 
+  <!-- Cooling Efficiency Score -->
+  <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:10px">
+    <div>
+      <div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Cooling Efficiency</div>
+      <div style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">كفاءة نظام التبريد</div>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:4px">
+      <span id="coolingScore" style="font-family:var(--mono);font-size:2.6rem;font-weight:950;letter-spacing:-.08em;color:var(--deep)">—</span>
+      <span style="font-weight:900;color:var(--muted);font-size:.9rem">/100</span>
+    </div>
+    <div style="height:6px;background:rgba(6,68,46,.08);border-radius:3px;overflow:hidden">
+      <div id="coolingScoreBar" style="height:100%;width:0%;background:#16894E;border-radius:3px;transition:width .6s ease"></div>
+    </div>
+    <div style="font-size:.68rem;color:var(--muted);line-height:1.5">Based on outside−inside delta and wet wall gradient.<br>
+      <span style="color:#16894E;font-weight:700">70–100</span> Excellent · 
+      <span style="color:var(--gold);font-weight:700">40–69</span> Watch · 
+      <span style="color:var(--danger);font-weight:700">0–39</span> Action needed
+    </div>
+  </div>
+ 
+  <!-- Plant Stress Hours -->
+  <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:10px">
+    <div>
+      <div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Plant Stress Today</div>
+      <div style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">إجهاد النبات اليوم</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--soft-sage);border-radius:8px">
+        <span style="font-size:.72rem;font-weight:700;color:var(--deep)">🌡 Temp stress</span>
+        <span id="stressTempMins" style="font-family:var(--mono);font-weight:800;font-size:.78rem">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--soft-sage);border-radius:8px">
+        <span style="font-size:.72rem;font-weight:700;color:var(--deep)">💧 Humidity stress</span>
+        <span id="stressHumMins" style="font-family:var(--mono);font-weight:800;font-size:.78rem">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--soft-sage);border-radius:8px">
+        <span style="font-size:.72rem;font-weight:700;color:var(--deep)">⚡ VPD stress</span>
+        <span id="stressVpdMins" style="font-family:var(--mono);font-weight:800;font-size:.78rem">—</span>
+      </div>
+    </div>
+    <div style="font-size:.6rem;color:var(--muted)">Minutes outside optimal range since midnight · resets daily</div>
+  </div>
+ 
+</div>
+ 
 <section id="chart" class="climate-row">
   <section class="panel chart-panel">
     <div class="panel-head">
@@ -927,9 +997,9 @@ const T={
  
 // STATE
 const S={
-  live:{co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,w2:false,tempW:null,humW:null},
+  live:{co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,w2:false,tempW:null,humW:null,outsideTemp:null},
   metric:'all', subView:{temp:'weighted',hum:'weighted'},
-  range:1, lastAlert:0, localHist:[], chart:null
+  range:1, lastAlert:0, localHist:[], chart:null, lastWeatherFetch:0
 };
  
 const $=id=>document.getElementById(id);
@@ -1346,7 +1416,7 @@ window.AlWaseelFarmDashboard={
   setCameraUrl(id,url){const img=$(id);if(!img)return;const f=img.closest('.camera-feed');img.onload=()=>f.classList.add('has-feed');img.onerror=()=>f.classList.remove('has-feed');img.src=url;},
   setCameraUrls(urls){if(urls.cam1)this.setCameraUrl('cam1',urls.cam1);if(urls.cam2)this.setCameraUrl('cam2',urls.cam2);},
   setData(data){const t=Number(data.temp??S.live.temp),h=Number(data.humidity??S.live.hum);S.live.co2=Number(data.co2??S.live.co2);S.live.temp=t;S.live.hum=h;S.live.vpd=Number(data.vpd??calcVPD(t,h));renderMetrics();renderDecisions();checkAlerts();},
-  simulateAlert(){S.live={co2:420,temp:27,hum:45,vpd:1.8,hubTemp:24,hubHum:52,w1:false,w2:false,tempW:25.5,humW:47.4};renderMetrics();renderZones();checkAlerts();renderDecisions();detectIncidents();}
+  simulateAlert(){S.live={co2:420,temp:27,hum:45,vpd:1.8,hubTemp:24,hubHum:52,w1:false,w2:false,tempW:25.5,humW:47.4};renderMetrics();renderZones();checkAlerts();renderDecisions();detectIncidents();fetchOutsideTemp();updateStressTracker();renderCoolingScore();}
 };
  
 document.addEventListener('DOMContentLoaded', function(){
@@ -2043,6 +2113,123 @@ async function loadIncidents(){
   }catch(e){
     el.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger);font-size:.8rem">Error: '+e.message+'</div>';
   }
+}
+ 
+// ── OUTSIDE TEMPERATURE (Open-Meteo, Diriyah) ──
+async function fetchOutsideTemp(){
+  try{
+    const now=Date.now();
+    if(now-S.lastWeatherFetch < 10*60*1000) return; // max every 10 min
+    S.lastWeatherFetch=now;
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=24.734&longitude=46.5753&current=temperature_2m&timezone=Asia/Riyadh');
+    const d=await r.json();
+    S.live.outsideTemp=parseFloat(d.current?.temperature_2m??null);
+    renderOutsideTemp();
+  }catch(e){ console.warn('Weather fetch:',e.message); }
+}
+ 
+function renderOutsideTemp(){
+  const ot=S.live.outsideTemp;
+  const tw=S.live.tempW;
+  const el=document.getElementById('outsideTempVal');
+  const deltaEl=document.getElementById('coolingDeltaOut');
+  const badgeEl=document.getElementById('outsideBadge');
+  if(!el) return;
+  if(ot===null){ el.textContent='—'; return; }
+  el.textContent=ot.toFixed(1);
+  if(tw!==null && deltaEl){
+    const delta=parseFloat((ot-tw).toFixed(1));
+    deltaEl.textContent=(delta>0?'+':'')+delta+'°C';
+    // Color: green=cooling working well, gold=watch, red=danger
+    const color=delta>15?'#16894E':delta>8?'var(--gold)':'var(--danger)';
+    deltaEl.style.color=color;
+    if(badgeEl){
+      if(delta>15){ badgeEl.textContent='Excellent'; badgeEl.className='badge'; badgeEl.style.background='rgba(22,137,78,.1)'; badgeEl.style.color='#16894E'; }
+      else if(delta>8){ badgeEl.textContent='Working'; badgeEl.className='badge'; badgeEl.style.background='rgba(196,154,58,.12)'; badgeEl.style.color='#8B5E00'; }
+      else{ badgeEl.textContent='Struggling'; badgeEl.className='badge'; badgeEl.style.background='rgba(192,57,43,.1)'; badgeEl.style.color='var(--danger)'; }
+    }
+  }
+}
+ 
+// ── PLANT STRESS TRACKER ──
+// Tracks cumulative minutes per day where conditions are outside optimal
+const STRESS_TRACKER = {
+  date: null,
+  tempStressMins: 0,
+  humStressMins:  0,
+  vpdStressMins:  0,
+  lastCheck: null
+};
+ 
+function updateStressTracker(){
+  const {tempW, humW, vpd} = S.live;
+  if(tempW===null) return;
+  const now = new Date();
+  const today = now.toDateString();
+  // Reset daily at midnight
+  if(STRESS_TRACKER.date !== today){
+    STRESS_TRACKER.date = today;
+    STRESS_TRACKER.tempStressMins = 0;
+    STRESS_TRACKER.humStressMins  = 0;
+    STRESS_TRACKER.vpdStressMins  = 0;
+  }
+  // Each fetchLive = ~1 minute interval
+  if(tempW > 22) STRESS_TRACKER.tempStressMins++;
+  if(humW && (humW > 75 || humW < 60)) STRESS_TRACKER.humStressMins++;
+  if(vpd  > 1.0) STRESS_TRACKER.vpdStressMins++;
+  renderStressTracker();
+}
+ 
+function renderStressTracker(){
+  const t=STRESS_TRACKER.tempStressMins;
+  const h=STRESS_TRACKER.humStressMins;
+  const v=STRESS_TRACKER.vpdStressMins;
+  const tEl=document.getElementById('stressTempMins');
+  const hEl=document.getElementById('stressHumMins');
+  const vEl=document.getElementById('stressVpdMins');
+  if(tEl) tEl.textContent=t>0?t+' min':'✓ None';
+  if(hEl) hEl.textContent=h>0?h+' min':'✓ None';
+  if(vEl) vEl.textContent=v>0?v+' min':'✓ None';
+  // Color stress items
+  if(tEl) tEl.style.color=t>60?'var(--danger)':t>30?'var(--gold)':'#16894E';
+  if(hEl) hEl.style.color=h>60?'var(--danger)':h>30?'var(--gold)':'#16894E';
+  if(vEl) vEl.style.color=v>60?'var(--danger)':v>30?'var(--gold)':'#16894E';
+}
+ 
+// ── COOLING EFFICIENCY SCORE (0-100) ──
+function calcCoolingScore(outsideTemp, insideTemp, gradient){
+  if(outsideTemp===null || insideTemp===null) return null;
+  const delta=outsideTemp-insideTemp;
+  // Score based on: how much cooler inside vs outside, and wet wall gradient
+  let score=0;
+  // Delta score (max 60 points)
+  if(delta>=20) score+=60;
+  else if(delta>=15) score+=50;
+  else if(delta>=10) score+=35;
+  else if(delta>=5)  score+=20;
+  else               score+=5;
+  // Gradient score (max 40 points)
+  if(gradient>=3) score+=40;
+  else if(gradient>=2) score+=30;
+  else if(gradient>=1) score+=20;
+  else if(gradient>=0) score+=10;
+  return Math.min(100, score);
+}
+ 
+function renderCoolingScore(){
+  const score=calcCoolingScore(
+    S.live.outsideTemp,
+    S.live.tempW,
+    S.live.temp && S.live.hubTemp ? parseFloat((S.live.temp-S.live.hubTemp).toFixed(1)) : null
+  );
+  const el=document.getElementById('coolingScore');
+  const barEl=document.getElementById('coolingScoreBar');
+  if(!el) return;
+  if(score===null){ el.textContent='—'; return; }
+  el.textContent=score;
+  const color=score>=70?'#16894E':score>=40?'var(--gold)':'var(--danger)';
+  el.style.color=color;
+  if(barEl){ barEl.style.width=score+'%'; barEl.style.background=color; }
 }
  
 </script>
