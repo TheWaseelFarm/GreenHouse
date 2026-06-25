@@ -1050,6 +1050,7 @@ function renderMetrics(){
   $('statusDot').style.background=col(overall);
   const sm={good:{en:'All parameters optimal - strawberry farm healthy',ar:'جميع المؤشرات مثالية - الفراولة بصحة ممتازة'},warn:{en:`Moderate stress - weighted temp ${tw.toFixed(1)}C, humidity ${hw.toFixed(0)}%, VPD ${Number(vpd).toFixed(2)} kPa`,ar:'إجهاد متوسط - تحقق من التوصيات أدناه'},danger:{en:'Critical conditions - immediate action required',ar:'ظروف حرجة - تدخل فوري مطلوب'}};
   $('statusEn').textContent=sm[overall].en; $('statusAr').textContent=sm[overall].ar;
+  renderCoolingScore();
 }
  
 function updateCard(m,v){
@@ -2140,6 +2141,7 @@ function renderOutsideTemp(){
   if(!el) return;
   if(ot===null){ el.textContent='—'; return; }
   el.textContent=ot.toFixed(1);
+  if(tw!==null) renderCoolingScore();
   if(tw!==null && deltaEl){
     const delta=parseFloat((ot-tw).toFixed(1));
     deltaEl.textContent=(delta>0?'+':'')+delta+'°C';
