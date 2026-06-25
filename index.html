@@ -2220,19 +2220,36 @@ function calcCoolingScore(outsideTemp, insideTemp, gradient){
 }
  
 function renderCoolingScore(){
-  const score=calcCoolingScore(
-    S.live.outsideTemp,
-    S.live.tempW,
-    S.live.temp && S.live.hubTemp ? parseFloat((S.live.temp-S.live.hubTemp).toFixed(1)) : null
-  );
+  const ot=S.live.outsideTemp;
+  const tw=S.live.tempW??S.live.temp;
+  const grad=S.live.temp&&S.live.hubTemp?parseFloat((S.live.temp-S.live.hubTemp).toFixed(1)):0;
+  console.log('[CoolingScore] outside='+ot+' inside='+tw+' gradient='+grad);
   const el=document.getElementById('coolingScore');
   const barEl=document.getElementById('coolingScoreBar');
-  if(!el) return;
-  if(score===null){ el.textContent='—'; return; }
+  if(!el){ console.warn('[CoolingScore] element not found'); return; }
+  if(ot===null||ot===undefined||tw===null||tw===undefined){
+    el.textContent='—';
+    return;
+  }
+  const score=calcCoolingScore(ot, tw, grad);
   el.textContent=score;
   const color=score>=70?'#16894E':score>=40?'var(--gold)':'var(--danger)';
   el.style.color=color;
   if(barEl){ barEl.style.width=score+'%'; barEl.style.background=color; }
+  // Also update inside vs outside delta
+  const deltaEl=document.getElementById('coolingDeltaOut');
+  const badgeEl=document.getElementById('outsideBadge');
+  if(deltaEl){
+    const delta=parseFloat((ot-tw).toFixed(1));
+    deltaEl.textContent=(delta>0?'+':'')+delta+'°C';
+    const color2=delta>15?'#16894E':delta>8?'var(--gold)':'var(--danger)';
+    deltaEl.style.color=color2;
+    if(badgeEl){
+      if(delta>15){badgeEl.textContent='Excellent';badgeEl.style.background='rgba(22,137,78,.1)';badgeEl.style.color='#16894E';}
+      else if(delta>8){badgeEl.textContent='Working';badgeEl.style.background='rgba(196,154,58,.12)';badgeEl.style.color='#8B5E00';}
+      else{badgeEl.textContent='Struggling';badgeEl.style.background='rgba(192,57,43,.1)';badgeEl.style.color='var(--danger)';}
+    }
+  }
 }
  
 </script>
