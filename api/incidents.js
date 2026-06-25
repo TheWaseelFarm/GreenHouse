@@ -44,4 +44,16 @@ module.exports = async (req, res) => {
       peak_humidity:   body.peak_humidity   || null,
       peak_vpd:        body.peak_vpd        || null,
       min_gradient:    body.min_gradient    || null,
-      description:
+      description:     body.description,
+      description_ar:  body.description_ar,
+      plant_impact:    body.plant_impact,
+      plant_impact_ar: body.plant_impact_ar,
+      stress_score:    body.stress_score    || 0,
+      resolved:        false
+    }]).select().single();
+
+    return res.json({ ok: !error, id: data?.id, error: error?.message });
+  }
+
+  res.status(405).json({ error: 'Method not allowed' });
+};
