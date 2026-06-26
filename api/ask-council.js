@@ -12,7 +12,7 @@ module.exports = async (req, res) => {
 
    const expertInstruction = `\n\nSTRICT FORMAT — NO EXCEPTIONS:\nWrite 2 sentences in English only (no label, no bold, no headers).\n---\nاكتب جملتين بالعربية فقط لمحمد المهندس (بدون عناوين، مباشر وواضح).`;
 
-const execInstruction = `\n\nYOU MUST FOLLOW THIS EXACT FORMAT — NO DEVIATIONS:\n\nSituation: [one sentence, no bold]\n[TODAY] [one action]\n[THIS WEEK] [one action]\nRisk: [one sentence]\n---\nالوضع: [جملة واحدة بالعربية]\n[اليوم] [مهمة واحدة لمحمد]\n[هذا الأسبوع] [مهمة واحدة لمحمد]\nتحذير: [جملة واحدة بالعربية]`;
+const execInstruction = `\n\nOUTPUT EXACTLY 8 LINES. NO MORE. NO EXCEPTIONS:\n\nSituation: [one sentence]\n[TODAY] [one action]\n[THIS WEEK] [one action]\nRisk: [one sentence]\n---\nالوضع: [جملة واحدة]\n[اليوم] [مهمة واحدة لمحمد]\n[هذا الأسبوع] [مهمة واحدة لمحمد]\nتحذير: [جملة واحدة]`;
     const payload = JSON.stringify({
       model: 'claude-sonnet-4-6',
       max_tokens: 500,
