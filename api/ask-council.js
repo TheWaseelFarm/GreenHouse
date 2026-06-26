@@ -10,13 +10,14 @@ module.exports = async (req, res) => {
   try {
     const { system, messages, isExec } = req.body;
 
-const expertInstruction = `\n\nThink deeply, then end your response with EXACTLY this format:\nSUMMARY_EN:\n• [point 1]\n• [point 2]\n• [point 3 max]\nSUMMARY_AR:\n• [النقطة 1 بالعربية]\n• [النقطة 2 بالعربية]\n• [النقطة 3 بالعربية إن وجدت]`;
+    const expertInstruction = `\n\nRespond in TWO sections separated by ---\nSection 1: English, bullet points only, max 3 bullets, no headers, no bold\nSection 2: Arabic for Mohammed, same bullets translated, max 3 bullets`;
 
-const execInstruction = `\n\nThink deeply, then end your response with EXACTLY this format:\nSUMMARY_EN:\n✅ TODAY: [action]\n📅 THIS WEEK: [action]\n⚠️ RISK: [one sentence]\nSUMMARY_AR:\n✅ اليوم: [مهمة محمد]\n📅 هذا الأسبوع: [مهمة محمد]\n⚠️ تحذير: [جملة واحدة]`;
+    const execInstruction = `\n\nRespond in TWO sections separated by ---\nSection 1 English:\n• TODAY: [action]\n• THIS WEEK: [action]\n• RISK: [one sentence]\nSection 2 Arabic:\n• اليوم: [مهمة محمد]\n• هذا الأسبوع: [مهمة محمد]\n• تحذير: [جملة واحدة]`;
+
     const payload = JSON.stringify({
       model: 'claude-sonnet-4-6',
-     max_tokens: isExec ? 400 : 350,
-system: system + (isExec ? execInstruction : expertInstruction),
+      max_tokens: 400,
+      system: system + (isExec ? execInstruction : expertInstruction),
       messages
     });
 
