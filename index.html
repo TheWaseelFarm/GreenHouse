@@ -1050,21 +1050,26 @@ function renderMetrics(){
   $('statusDot').style.background=col(overall);
   const sm={good:{en:'All parameters optimal - strawberry farm healthy',ar:'جميع المؤشرات مثالية - الفراولة بصحة ممتازة'},warn:{en:`Moderate stress - weighted temp ${tw.toFixed(1)}C, humidity ${hw.toFixed(0)}%, VPD ${Number(vpd).toFixed(2)} kPa`,ar:'إجهاد متوسط - تحقق من التوصيات أدناه'},danger:{en:'Critical conditions - immediate action required',ar:'ظروف حرجة - تدخل فوري مطلوب'}};
   $('statusEn').textContent=sm[overall].en; $('statusAr').textContent=sm[overall].ar;
-  renderCoolingScore();
-  // Update inside vs outside delta now that tempW is available
-  const ot=S.live.outsideTemp;
-  const deltaEl=document.getElementById('coolingDeltaOut');
-  const badgeEl=document.getElementById('outsideBadge');
-  if(deltaEl && ot!==null && tw!==null){
-    const d=parseFloat((ot-tw).toFixed(1));
-    deltaEl.textContent=isNaN(d)?'—':(d>0?'+':'')+d+'°C';
-    deltaEl.style.color=d>15?'#16894E':d>8?'var(--gold)':'var(--danger)';
-    if(badgeEl){
-      if(d>15){badgeEl.textContent='Excellent';badgeEl.style.background='rgba(22,137,78,.1)';badgeEl.style.color='#16894E';}
-      else if(d>8){badgeEl.textContent='Working';badgeEl.style.background='rgba(196,154,58,.12)';badgeEl.style.color='#8B5E00';}
-      else{badgeEl.textContent='Struggling';badgeEl.style.background='rgba(192,57,43,.1)';badgeEl.style.color='var(--danger)';}
+  // Update inside vs outside delta — tw is guaranteed here
+  const _ot=S.live.outsideTemp;
+  const _dEl=document.getElementById('coolingDeltaOut');
+  const _bEl=document.getElementById('outsideBadge');
+  const _tEl=document.getElementById('outsideTempVal');
+  if(_tEl&&_ot!==null) _tEl.textContent=_ot.toFixed(1);
+  if(_dEl){
+    if(_ot===null){ _dEl.textContent='—'; }
+    else{
+      const _d=parseFloat((_ot-tw).toFixed(1));
+      _dEl.textContent=isNaN(_d)?'—':(_d>0?'+':'')+_d+'°C';
+      _dEl.style.color=_d>15?'#16894E':_d>8?'var(--gold)':'var(--danger)';
+      if(_bEl){
+        if(_d>15){_bEl.textContent='Excellent';_bEl.style.background='rgba(22,137,78,.1)';_bEl.style.color='#16894E';}
+        else if(_d>8){_bEl.textContent='Working';_bEl.style.background='rgba(196,154,58,.12)';_bEl.style.color='#8B5E00';}
+        else{_bEl.textContent='Struggling';_bEl.style.background='rgba(192,57,43,.1)';_bEl.style.color='var(--danger)';}
+      }
     }
   }
+  renderCoolingScore();
 }
  
 function updateCard(m,v){
