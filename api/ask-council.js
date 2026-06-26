@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
   try {
     const { system, messages, isExec } = req.body;
 
-   const expertInstruction = `\n\nFORMAT — complete both sections:\n\n🔬 [2 sentences in English, direct, no bold]\n\n---\n\n🔬 [جملتان بالعربية لمحمد، مباشر وواضح]`;
+ const expertInstruction = `\n\nThink deeply and give your full expert analysis. Then at the very end, add:\nSUMMARY_EN: [your entire point in one sentence]\nSUMMARY_AR: [نفس النقطة بجملة واحدة بالعربية لمحمد]`;
 
 const execInstruction = `\n\nFORMAT EXACTLY — complete every line, do not cut:\n\n📋 Situation: [one sentence]\n✅ TODAY: [one action]\n📅 THIS WEEK: [one action]\n⚠️ Risk: [one sentence]\n\n---\n\n📋 الوضع: [جملة واحدة]\n✅ اليوم: [مهمة واحدة لمحمد]\n📅 هذا الأسبوع: [مهمة واحدة لمحمد]\n⚠️ تحذير: [جملة واحدة]`;
     const payload = JSON.stringify({
