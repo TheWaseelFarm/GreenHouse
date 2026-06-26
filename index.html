@@ -286,7 +286,6 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
     <a onclick="navClick(this,'alerts')"><i class="ti ti-bell"></i>Alerts</a>
     <a onclick="navClick(this,null);openReports()"><i class="ti ti-file-analytics"></i>Reports</a>
     <a onclick="navClick(this,null);openCouncil()"><i class="ti ti-brain"></i>Council</a>
-    <a onclick="navClick(this,null);openCouncil()"><i class="ti ti-brain"></i>Council</a>
     <a onclick="navClick(this,'settings')"><i class="ti ti-settings"></i>Settings</a>
     <a href="/api/auth/logout" class="logout-link"><i class="ti ti-logout"></i>Sign Out &mdash; &#x62E;&#x631;&#x648;&#x62C;</a>
   </nav>
@@ -1107,30 +1106,8 @@ document.addEventListener('DOMContentLoaded',function(){
   if(co)co.addEventListener('click',function(e){if(e.target===this)closeCouncil();});
 });
 </script>
-  <!-- COUNCIL OVERLAY -->
-<div class="reports-overlay" id="councilOverlay">
-  <div class="reports-panel" style="max-width:900px">
-    <div class="rep-header">
-      <div>
-        <h2><i class="ti ti-brain" style="margin-right:8px"></i>Council Decisions Log</h2>
-        <div class="rep-header-ar">سجل قرارات مجلس خبراء الوصيل</div>
-      </div>
-      <button class="rep-close" onclick="closeCouncil()" aria-label="Close"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="rep-body">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-        <p style="font-size:.82rem;color:var(--muted);margin:0">Latest decisions from the 7-expert Al-Waseel Farm advisory council.</p>
-        <button class="rep-btn" onclick="loadCouncilDecisions()"><i class="ti ti-refresh"></i> Refresh</button>
-      </div>
-      <div id="councilLog">
-        <div style="text-align:center;padding:40px;color:var(--muted)">
-          <i class="ti ti-brain" style="font-size:2rem;color:var(--gold)"></i>
-          <p>Click Refresh to load council decisions</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- COUNCIL OVERLAY -->
+<div class="reports-overlay" id="councilOverlay"><div class="reports-panel" style="max-width:860px"><div class="rep-header"><div><h2><i class="ti ti-brain" style="margin-right:8px"></i>Council of Experts</h2><div class="rep-header-ar">مجلس خبراء مزرعة الوصيل — ٧ خبراء متخصصون</div></div><button class="rep-close" onclick="closeCouncil()"><i class="ti ti-x"></i></button></div><div class="rep-body"><div style="margin-bottom:18px"><div style="font-size:.72rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--deep);margin-bottom:8px">Ask the Council — اسأل مجلس الخبراء</div><div style="display:flex;gap:8px;align-items:flex-end"><textarea id="councilQuestion" placeholder="e.g. Water temp is 28C and leaves are yellowing, what should I do?" style="flex:1;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-family:var(--sans);font-size:.85rem;outline:none;resize:vertical;min-height:70px;background:var(--soft-sage);color:var(--deep)"></textarea><button onclick="askCouncil()" id="councilAskBtn" style="padding:10px 18px;background:linear-gradient(135deg,#7ea06d,var(--deep));color:var(--light-gold);border:none;border-radius:10px;font-weight:800;font-size:.82rem;cursor:pointer;white-space:nowrap;height:70px">Ask<br>🏛️</button></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><span onclick="$('councilQuestion').value=this.textContent" style="padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:16px;font-size:.72rem;cursor:pointer;color:var(--deep)">Are seedlings ready for towers?</span><span onclick="$('councilQuestion').value=this.textContent" style="padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:16px;font-size:.72rem;cursor:pointer;color:var(--deep)">How to sell Albion at highest price?</span><span onclick="$('councilQuestion').value=this.textContent" style="padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:16px;font-size:.72rem;cursor:pointer;color:var(--deep)">Water temp too high, what to do?</span><span onclick="$('councilQuestion').value=this.textContent" style="padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:16px;font-size:.72rem;cursor:pointer;color:var(--deep)">Why are leaves yellowing?</span></div></div><div id="councilDiscussion"></div><div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:.68rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Previous Decisions</div><button class="rep-btn" onclick="loadCouncilDecisions()"><i class="ti ti-refresh"></i> Load</button></div><div id="councilLog"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">Click Load to see past decisions</div></div></div></div></div></div>
   <div class="reports-overlay" id="councilOverlay"><div class="reports-panel" style="max-width:860px"><div class="rep-header"><div><h2><i class="ti ti-brain" style="margin-right:8px"></i>Council Decisions</h2><div class="rep-header-ar">مجلس خبراء مزرعة الوصيل — قرارات الخبراء السبعة</div></div><button class="rep-close" onclick="closeCouncil()"><i class="ti ti-x"></i></button></div><div class="rep-body"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px"><p style="font-size:.82rem;color:var(--muted);margin:0">Latest decisions from the 7-expert advisory council. Push decisions from the Council App to see them here.</p><button class="rep-btn" onclick="loadCouncilDecisions()"><i class="ti ti-refresh"></i> Refresh</button></div><div id="councilLog"><div style="text-align:center;padding:40px;color:var(--muted)"><i class="ti ti-brain" style="font-size:2.5rem;color:var(--gold)"></i><p style="margin-top:12px;font-size:.85rem">Click Refresh to load council decisions</p></div></div></div></div></div>
 </body>
 </html>
