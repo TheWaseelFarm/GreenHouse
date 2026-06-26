@@ -10,6 +10,7 @@
     { "src": "/api/history",      "dest": "/api/history.js"     },
     { "src": "/api/cron-save",    "dest": "/api/cron-save.js"   },
     { "src": "/api/incidents",    "dest": "/api/incidents.js"   },
+    { "src": "/api/ask-council", "dest": "/api/ask-council.js" },
     { "src": "/api/council",      "dest": "/api/council.js"     },
     { "src": "/api/gen-hash",     "dest": "/api/gen-hash.js"    },
     { "src": "/login",            "dest": "/login.html"         },
