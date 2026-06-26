@@ -614,7 +614,7 @@ function renderMetrics(){
   const checks=[getStatus('co2',co2),getStatus('temp',tw),getHumBadge(hw).s,vs];
   const overall=checks.includes('danger')?'danger':checks.includes('warn')?'warn':'good';
   $('statusDot').style.background=col(overall);
-  const sm={good:{en:'All parameters optimal - strawberry farm healthy',ar:'&#x62C;&#x645;&#x64A;&#x639; &#x627;&#x644;&#x645;&#x624;&#x634;&#x631;&#x627;&#x62A; &#x645;&#x62B;&#x627;&#x644;&#x64A;&#x629; - &#x627;&#x644;&#x641;&#x631;&#x627;&#x648;&#x644;&#x629; &#x628;&#x635;&#x62D;&#x629; &#x645;&#x645;&#x62A;&#x627;&#x632;&#x629;'},warn:{en:`Moderate stress - weighted temp ${tw.toFixed(1)}C, humidity ${hw.toFixed(0)}%, VPD ${Number(vpd).toFixed(2)} kPa`,ar:'&#x625;&#x62C;&#x647;&#x627;&#x62F; &#x645;&#x62A;&#x648;&#x633;&#x637; - &#x62A;&#x62D;&#x642;&#x642; &#x645;&#x646; &#x627;&#x644;&#x62A;&#x648;&#x635;&#x64A;&#x627;&#x62A; &#x623;&#x62F;&#x646;&#x627;&#x647;'},danger:{en:'Critical conditions - immediate action required',ar:'&#x638;&#x631;&#x648;&#x641; &#x62D;&#x631;&#x62C;&#x629; - &#x62A;&#x62F;&#x62E;&#x644; &#x641;&#x648;&#x631;&#x64A; &#x645;&#x637;&#x644;&#x648;&#x628;'}};
+ const sm={good:{en:'All parameters optimal - strawberry farm healthy',ar:'جميع المؤشرات مثالية - الفراولة بصحة ممتازة'},warn:{en:`Moderate stress - weighted temp ${tw.toFixed(1)}C, humidity ${hw.toFixed(0)}%, VPD ${Number(vpd).toFixed(2)} kPa`,ar:'إجهاد متوسط - تحقق من التوصيات أدناه'},danger:{en:'Critical conditions - immediate action required',ar:'ظروف حرجة - تدخل فوري مطلوب'}};
   $('statusEn').textContent=sm[overall].en;$('statusAr').textContent=sm[overall].ar;
   renderCoolingScore();
 }
