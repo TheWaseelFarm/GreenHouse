@@ -10,9 +10,9 @@ module.exports = async (req, res) => {
   try {
     const { system, messages, isExec } = req.body;
 
-    const expertInstruction = `\n\nSTRICT FORMAT:\nEN: [max 2 sentences, direct, no headers]\n---\nع: [جملتان بالعربية لمحمد المهندس]`;
+   const expertInstruction = `\n\nSTRICT FORMAT — NO EXCEPTIONS:\nWrite 2 sentences in English only (no label, no bold, no headers).\n---\nاكتب جملتين بالعربية فقط لمحمد المهندس (بدون عناوين، مباشر وواضح).`;
 
-  const execInstruction = `\n\nFORMAT EXACTLY AS FOLLOWS — TWO SECTIONS:\n\nSECTION 1 - FOR KHALID (English, max 4 lines):\nSituation: [one sentence]\n[TODAY] [action]\n[THIS WEEK] [action]\nRisk: [one sentence]\n---\nالقسم الثاني - لمحمد المهندس (عربي فقط، واضح ومباشر):\nالوضع: [جملة واحدة تشرح المشكلة]\n[اليوم] [مهمة محددة وقابلة للتنفيذ فوراً]\n[هذا الأسبوع] [مهمة محددة]\nتحذير: [جملة واحدة — ماذا يحدث إذا لم تتصرف]`;
+const execInstruction = `\n\nYOU MUST FOLLOW THIS EXACT FORMAT — NO DEVIATIONS:\n\nSituation: [one sentence, no bold]\n[TODAY] [one action]\n[THIS WEEK] [one action]\nRisk: [one sentence]\n---\nالوضع: [جملة واحدة بالعربية]\n[اليوم] [مهمة واحدة لمحمد]\n[هذا الأسبوع] [مهمة واحدة لمحمد]\nتحذير: [جملة واحدة بالعربية]`;
     const payload = JSON.stringify({
       model: 'claude-sonnet-4-6',
       max_tokens: 500,
