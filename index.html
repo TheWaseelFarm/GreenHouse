@@ -1098,7 +1098,7 @@ async function askCouncil(){
     disc.appendChild(card);
     card.scrollIntoView({behavior:'smooth',block:'nearest'});
     try{
-      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',',max_tokens:600,system:agent.system,messages:[{role:'user',content:'Farm context:\n'+farmContext+'\n\nQuestion: '+q+ctx+'\n\nGive your expert opinion.'}]})});
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,system:agent.system,messages:[{role:'user',content:'Farm context:\n'+farmContext+'\n\nQuestion: '+q+ctx+'\n\nGive your expert opinion.'}]})});
       const data=await res.json();
       const text=data.content?.[0]?.text||'No response';
       document.getElementById('text-'+i).textContent=text;
