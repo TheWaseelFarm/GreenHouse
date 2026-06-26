@@ -9,13 +9,12 @@ module.exports = async (req, res) => {
 
   const { system, messages, isExec } = req.body;
 
-  const expertInstruction = `
-Respond in TWO languages:
-ENGLISH (2-3 sentences max, professional, no fluff):
-[your point]
+const expertInstruction = `
+
+STRICT FORMAT — NO EXCEPTIONS:
+EN: [max 2 sentences, direct, no headers, no bullets]
 ---
-العربية (ترجمة مختصرة واحترافية لمحمد المهندس):
-[الترجمة]`;
+ع: [جملتان بالعربية لمحمد المهندس، مباشر وواضح]`;
 
   const execInstruction = `
 You are briefing a CEO. Be brutally brief.
