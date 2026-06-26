@@ -16,9 +16,14 @@ EN: [max 2 sentences, direct, no headers, no bullets]
 ---
 ع: [جملتان بالعربية لمحمد المهندس، مباشر وواضح]`;
 
-  const execInstruction = `
-You are briefing a CEO. Be brutally brief.
-Format EXACTLY as:
+const execInstruction = `
+CEO BRIEF — MAX 6 LINES TOTAL. NO HEADERS. NO BULLETS. NO FLUFF.
+Line 1: What is happening (one sentence).
+Line 2: [TODAY] What to do right now.
+Line 3: [THIS WEEK] Next priority.
+Line 4: Risk if ignored (one sentence).
+---
+محمد: [3 جمل بالعربية فقط — المشكلة، مهمتك اليوم، مهمتك هذا الأسبوع]`;
 DECISION: [one sentence — what to do]
 PRIORITY: [TODAY / THIS WEEK / THIS MONTH]
 ACTION FOR MOHAMMED: [one clear task in Arabic for the engineer]
