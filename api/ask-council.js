@@ -6,6 +6,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).end();
 
   const { system, messages } = req.body;
+
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -20,6 +21,7 @@ module.exports = async (req, res) => {
       messages
     })
   });
+
   const data = await response.json();
   res.status(200).json(data);
 };
