@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
 
     const payload = JSON.stringify({
       model: 'claude-sonnet-4-6',
-      max_tokens: 600,
+     max_tokens: isExec ? 1000 : 600,
       system: system + (isExec ? execInstruction : expertInstruction),
       messages
     });
