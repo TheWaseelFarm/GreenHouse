@@ -22,6 +22,6 @@ module.exports = async (req, res) => {
     })
   });
 
-  const data = await response.json();
-  res.status(200).json(data);
-};
+const data = await response.json();
+console.log('Anthropic response:', JSON.stringify(data));
+res.status(200).json({ debug: data, status: response.status });
