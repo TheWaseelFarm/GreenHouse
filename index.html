@@ -285,6 +285,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
     <a onclick="navClick(this,'chart')"><i class="ti ti-chart-line"></i>Climate Graphs</a>
     <a onclick="navClick(this,'alerts')"><i class="ti ti-bell"></i>Alerts</a>
     <a onclick="navClick(this,null);openReports()"><i class="ti ti-file-analytics"></i>Reports</a>
+    <a onclick="navClick(this,null);openCouncil()"><i class="ti ti-brain"></i>Council</a>
     <a onclick="navClick(this,'settings')"><i class="ti ti-settings"></i>Settings</a>
     <a href="/api/auth/logout" class="logout-link"><i class="ti ti-logout"></i>Sign Out &mdash; &#x62E;&#x631;&#x648;&#x62C;</a>
   </nav>
@@ -1035,6 +1036,66 @@ document.addEventListener('DOMContentLoaded',function(){
   const ov=$('reportsOverlay');
   if(ov)ov.addEventListener('click',function(e){if(e.target===this)closeReports();});
 });
+  // ── COUNCIL ──────────────────────────────────────────────────────────────────
+function openCouncil(){
+  $('councilOverlay').classList.add('open');
+  loadCouncilDecisions();
+}
+function closeCouncil(){
+  $('councilOverlay').classList.remove('open');
+}
+async function loadCouncilDecisions(){
+  const el=$('councilLog');
+  if(!el)return;
+  el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted)">Loading...</div>';
+  try{
+    const res=await fetch('/api/council');
+    const data=await res.json();
+    if(!Array.isArray(data)||data.length===0){
+      el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:.85rem">No council decisions yet.</div>';
+      return;
+    }
+    el.innerHTML=data.map(function(d){
+      const dt=new Date(d.created_at);
+      const ds=dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+      const ts=dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      const summary=(d.summary||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const q=(d.question||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const short=summary.length>400?summary.substring(0,400)+'...':summary;
+      return '<div style="padding:16px;border-radius:12px;border:1px solid var(--border);background:rgba(255,253,247,.9);margin-bottom:10px">'
+        +'<div style="font-size:.62rem;color:var(--muted);font-family:var(--mono)">'+ds+' · '+ts+' · '+(d.agents_count||7)+' experts</div>'
+        +'<div style="font-weight:900;font-size:.9rem;color:var(--deep);margin:5px 0 10px">'+q+'</div>'
+        +'<div style="font-size:.8rem;color:var(--deep);line-height:1.7;background:var(--soft-sage);padding:12px;border-radius:10px;white-space:pre-wrap">'+short+'</div>'
+        +'</div>';
+    }).join('');
+  }catch(e){
+    el.innerHTML='<div style="text-align:center;padding:30px;color:var(--danger);font-size:.8rem">Error: '+e.message+'</div>';
+  }
+}
 </script>
+  <!-- COUNCIL OVERLAY -->
+<div class="reports-overlay" id="councilOverlay">
+  <div class="reports-panel" style="max-width:900px">
+    <div class="rep-header">
+      <div>
+        <h2><i class="ti ti-brain" style="margin-right:8px"></i>Council Decisions Log</h2>
+        <div class="rep-header-ar">سجل قرارات مجلس خبراء الوصيل</div>
+      </div>
+      <button class="rep-close" onclick="closeCouncil()" aria-label="Close"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rep-body">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+        <p style="font-size:.82rem;color:var(--muted);margin:0">Latest decisions from the 7-expert Al-Waseel Farm advisory council.</p>
+        <button class="rep-btn" onclick="loadCouncilDecisions()"><i class="ti ti-refresh"></i> Refresh</button>
+      </div>
+      <div id="councilLog">
+        <div style="text-align:center;padding:40px;color:var(--muted)">
+          <i class="ti ti-brain" style="font-size:2rem;color:var(--gold)"></i>
+          <p>Click Refresh to load council decisions</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
