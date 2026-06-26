@@ -1057,9 +1057,9 @@ function renderMetrics(){
   const _tEl=document.getElementById('outsideTempVal');
   if(_tEl&&_ot!==null) _tEl.textContent=_ot.toFixed(1);
   if(_dEl){
-    if(_ot===null){ _dEl.textContent='—'; }
+    if(_ot===null||tempW===null){ _dEl.textContent='—'; }
     else{
-      const _d=parseFloat((_ot-tw).toFixed(1));
+      const _d=parseFloat((_ot-tempW).toFixed(1));
       _dEl.textContent=isNaN(_d)?'—':(_d>0?'+':'')+_d+'°C';
       _dEl.style.color=_d>15?'#16894E':_d>8?'var(--gold)':'var(--danger)';
       if(_bEl){
