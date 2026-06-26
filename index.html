@@ -1128,20 +1128,7 @@ try{
   farmContext='Al-Waseel Farm, Diriyah Riyadh. 1000 Albion Frigo strawberry plants week '
     +Math.floor((Date.now()-new Date('2026-06-07'))/604800000)
     +' of establishment. Live data unavailable. 6-line vertical hydroponic system, 30x9m greenhouse.';
-}='Al-Waseel Farm, Diriyah Riyadh. '
-  +'Seedlings: 1000 Albion Frigo, arrived June 2026, currently week '
-  +Math.floor((Date.now()-new Date('2026-06-07'))/604800000)
-  +' of establishment in peat moss pots before tower transfer. '
-  +'LIVE SENSOR DATA RIGHT NOW: '
-  +'Temp='+( live.tempW?live.tempW.toFixed(1)+'C weighted (canopy '+live.temp+'C / wet wall '+live.hubTemp+'C)':'unknown')
-  +', Humidity='+(live.humW?live.humW.toFixed(0)+'% weighted':'unknown')
-  +', VPD='+(live.vpd?live.vpd.toFixed(2)+' kPa':'unknown')
-  +', CO2='+(live.co2?live.co2+' ppm':'unknown')
-  +', Outside temp='+(live.outsideTemp?live.outsideTemp+'C':'unknown')
-  +'. Cooling gradient='+(live.temp&&live.hubTemp?(live.temp-live.hubTemp).toFixed(1)+'C':'unknown')
-  +'. Water leak sensor: '+(live.w1?'LEAK DETECTED':'dry')
-  +'. 6-line vertical hydroponic tower system, 30x9m greenhouse, 2000L drinking water tank. '
-  +'Owner: Khalid AlHakbani (BI Director). Engineer Mohammed lives on site.';
+}
   for(let i=0;i<agents.length;i++){
     const agent=agents[i];
     const ctx=responses.length>0?'\n\nPrevious experts said:\n'+responses.map(r=>r.name+': '+r.text).join('\n\n'):'';
