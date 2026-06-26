@@ -1088,7 +1088,60 @@ async function askCouncil(){
     {name:'Abu AbdulAziz',emoji:'👤',role:'Executive Summary',color:'#8B6914',system:'You are the owner of Al-Waseel Farm (Abu AbdulAziz), a BI Director. After hearing all experts, write an executive summary with: 1) Key agreed points 2) Numbered action steps labeled [TODAY] [THIS WEEK] [THIS MONTH] 3) A note to Mohammed the engineer. Be direct and decisive.'}
   ];
   const responses=[];
-  const farmContext='Al-Waseel Farm, Diriyah Riyadh. 1000 Albion Frigo strawberry plants (arrived June 2026), currently in small pots with peat moss for rooting. 6-line vertical hydroponic tower system, 30x9m greenhouse. Water tank 2000L drinking water. Owner: Khalid AlHakbani (BI Director). Engineer Mohammed lives on site.';
+ const live=S.live;
+let farmContext='';
+try{
+  const histRes=await fetch('/api/history?hours=24&limit=288');
+  const histData=await histRes.json();
+  let avgT='unknown',avgH='unknown',avgV='unknown',avgC='unknown',maxT='unknown',minT='unknown';
+  if(Array.isArray(histData)&&histData.length>0){
+    const temps=histData.map(r=>r.temp_weighted||r.temperature).filter(v=>v&&v>5&&v<45);
+    const hums=histData.map(r=>r.hum_weighted||r.humidity).filter(v=>v&&v>0&&v<100);
+    const vpds=histData.map(r=>r.vpd).filter(v=>v&&v>0&&v<3);
+    const co2s=histData.map(r=>r.co2).filter(v=>v&&v>300&&v<2000);
+    const avg=arr=>arr.length?(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1):null;
+    avgT=avg(temps)||'unknown';
+    avgH=avg(hums)||'unknown';
+    avgV=avg(vpds)||'unknown';
+    avgC=avg(co2s)||'unknown';
+    maxT=temps.length?Math.max(...temps).toFixed(1)+'C':'unknown';
+    minT=temps.length?Math.min(...temps).toFixed(1)+'C':'unknown';
+  }
+  farmContext='Al-Waseel Farm, Diriyah Riyadh. '
+    +'SEEDLINGS: 1000 Albion Frigo, arrived June 7 2026, currently week '
+    +Math.floor((Date.now()-new Date('2026-06-07'))/604800000)
+    +' of establishment in peat moss small pots before tower transfer. '
+    +'LIVE NOW: '
+    +'Temp='+( live.tempW?live.tempW.toFixed(1)+'C weighted (canopy '+live.temp+'C / wet wall '+live.hubTemp+'C)':'unknown')
+    +', Humidity='+(live.humW?live.humW.toFixed(0)+'%':'unknown')
+    +', VPD='+(live.vpd?live.vpd.toFixed(2)+' kPa':'unknown')
+    +', CO2='+(live.co2?live.co2+' ppm':'unknown')
+    +', Outside='+( live.outsideTemp?live.outsideTemp+'C':'unknown')
+    +', Cooling gradient='+(live.temp&&live.hubTemp?(live.temp-live.hubTemp).toFixed(1)+'C':'unknown')
+    +', Water leak: '+(live.w1?'LEAK DETECTED':'dry')+'.'
+    +' LAST 24H HISTORY ('+( Array.isArray(histData)?histData.length:0)+' readings): '
+    +'Avg temp='+avgT+'C, Max temp='+maxT+', Min temp='+minT
+    +', Avg humidity='+avgH+'%, Avg VPD='+avgV+' kPa, Avg CO2='+avgC+' ppm.'
+    +' FARM: 6-line vertical hydroponic tower system, 30x9m greenhouse, 2000L drinking water tank.'
+    +' Owner: Khalid AlHakbani (BI Director). Engineer Mohammed on site.';
+}catch(e){
+  farmContext='Al-Waseel Farm, Diriyah Riyadh. 1000 Albion Frigo strawberry plants week '
+    +Math.floor((Date.now()-new Date('2026-06-07'))/604800000)
+    +' of establishment. Live data unavailable. 6-line vertical hydroponic system, 30x9m greenhouse.';
+}='Al-Waseel Farm, Diriyah Riyadh. '
+  +'Seedlings: 1000 Albion Frigo, arrived June 2026, currently week '
+  +Math.floor((Date.now()-new Date('2026-06-07'))/604800000)
+  +' of establishment in peat moss pots before tower transfer. '
+  +'LIVE SENSOR DATA RIGHT NOW: '
+  +'Temp='+( live.tempW?live.tempW.toFixed(1)+'C weighted (canopy '+live.temp+'C / wet wall '+live.hubTemp+'C)':'unknown')
+  +', Humidity='+(live.humW?live.humW.toFixed(0)+'% weighted':'unknown')
+  +', VPD='+(live.vpd?live.vpd.toFixed(2)+' kPa':'unknown')
+  +', CO2='+(live.co2?live.co2+' ppm':'unknown')
+  +', Outside temp='+(live.outsideTemp?live.outsideTemp+'C':'unknown')
+  +'. Cooling gradient='+(live.temp&&live.hubTemp?(live.temp-live.hubTemp).toFixed(1)+'C':'unknown')
+  +'. Water leak sensor: '+(live.w1?'LEAK DETECTED':'dry')
+  +'. 6-line vertical hydroponic tower system, 30x9m greenhouse, 2000L drinking water tank. '
+  +'Owner: Khalid AlHakbani (BI Director). Engineer Mohammed lives on site.';
   for(let i=0;i<agents.length;i++){
     const agent=agents[i];
     const ctx=responses.length>0?'\n\nPrevious experts said:\n'+responses.map(r=>r.name+': '+r.text).join('\n\n'):'';
