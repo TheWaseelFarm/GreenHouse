@@ -12,8 +12,7 @@ module.exports = async (req, res) => {
 
     const expertInstruction = `\n\nSTRICT FORMAT:\nEN: [max 2 sentences, direct, no headers]\n---\nع: [جملتان بالعربية لمحمد المهندس]`;
 
-    const execInstruction = `\n\nCEO BRIEF — MAX 4 LINES. NO HEADERS. NO BULLETS.\nLine 1: What is happening.\nLine 2: [TODAY] Do this now.\nLine 3: [THIS WEEK] Next priority.\nLine 4: Risk if ignored.\n---\nمحمد: [3 جمل — المشكلة، مهمتك اليوم، مهمتك هذا الأسبوع]`;
-
+  const execInstruction = `\n\nFORMAT EXACTLY AS FOLLOWS — TWO SECTIONS:\n\nSECTION 1 - FOR KHALID (English, max 4 lines):\nSituation: [one sentence]\n[TODAY] [action]\n[THIS WEEK] [action]\nRisk: [one sentence]\n---\nالقسم الثاني - لمحمد المهندس (عربي فقط، واضح ومباشر):\nالوضع: [جملة واحدة تشرح المشكلة]\n[اليوم] [مهمة محددة وقابلة للتنفيذ فوراً]\n[هذا الأسبوع] [مهمة محددة]\nتحذير: [جملة واحدة — ماذا يحدث إذا لم تتصرف]`;
     const payload = JSON.stringify({
       model: 'claude-sonnet-4-6',
       max_tokens: 500,
