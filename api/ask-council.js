@@ -10,9 +10,9 @@ module.exports = async (req, res) => {
   try {
     const { system, messages, isExec } = req.body;
 
- const expertInstruction = `\n\nThink deeply and give your full expert analysis. Then at the very end, add:\nSUMMARY_EN: [your entire point in one sentence]\nSUMMARY_AR: [نفس النقطة بجملة واحدة بالعربية لمحمد]`;
+const expertInstruction = `\n\nThink deeply, then end your response with EXACTLY this format:\nSUMMARY_EN:\n• [point 1]\n• [point 2]\n• [point 3 max]\nSUMMARY_AR:\n• [النقطة 1 بالعربية]\n• [النقطة 2 بالعربية]\n• [النقطة 3 بالعربية إن وجدت]`;
 
-const execInstruction = `\n\nFORMAT EXACTLY — complete every line, do not cut:\n\n📋 Situation: [one sentence]\n✅ TODAY: [one action]\n📅 THIS WEEK: [one action]\n⚠️ Risk: [one sentence]\n\n---\n\n📋 الوضع: [جملة واحدة]\n✅ اليوم: [مهمة واحدة لمحمد]\n📅 هذا الأسبوع: [مهمة واحدة لمحمد]\n⚠️ تحذير: [جملة واحدة]`;
+const execInstruction = `\n\nThink deeply, then end your response with EXACTLY this format:\nSUMMARY_EN:\n✅ TODAY: [action]\n📅 THIS WEEK: [action]\n⚠️ RISK: [one sentence]\nSUMMARY_AR:\n✅ اليوم: [مهمة محمد]\n📅 هذا الأسبوع: [مهمة محمد]\n⚠️ تحذير: [جملة واحدة]`;
     const payload = JSON.stringify({
       model: 'claude-sonnet-4-6',
      max_tokens: isExec ? 400 : 350,
