@@ -1072,34 +1072,61 @@ async function loadCouncilDecisions(){
     el.innerHTML='<div style="text-align:center;padding:30px;color:var(--danger);font-size:.8rem">Error: '+e.message+'</div>';
   }
 }
-  function openCouncil(){$('councilOverlay').classList.add('open');loadCouncilDecisions();}
+function openCouncil(){$('councilOverlay').classList.add('open');}
 function closeCouncil(){$('councilOverlay').classList.remove('open');}
+async function askCouncil(){
+  const q=$('councilQuestion').value.trim();if(!q)return;
+  const btn=$('councilAskBtn');btn.disabled=true;btn.innerHTML='...';
+  const disc=$('councilDiscussion');disc.innerHTML='';
+  const agents=[
+    {name:'Dr. Growth',emoji:'🌱',role:'Hydroponics & Plant Growth',color:'#2E7D32',system:'You are Dr. Growth, expert in vertical hydroponic strawberry farming. Farm: Al-Waseel, Diriyah Riyadh, 1000 Albion Frigo plants, 6 lines 174 towers, 30x9m greenhouse. Give concise expert opinion (3-4 sentences) then note agreement/disagreement with previous experts.'},
+    {name:'Dr. Diagnosis',emoji:'🔬',role:'Plant Disease & Pests',color:'#C62828',system:'You are Dr. Diagnosis, expert in plant diseases in hydroponics. Farm: Al-Waseel, Diriyah Riyadh, 1000 Albion Frigo strawberry plants. Give concise expert opinion (3-4 sentences) then note agreement/disagreement with previous experts.'},
+    {name:'Dr. Climate',emoji:'🌡️',role:'Greenhouse Environment',color:'#E65100',system:'You are Dr. Climate, expert in greenhouse climate management in hot regions. Farm: Al-Waseel Diriyah Riyadh, 30x9m greenhouse, max outside temp 45C, 2000L tank. Give concise expert opinion (3-4 sentences) then note agreement/disagreement.'},
+    {name:'Dr. Economics',emoji:'💼',role:'Agricultural Economics',color:'#1565C0',system:'You are Dr. Economics, expert in farm investment and ROI. Farm: Al-Waseel, 97,000 SAR infrastructure, 1000 trial strawberry plants, target 18-25 SAR/kg direct sales. Give concise expert opinion (3-4 sentences) and add economic angle.'},
+    {name:'Dr. Market',emoji:'🛒',role:'Marketing & Sales',color:'#6A1B9A',system:'You are Dr. Market, expert in premium agricultural marketing in Saudi Arabia. Farm: Al-Waseel brand, Albion strawberries, hydroponic = competitive edge, target restaurants and direct sales. Give concise expert opinion (3-4 sentences) and add marketing insight.'},
+    {name:'Dr. Tech',emoji:'💻',role:'Digital & Smart Farming',color:'#00695C',system:'You are Dr. Tech, expert in smart farming and BI dashboards. Farm: Al-Waseel has live dashboard on Vercel+Supabase+SwitchBot sensors. Give concise expert opinion (3-4 sentences) and suggest a specific tech improvement.'},
+    {name:'Abu AbdulAziz',emoji:'👤',role:'Executive Summary',color:'#8B6914',system:'You are the owner of Al-Waseel Farm (Abu AbdulAziz), a BI Director. After hearing all experts, write an executive summary with: 1) Key agreed points 2) Numbered action steps labeled [TODAY] [THIS WEEK] [THIS MONTH] 3) A note to Mohammed the engineer. Be direct and decisive.'}
+  ];
+  const responses=[];
+  const farmContext='Al-Waseel Farm, Diriyah Riyadh. 1000 Albion Frigo strawberry plants (arrived June 2026), currently in small pots with peat moss for rooting. 6-line vertical hydroponic tower system, 30x9m greenhouse. Water tank 2000L drinking water. Owner: Khalid AlHakbani (BI Director). Engineer Mohammed lives on site.';
+  for(let i=0;i<agents.length;i++){
+    const agent=agents[i];
+    const ctx=responses.length>0?'\n\nPrevious experts said:\n'+responses.map(r=>r.name+': '+r.text).join('\n\n'):'';
+    const card=document.createElement('div');
+    card.style.cssText='padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,253,247,.95);margin-bottom:10px';
+    card.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:1.1rem">'+agent.emoji+'</span><div><div style="font-weight:900;font-size:.85rem;color:'+agent.color+'">'+agent.name+'</div><div style="font-size:.68rem;color:var(--muted)">'+agent.role+'</div></div><div style="margin-left:auto;font-size:.65rem;padding:2px 8px;border-radius:8px;background:var(--soft-sage);color:var(--deep);font-weight:700" id="status-'+i+'">Thinking...</div></div><div id="text-'+i+'" style="font-size:.82rem;color:var(--deep);line-height:1.7;background:var(--soft-sage);padding:10px 12px;border-radius:8px">...</div>';
+    disc.appendChild(card);
+    card.scrollIntoView({behavior:'smooth',block:'nearest'});
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system:agent.system,messages:[{role:'user',content:'Farm context:\n'+farmContext+'\n\nQuestion: '+q+ctx+'\n\nGive your expert opinion.'}]})});
+      const data=await res.json();
+      const text=data.content?.[0]?.text||'No response';
+      document.getElementById('text-'+i).textContent=text;
+      const st=document.getElementById('status-'+i);
+      st.textContent='✓ Done';st.style.background='rgba(22,137,78,.1)';st.style.color='#16894E';
+      responses.push({name:agent.name,text});
+      if(i===6){
+        try{await fetch('/api/council',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,summary:text,agents_count:7})});}catch(e){}
+      }
+    }catch(e){document.getElementById('text-'+i).textContent='Error: '+e.message;}
+    await new Promise(r=>setTimeout(r,300));
+  }
+  btn.disabled=false;btn.innerHTML='Ask<br>🏛️';
+}
 async function loadCouncilDecisions(){
   const el=$('councilLog');if(!el)return;
   el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted)">Loading...</div>';
   try{
-    const res=await fetch('/api/council');
-    const data=await res.json();
-    if(!Array.isArray(data)||data.length===0){
-      el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:.85rem">No decisions yet. Use the Council App and push decisions here.</div>';
-      return;
-    }
+    const res=await fetch('/api/council');const data=await res.json();
+    if(!Array.isArray(data)||data.length===0){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">No past decisions yet.</div>';return;}
     el.innerHTML=data.map(function(d){
       const dt=new Date(d.created_at);
       const ds=dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-      const ts=dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-      const q=(d.question||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      const s=(d.summary||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      const short=s.length>500?s.substring(0,500)+'...':s;
-      return '<div style="padding:16px;border-radius:12px;border:1px solid var(--border);background:rgba(255,253,247,.95);margin-bottom:12px;box-shadow:0 2px 8px rgba(6,68,46,.04)">'
-        +'<div style="font-size:.62rem;color:var(--muted);font-family:var(--mono);margin-bottom:5px">'+ds+' \u00B7 '+ts+' \u00B7 '+(d.agents_count||7)+' experts</div>'
-        +'<div style="font-weight:900;font-size:.9rem;color:var(--deep);padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--border)">'+q+'</div>'
-        +'<div style="font-size:.8rem;color:var(--deep);line-height:1.8;background:var(--soft-sage);padding:12px 14px;border-radius:10px;white-space:pre-wrap">'+short+'</div>'
-        +'</div>';
+      const q=(d.question||'').replace(/</g,'&lt;');
+      const s=(d.summary||'').replace(/</g,'&lt;');
+      return '<div style="padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,253,247,.9);margin-bottom:8px"><div style="font-size:.62rem;color:var(--muted);margin-bottom:4px">'+ds+' · '+(d.agents_count||7)+' experts</div><div style="font-weight:800;font-size:.82rem;color:var(--deep);margin-bottom:6px">'+q+'</div><div style="font-size:.76rem;color:var(--deep);line-height:1.6;background:var(--soft-sage);padding:8px 10px;border-radius:8px;white-space:pre-wrap">'+(s.length>300?s.substring(0,300)+'...':s)+'</div></div>';
     }).join('');
-  }catch(e){
-    el.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger);font-size:.8rem">Error: '+e.message+'</div>';
-  }
+  }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger)">Error: '+e.message+'</div>';}
 }
 document.addEventListener('DOMContentLoaded',function(){
   const co=$('councilOverlay');
