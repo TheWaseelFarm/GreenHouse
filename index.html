@@ -1,3 +1,5 @@
+
+Index · HTML
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -360,6 +362,45 @@ body{margin:0;min-height:100vh;font-family:var(--sans);color:var(--deep);backgro
 </section>
  
 <!-- CHART + GAUGE -->
+<div class="action-row" style="margin-bottom:14px">
+  <div class="panel rec-panel">
+    <div class="rec-header"><i class="ti ti-brain"></i><div><div class="rec-title-en">Farm Recommendations</div><div class="rec-title-ar">توصيات المزرعة</div></div></div>
+    <div id="decisionsBody"></div>
+  </div>
+  <div class="panel zones-panel">
+    <div class="panel-head"><div><h2 class="panel-title">Greenhouse Zones</h2><div class="panel-ar">مناطق المحمية</div></div></div>
+    <div style="background:var(--soft-sage);border:1px solid rgba(196,154,58,.2);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div><div style="font-size:.6rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--deep)">Weighted Avg</div><div style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl;margin-top:2px">متوسط موزون &middot; 70% محصول + 30% تبريد</div></div>
+      <div style="text-align:right"><div style="font-family:var(--mono);font-size:1.6rem;font-weight:950;color:var(--deep)" id="wtTemp">&mdash;&deg;C</div><div style="font-size:.6rem;color:var(--muted);margin-top:2px" id="wtHum">Humidity: &mdash;%</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="border-radius:12px;padding:12px;border:1px solid rgba(25,118,210,.18);background:rgba(25,118,210,.04)"><div style="font-size:.6rem;font-weight:800;color:var(--blue);text-transform:uppercase;margin-bottom:3px">Wet Wall</div><div style="font-family:var(--ar);font-size:.68rem;color:var(--muted);direction:rtl;margin-bottom:8px">الجدار المبلل &middot; 30%</div><div style="display:flex;justify-content:space-between"><div style="text-align:center"><div style="font-family:var(--mono);font-size:1.5rem;font-weight:950;color:var(--deep)" id="hubTemp">&mdash;</div><div style="font-size:.58rem;color:var(--muted);">&deg;C</div></div><div style="text-align:center"><div style="font-family:var(--mono);font-size:1.5rem;font-weight:950;color:var(--deep)" id="hubHum">&mdash;</div><div style="font-size:.58rem;color:var(--muted);">%</div></div></div><div style="font-size:.54rem;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">Hub 2 &middot; Near cooling wall</div></div>
+      <div style="border-radius:12px;padding:12px;border:1px solid rgba(6,68,46,.12);background:var(--soft-sage)"><div style="font-size:.6rem;font-weight:800;color:var(--deep);text-transform:uppercase;margin-bottom:3px">Canopy</div><div style="font-family:var(--ar);font-size:.68rem;color:var(--muted);direction:rtl;margin-bottom:8px">منطقة المحصول &middot; 70%</div><div style="display:flex;justify-content:space-between"><div style="text-align:center"><div style="font-family:var(--mono);font-size:1.5rem;font-weight:950;color:var(--deep)" id="canTemp">&mdash;</div><div style="font-size:.58rem;color:var(--muted);">&deg;C</div></div><div style="text-align:center"><div style="font-family:var(--mono);font-size:1.5rem;font-weight:950;color:var(--deep)" id="canHum">&mdash;</div><div style="font-size:.58rem;color:var(--muted);">%</div></div></div><div style="font-size:.54rem;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">Meter Pro CO&#x2082; &middot; Middle zone</div></div>
+    </div>
+    <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><div style="font-size:.68rem;color:var(--deep);font-weight:700">Cooling Gradient</div><div style="font-family:var(--ar);font-size:.62rem;color:var(--muted);direction:rtl;margin-top:2px" id="clDesc">كفاءة التبريد</div></div><div style="text-align:right"><div style="font-family:var(--mono);font-size:1.3rem;font-weight:950;color:var(--deep)" id="clVal">&mdash;</div><div style="font-size:.54rem;color:var(--muted)">&deg;C canopy vs wet wall</div></div></div>
+    <div style="padding:9px 11px;border-radius:9px;border:1px solid var(--border);background:var(--cream);display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:.6rem;color:var(--muted);font-weight:600">Water Leak Sensor</div><div style="font-family:var(--ar);font-size:.58rem;color:var(--muted);direction:rtl">مستشعر تسرب المياه</div></div><div id="w1Status" style="font-size:.7rem;font-weight:700;color:#16894E">&mdash;</div></div>
+  </div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
+  <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Outside Temp &mdash; الدرعية</div>
+    <div style="display:flex;align-items:baseline;gap:5px"><span id="outsideTempVal" style="font-family:var(--mono);font-size:2.4rem;font-weight:950;letter-spacing:-.08em;color:var(--deep)">&mdash;</span><span style="font-weight:700;color:var(--muted)">&deg;C</span><div id="outsideBadge" class="badge" style="margin-left:6px;background:rgba(6,68,46,.08);color:var(--muted)">&mdash;</div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--soft-sage);border-radius:9px"><span style="font-size:.7rem;font-weight:700;color:var(--deep)">Inside vs Outside</span><span id="coolingDeltaOut" style="font-family:var(--mono);font-weight:950;font-size:.88rem;color:var(--deep)">&mdash;</span></div>
+  </div>
+  <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Cooling Efficiency &mdash; كفاءة التبريد</div>
+    <div style="display:flex;align-items:baseline;gap:4px"><span id="coolingScore" style="font-family:var(--mono);font-size:2.4rem;font-weight:950;letter-spacing:-.08em;color:var(--deep)">&mdash;</span><span style="font-weight:700;color:var(--muted);font-size:.88rem">/100</span></div>
+    <div style="height:5px;background:rgba(6,68,46,.08);border-radius:3px;overflow:hidden"><div id="coolingScoreBar" style="height:100%;width:0%;background:#16894E;border-radius:3px;transition:width .6s ease"></div></div>
+    <div style="font-size:.66rem;color:var(--muted);line-height:1.5"><span style="color:#16894E;font-weight:700">70&ndash;100</span> Excellent &middot; <span style="color:var(--gold);font-weight:700">40&ndash;69</span> Watch &middot; <span style="color:var(--danger);font-weight:700">0&ndash;39</span> Action</div>
+  </div>
+  <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:8px">
+    <div style="font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Plant Stress Today &mdash; إجهاد النبات</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--soft-sage);border-radius:8px"><span style="font-size:.7rem;font-weight:700;color:var(--deep)">Temp stress</span><span id="stressTempMins" style="font-family:var(--mono);font-weight:800;font-size:.76rem;color:#16894E">&#x2713; None</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--soft-sage);border-radius:8px"><span style="font-size:.7rem;font-weight:700;color:var(--deep)">Humidity stress</span><span id="stressHumMins" style="font-family:var(--mono);font-weight:800;font-size:.76rem;color:#16894E">&#x2713; None</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--soft-sage);border-radius:8px"><span style="font-size:.7rem;font-weight:700;color:var(--deep)">VPD stress</span><span id="stressVpdMins" style="font-family:var(--mono);font-weight:800;font-size:.76rem;color:#16894E">&#x2713; None</span></div>
+    <div style="font-size:.58rem;color:var(--muted)">Minutes outside optimal &middot; resets daily</div>
+  </div>
+</div>
 <section id="chart" class="climate-row">
   <section class="panel chart-panel">
     <div class="panel-head">
@@ -720,7 +761,7 @@ async function fetchLive(){
     S.localHist.push({co2,temperature:temp,humidity:hum,vpd,hub_temp:hubTemp,hub_humidity:hubHum,temp_weighted:tempW,hum_weighted:humW,time:now.toISOString()});
     if(S.localHist.length>72)S.localHist.shift();
     if(S.range===1)applyChart(S.localHist.map(r=>({...r,recorded_at:r.time})));
-    renderMetrics();renderZones();checkAlerts();detectIncidents();
+    renderMetrics();renderZones();checkAlerts();renderDecisions();detectIncidents();updateStressTracker();
   }catch(e){console.error('fetchLive:',e);$('statusEn').textContent='Connection error: '+e.message;}
 }
 async function fetchOutsideTemp(){
@@ -942,6 +983,63 @@ async function loadCouncilDecisions(){
     }).join('');
   }catch(e){el.innerHTML='<div style="text-align:center;padding:16px;color:var(--danger)">Error: '+e.message+'</div>';}
 }
+ 
+function renderDecisions(){
+  const{co2,temp,hum,vpd,hubTemp,tempW,humW}=S.live;
+  if(co2===null)return;
+  const tw=tempW??temp,hw=humW??hum,acts=[];
+  const delta=hubTemp!==null?parseFloat((temp-hubTemp).toFixed(1)):null;
+  if(tw>26)acts.push({p:'h',en:'Weighted temp '+tw.toFixed(1)+'C critical. Activate full cooling now.',ar:'المتوسط الموزون '+tw.toFixed(1)+'°م حرج. شغِّل التبريد الكامل فوراً.'});
+  else if(tw>22)acts.push({p:'m',en:'Weighted temp '+tw.toFixed(1)+'C above optimal. Increase cooling.',ar:'المتوسط الموزون '+tw.toFixed(1)+'°م فوق المثالي. زد التبريد.'});
+  if(vpd>1.3)acts.push({p:'h',en:'VPD '+Number(vpd).toFixed(2)+' kPa critical. Activate misting immediately.',ar:'عجز ضغط البخار حرج. شغِّل نظام الرذاذ فوراً.'});
+  else if(vpd>1.0)acts.push({p:'m',en:'VPD '+Number(vpd).toFixed(2)+' kPa elevated. Increase humidity 5-10%.',ar:'عجز ضغط البخار مرتفع. ارفع الرطوبة 5-10%.'});
+  if(hw>85)acts.push({p:'h',en:'Humidity '+hw.toFixed(0)+'% - Botrytis risk. Increase ventilation now.',ar:'الرطوبة '+hw.toFixed(0)+'% - خطر البوتريتيس. افتح التهوية فوراً.'});
+  else if(hw>75)acts.push({p:'m',en:'Humidity '+hw.toFixed(0)+'% above optimal. Monitor for Botrytis.',ar:'الرطوبة '+hw.toFixed(0)+'% فوق المثالي. راقب البوتريتيس.'});
+  else if(hw<50)acts.push({p:'h',en:'Humidity '+hw.toFixed(0)+'% critically low. Mist immediately.',ar:'الرطوبة '+hw.toFixed(0)+'% منخفضة جداً. رشّ فوراً.'});
+  else if(hw<60)acts.push({p:'m',en:'Humidity '+hw.toFixed(0)+'% below optimal. Check irrigation.',ar:'الرطوبة '+hw.toFixed(0)+'% أقل من المثالي. تحقق من الري.'});
+  if(delta!==null&&delta<1)acts.push({p:'m',en:'Cooling gradient only '+delta+'C. Check wet wall pump.',ar:'تدرج التبريد '+delta+'°م فقط. تحقق من مضخة الجدار المبلل.'});
+  if(acts.length===0)acts.push({p:'l',en:'All optimal. Temp '+tw.toFixed(1)+'C, humidity '+hw.toFixed(0)+'%, VPD '+Number(vpd).toFixed(2)+' kPa.',ar:'كل شيء مثالي. موزون: '+tw.toFixed(1)+'°م، رطوبة '+hw.toFixed(0)+'%، VPD '+Number(vpd).toFixed(2)+'.'});
+  const db=$('decisionsBody');if(db)db.innerHTML=acts.map(a=>'<div class="dec-item"><span class="ptag '+(a.p==='h'?'ph':a.p==='m'?'pm':'pl')+'">'+(a.p==='h'?'HIGH':a.p==='m'?'MED':'OK')+'</span><div><div class="dec-en">'+a.en+'</div><div class="dec-ar">'+a.ar+'</div></div></div>').join('');
+}
+function calcCoolingScore(ot,it,g){
+  if(ot===null||it===null)return null;
+  const delta=ot-it;let s=0;
+  if(delta>=20)s+=60;else if(delta>=15)s+=50;else if(delta>=10)s+=35;else if(delta>=5)s+=20;else s+=5;
+  if(g>=3)s+=40;else if(g>=2)s+=30;else if(g>=1)s+=20;else if(g>=0)s+=10;
+  return Math.min(100,s);
+}
+function renderCoolingScore(){
+  const ot=S.live.outsideTemp,tw=S.live.tempW!==null?S.live.tempW:S.live.temp;
+  const grad=(S.live.temp&&S.live.hubTemp)?parseFloat((S.live.temp-S.live.hubTemp).toFixed(1)):0;
+  const el=$('coolingScore'),barEl=$('coolingScoreBar');
+  const tEl=$('outsideTempVal'),deltaEl=$('coolingDeltaOut'),badgeEl=$('outsideBadge');
+  if(tEl&&ot!==null)tEl.textContent=ot.toFixed(1);
+  if(!el)return;
+  if(tw===null||tw===undefined){el.textContent='—';return;}
+  const score=ot!==null?calcCoolingScore(ot,tw,grad):Math.min(100,Math.max(0,grad>=3?80:grad>=1?60:grad>=0?30:5));
+  el.textContent=isNaN(score)?'—':score;
+  const color=score>=70?'#16894E':score>=40?'var(--gold)':'var(--danger)';
+  el.style.color=color;
+  if(barEl){barEl.style.width=(isNaN(score)?0:score)+'%';barEl.style.background=color;}
+  if(deltaEl&&ot!==null&&tw!==null){
+    const delta=parseFloat((ot-tw).toFixed(1));
+    deltaEl.textContent=isNaN(delta)?'—':(delta>0?'+':'')+delta+'°C';
+    deltaEl.style.color=delta>15?'#16894E':delta>8?'var(--gold)':'var(--danger)';
+    if(badgeEl){if(delta>15){badgeEl.textContent='Excellent';badgeEl.style.cssText='background:rgba(22,137,78,.1);color:#16894E';}else if(delta>8){badgeEl.textContent='Working';badgeEl.style.cssText='background:rgba(196,154,58,.12);color:#8B5E00';}else{badgeEl.textContent='Struggling';badgeEl.style.cssText='background:rgba(192,57,43,.1);color:var(--danger)';}}
+  }
+}
+const STRESS={date:null,t:0,h:0,v:0};
+function updateStressTracker(){
+  const{tempW,humW,vpd}=S.live;if(tempW===null)return;
+  const today=new Date().toDateString();
+  if(STRESS.date!==today){STRESS.date=today;STRESS.t=0;STRESS.h=0;STRESS.v=0;}
+  if(tempW>22)STRESS.t++;if(humW&&(humW>75||humW<60))STRESS.h++;if(vpd>1.0)STRESS.v++;
+  const tEl=$('stressTempMins'),hEl=$('stressHumMins'),vEl=$('stressVpdMins');
+  if(tEl){tEl.textContent=STRESS.t>0?STRESS.t+' min':'✓ None';tEl.style.color=STRESS.t>60?'var(--danger)':STRESS.t>30?'var(--gold)':'#16894E';}
+  if(hEl){hEl.textContent=STRESS.h>0?STRESS.h+' min':'✓ None';hEl.style.color=STRESS.h>60?'var(--danger)':STRESS.h>30?'var(--gold)':'#16894E';}
+  if(vEl){vEl.textContent=STRESS.v>0?STRESS.v+' min':'✓ None';vEl.style.color=STRESS.v>60?'var(--danger)':STRESS.v>30?'var(--gold)':'#16894E';}
+}
+ 
 window.AlWaseelFarmDashboard={state:S,refreshData:fetchLive};
 document.addEventListener('DOMContentLoaded',function(){
   buildChart();setActiveMetric('all');fetchLive();loadHistory(1);fetchOutsideTemp();
