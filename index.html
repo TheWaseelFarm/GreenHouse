@@ -1149,12 +1149,9 @@ function fmt(t){return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace
 document.getElementById('text-'+i).innerHTML=
   '<div style="font-size:.85rem;color:var(--deep);line-height:1.9">'+fmt(enText)+'</div>'
   +(arText?'<div style="margin-top:12px;padding-top:12px;border-top:2px solid rgba(6,68,46,.12);font-family:var(--ar);direction:rtl;text-align:right;font-size:.84rem;color:var(--deep);line-height:1.9">'+fmt(arText)+'</div>':'');
-const isLast=i===6;
-document.getElementById('text-'+i).innerHTML=
-  '<div style="'+(isLast?'font-size:.84rem':'font-size:.8rem')+';color:var(--deep);line-height:1.8;margin-bottom:'+(arPart?'10px':'0')+'">'+fmt(enPart)+'</div>'
-  +(arPart?'<div style="border-top:1px solid rgba(6,68,46,.12);padding-top:10px;font-family:var(--ar);direction:rtl;text-align:right;font-size:.82rem;color:var(--deep);line-height:1.9;background:rgba(6,68,46,.04);padding:10px 12px;border-radius:8px;margin-top:8px">'+fmt(arPart)+'</div>':'');     const st=document.getElementById('status-'+i);
+    const st=document.getElementById('status-'+i);
       st.textContent='✓ Done';st.style.background='rgba(22,137,78,.1)';st.style.color='#16894E';
-      responses.push({name:agent.name,text});
+      responses.push({name:agent.name,text:raw});
       if(i===6){
         try{await fetch('/api/council',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,summary:text,agents_count:7})});}catch(e){}
       }
