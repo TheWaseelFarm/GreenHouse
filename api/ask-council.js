@@ -1,4 +1,3 @@
-
 const https = require('https');
  
 module.exports = async (req, res) => {
@@ -9,32 +8,44 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
  
   try {
-    const { system, messages, isExec } = req.body;
+    const { system, messages, isExec, isTech } = req.body;
  
-    const expertInstruction = `\n\nاكتب ردك بالعربية فقط. استخدم نقاط واضحة، 3 نقاط بحد أقصى، بدون عناوين. اجعل كل نقطة جملة كاملة ومفيدة. لا تقطع الكلام في منتصف الجملة.`;
+    const expertInstruction = `\n\nاكتب ردك بالعربية فقط. استخدم نقاط واضحة، 3 نقاط بحد أقصى. كل نقطة يجب أن تكون جملة كاملة ومفيدة ولا تنقطع في منتصفها. لا تستخدم عناوين أو تنسيق معقد.`;
  
-    const execInstruction = `\n\nاكتب ردك بالعربية فقط بهذا التنسيق الحرفي:
+    const techInstruction = `\n\nاكتب ردك بالعربية فقط. أنت تخاطب خالد صاحب المزرعة وهو من يطور لوحة التحكم بنفسه. اقتراحاتك يجب أن تكون:
+- واضحة ومباشرة بدون اختصارات تقنية مبهمة
+- كل اقتراح في جملة كاملة تشرح ماذا يفعل وما فائدته للمزرعة
+- 3 اقتراحات بحد أقصى
+- ابدأ كل اقتراح بـ: "اقتراح تقني:"`;
  
-الوضع الحالي:
-[جملة واحدة تلخص وضع المزرعة الآن]
+    const execInstruction = `\n\nاكتب ردك بالعربية فقط بهذا التنسيق الحرفي دون أي إضافات:
+ 
+المشكلة:
+[جملة واحدة واضحة تصف المشكلة الجوهرية]
+ 
+الحل:
+[جملة واحدة واضحة تصف الحل المتفق عليه]
  
 نقاط الاتفاق بين الخبراء:
 • [نقطة اتفق عليها الجميع]
 • [نقطة اتفق عليها الجميع]
 • [نقطة اتفق عليها الجميع]
  
-الخطوات المطلوبة من محمد:
-[اليوم] [مهمة واحدة محددة وواضحة]
-[هذا الأسبوع] [مهمة واحدة محددة وواضحة]
-[هذا الشهر] [مهمة واحدة محددة وواضحة]
+مهام محمد:
+1. اليوم: [مهمة واحدة محددة وواضحة يقدر محمد ينفذها اليوم]
+2. هذا الأسبوع: [مهمة واحدة محددة وواضحة]
+3. هذا الشهر: [مهمة واحدة محددة وواضحة]
  
 تحذير:
-[جملة واحدة عن أهم خطر إذا لم تُنفذ الخطوات]`;
+[جملة واحدة عن أهم خطر إذا لم تنفذ هذه المهام]`;
+ 
+    const isTechAgent = req.body.isTech === true;
+    const instruction = isExec ? execInstruction : (isTechAgent ? techInstruction : expertInstruction);
  
     const payload = JSON.stringify({
       model: 'claude-sonnet-4-6',
-      max_tokens: isExec ? 1200 : 800,
-      system: system + (isExec ? execInstruction : expertInstruction),
+      max_tokens: isExec ? 1500 : 900,
+      system: system + instruction,
       messages
     });
  
