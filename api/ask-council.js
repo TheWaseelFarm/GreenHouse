@@ -14,7 +14,7 @@ module.exports = async (req, res) => {
 
   const execInstruction = `\n\nاكتب ردك بالعربية فقط بهذا التنسيق:\n• الوضع: [جملة واحدة]\n• اليوم: [إجراء فوري]\n• هذا الأسبوع: [أولوية]\n• تحذير: [جملة واحدة]`;
     const payload = JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-sonnet-4-6',
      max_tokens: isExec ? 800 : 500,
       system: system + (isExec ? execInstruction : expertInstruction),
       messages
