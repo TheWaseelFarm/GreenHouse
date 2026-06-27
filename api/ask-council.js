@@ -15,8 +15,8 @@ module.exports = async (req, res) => {
     const execInstruction = `\n\nRespond in TWO sections separated by ---\nSection 1 English:\n• TODAY: [action]\n• THIS WEEK: [action]\n• RISK: [one sentence]\nSection 2 Arabic:\n• اليوم: [مهمة محمد]\n• هذا الأسبوع: [مهمة محمد]\n• تحذير: [جملة واحدة]`;
 
     const payload = JSON.stringify({
-      model: 'claude-sonnet-4-6',
-     max_tokens: isExec ? 1000 : 600,
+      model: 'claude-haiku-4-5-20251001',
+     max_tokens: isExec ? 800 : 500,
       system: system + (isExec ? execInstruction : expertInstruction),
       messages
     });
