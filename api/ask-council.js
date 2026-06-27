@@ -10,10 +10,9 @@ module.exports = async (req, res) => {
   try {
     const { system, messages, isExec } = req.body;
 
-    const expertInstruction = `\n\nRespond in TWO sections separated by ---\nSection 1: English, bullet points only, max 3 bullets, no headers, no bold\nSection 2: Arabic for Mohammed, same bullets translated, max 3 bullets`;
+  const expertInstruction = `\n\nاكتب ردك بالعربية فقط. نقاط مختصرة، 3 نقاط بحد أقصى، بدون عناوين، مباشر وواضح لمالك المزرعة ومهندسها.`;
 
-    const execInstruction = `\n\nRespond in TWO sections separated by ---\nSection 1 English:\n• TODAY: [action]\n• THIS WEEK: [action]\n• RISK: [one sentence]\nSection 2 Arabic:\n• اليوم: [مهمة محمد]\n• هذا الأسبوع: [مهمة محمد]\n• تحذير: [جملة واحدة]`;
-
+  const execInstruction = `\n\nاكتب ردك بالعربية فقط بهذا التنسيق:\n• الوضع: [جملة واحدة]\n• اليوم: [إجراء فوري]\n• هذا الأسبوع: [أولوية]\n• تحذير: [جملة واحدة]`;
     const payload = JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
      max_tokens: isExec ? 800 : 500,
