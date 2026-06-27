@@ -1133,7 +1133,7 @@ try{
     const agent=agents[i];
     const ctx=responses.length>0?'\n\nPrevious experts said:\n'+responses.map(r=>r.name+': '+r.text).join('\n\n'):'';
     const card=document.createElement('div');
-    card.style.cssText='padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,253,247,.95);margin-bottom:10px';
+card.style.cssText='padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,253,247,.95);margin-bottom:10px;direction:rtl;text-align:right;';
     card.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:1.1rem">'+agent.emoji+'</span><div><div style="font-weight:900;font-size:.85rem;color:'+agent.color+'">'+agent.name+'</div><div style="font-size:.68rem;color:var(--muted)">'+agent.role+'</div></div><div style="margin-left:auto;font-size:.65rem;padding:2px 8px;border-radius:8px;background:var(--soft-sage);color:var(--deep);font-weight:700" id="status-'+i+'">Thinking...</div></div><div id="text-'+i+'" style="font-size:.82rem;color:var(--deep);line-height:1.7;background:var(--soft-sage);padding:10px 12px;border-radius:8px">...</div>';
     disc.appendChild(card);
     card.scrollIntoView({behavior:'smooth',block:'nearest'});
