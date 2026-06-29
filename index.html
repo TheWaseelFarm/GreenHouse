@@ -672,17 +672,87 @@ function showAlert(t,b,ar){
   const aEl=$('alertBanner').querySelector('.alert-ar');if(aEl)aEl.textContent=ar;
   const dEl=$('alertDetail');if(dEl)dEl.textContent=b;
 }
+const ALERT_TIMERS={};
 function checkAlerts(){
   const{tempW,humW,vpd}=S.live;if(tempW===null)return;
-  const issues=[],issuesAr=[],actions=[];
-  if(tempW>ALERT_TEMP){issues.push(`Temperature ${tempW.toFixed(1)}\u00B0C \u2014 above ${ALERT_TEMP}\u00B0C limit`);actions.push('Activate cooling immediately');}
-  if(vpd>ALERT_VPD){issues.push(`VPD ${Number(vpd).toFixed(2)} kPa \u2014 above ${ALERT_VPD} kPa limit`);actions.push('Activate misting now');}
-  if(humW&&humW>85){issues.push(`Humidity ${humW.toFixed(0)}% \u2014 Botrytis risk`);actions.push('Open ventilation now');}
-  if(issues.length){
-    $('alertBanner').classList.add('active');
-    const tEl=$('alertBanner').querySelector('.alert-title');if(tEl)tEl.textContent=issues.join(' \u00B7 ');
-    const dEl=$('alertDetail');if(dEl)dEl.textContent='\u2192 '+actions.join(' \u00B7 ');
-  } else $('alertBanner').classList.remove('active');
+  const now=Date.now();
+  const issues=[];
+
+  // درجة الحرارة — الجذر
+  if(tempW>ALERT_TEMP){
+    if(!ALERT_TIMERS.temp)ALERT_TIMERS.temp=now;
+    const mins=Math.round((now-ALERT_TIMERS.temp)/60000);
+    const children=[];
+    if(humW&&humW<60)children.push({ar:'رطوبة منخفضة '+humW.toFixed(0)+'%',cause:'ناتج عن ارتفاع الحرارة'});
+    if(vpd>1.0)children.push({ar:'ارتفاع VPD '+Number(vpd).toFixed(2)+' kPa',cause:'ناتج عن انخفاض الرطوبة'});
+    if(mins>15)children.push({ar:'إجهاد نبات محتمل',cause:'الارتفاع مستمر منذ '+mins+' دقيقة'});
+    issues.push({root:'ارتفاع درجة الحرارة '+tempW.toFixed(1)+'°م',mins,children,severity:mins>30?'danger':mins>15?'warn':'info'});
+  }else{delete ALERT_TIMERS.temp;}
+
+  // رطوبة عالية — جذر مستقل
+  if(humW&&humW>85){
+    if(!ALERT_TIMERS.hum)ALERT_TIMERS.hum=now;
+    const mins=Math.round((now-ALERT_TIMERS.hum)/60000);
+    issues.push({root:'رطوبة عالية '+humW.toFixed(0)+'%',mins,children:[{ar:'خطر البوتريتيس',cause:'الرطوبة فوق 85% منذ '+mins+' دقيقة'}],severity:mins>30?'danger':mins>15?'warn':'info'});
+  }else{delete ALERT_TIMERS.hum;}
+
+  const banner=$('alertBanner');
+  if(issues.length===0){banner.classList.remove('active');return;}
+
+  const worst=issues.reduce((a,b)=>(['danger','warn','info'].indexOf(a.severity)<['danger','warn','info'].indexOf(b.severity)?a:b));
+  const color=worst.severity==='danger'?'var(--danger)':worst.severity==='warn'?'var(--gold)':'#8B5E00';
+  const icon=worst.severity==='danger'?'🔴':worst.severity==='warn'?'🟠':'🟡';
+
+  banner.classList.add('active');
+  banner.style.cursor='pointer';
+  banner.onclick=()=>showAlertDetail(issues);
+
+  const tEl=banner.querySelector('.alert-title');
+  if(tEl)tEl.textContent=icon+' '+worst.root+' — منذ '+worst.mins+' دقيقة';
+  const aEl=banner.querySelector('.alert-ar');
+  if(aEl)aEl.textContent='اضغط لعرض التسلسل الكامل';
+  const dEl=$('alertDetail');
+  if(dEl)dEl.textContent=issues.length>1?issues.length+' مشاكل نشطة':'';
+}
+
+function showAlertDetail(issues){
+  const existing=$('alertDetailOverlay');if(existing)existing.remove();
+  const overlay=document.createElement('div');
+  overlay.id='alertDetailOverlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:600;background:rgba(3,45,33,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML=`<div style="background:var(--cream);border-radius:20px;width:min(600px,100%);box-shadow:0 24px 64px rgba(3,45,33,.3);border:1px solid var(--border);overflow:hidden">
+    <div style="background:var(--danger);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+      <div style="color:#fff;font-weight:800;font-size:.9rem">تسلسل المشاكل النشطة</div>
+      <button onclick="document.getElementById('alertDetailOverlay').remove()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:.8rem">✕ إغلاق</button>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:14px;direction:rtl">
+      ${issues.map(issue=>{
+        const color=issue.severity==='danger'?'var(--danger)':issue.severity==='warn'?'var(--gold)':'#8B5E00';
+        const icon=issue.severity==='danger'?'🔴':issue.severity==='warn'?'🟠':'🟡';
+        const timeMsg=issue.mins>30?'⚠️ تأثير فعلي على النبات محتمل':issue.mins>15?'راقب الوضع':'ارتفاع مؤقت';
+        return`<div style="border:1px solid ${color};border-radius:12px;overflow:hidden">
+          <div style="background:${color};padding:10px 14px;color:#fff;font-weight:800;font-size:.86rem;display:flex;justify-content:space-between;align-items:center">
+            <span>${icon} ${issue.root}</span>
+            <span style="font-size:.72rem;opacity:.9">منذ ${issue.mins} دقيقة</span>
+          </div>
+          <div style="padding:10px 14px;background:var(--card);font-size:.76rem;color:var(--muted)">${timeMsg}</div>
+          ${issue.children.map((c,i)=>`
+          <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;background:${i%2===0?'var(--soft-sage)':'var(--card)'}">
+            <span style="color:var(--muted);font-size:.8rem;margin-top:1px">${i===0?'└──':'&nbsp;&nbsp;&nbsp;└──'}</span>
+            <div>
+              <div style="font-weight:700;font-size:.82rem;color:var(--deep)">${c.ar}</div>
+              <div style="font-size:.7rem;color:var(--muted);margin-top:2px">${c.cause}</div>
+            </div>
+          </div>`).join('')}
+        </div>`;
+      }).join('')}
+      <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px;font-size:.76rem;color:var(--deep);font-weight:700">
+        💡 حل المشكلة الجذرية يحل جميع المشاكل الفرعية تلقائياً
+      </div>
+    </div>
+  </div>`;
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  document.body.appendChild(overlay);
 }
 function buildChart(){
   const ctx=$('trendChart');if(!ctx)return;
