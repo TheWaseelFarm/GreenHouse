@@ -920,6 +920,13 @@ function updateStressTracker(){
 }
 const INCIDENTS={};
 const INC={TEMP_CRITICAL:26,TEMP_WARNING:23,HUM_BOTRYTIS:85,VPD_CRITICAL:1.3,GRADIENT_WEAK:0.5};
+  function assessImpact(mins,severity){
+  if(mins<15)return{level:'none',ar:'لا تأثير — ارتفاع مؤقت'};
+  if(mins<30&&severity==='warn')return{level:'low',ar:'تأثير خفيف — يحتاج مراقبة'};
+  if(mins<30&&severity==='critical')return{level:'medium',ar:'تأثير متوسط — جودة الثمار قد تتأثر'};
+  if(mins>=30&&severity==='warn')return{level:'medium',ar:'تأثير متوسط — راجع الإنتاج لهذا اليوم'};
+  return{level:'high',ar:'تأثير عالٍ — جودة الثمار في خطر فعلي'};
+}
 async function logIncident(type,severity,data){
   try{
     const descs={TANK_DRY:{en:`Cooling failure \u2014 gradient ${data.minGradient}\u00B0C, temp ${data.peakTemp}\u00B0C.`,ar:'\u0641\u0634\u0644 \u0646\u0638\u0627\u0645 \u0627\u0644\u062A\u0628\u0631\u064A\u062F.'},TEMP_SPIKE:{en:`Temperature reached ${data.peakTemp}\u00B0C.`,ar:'\u0627\u0631\u062A\u0641\u0627\u0639 \u062D\u0631\u0627\u0631\u0629.'},BOTRYTIS_RISK:{en:`Humidity reached ${data.peakHum}%.`,ar:'\u062E\u0637\u0631 \u0627\u0644\u0628\u0648\u062A\u0631\u064A\u062A\u064A\u0633.'},VPD_CRITICAL:{en:`VPD ${data.peakVpd} kPa.`,ar:'\u0639\u062C\u0632 \u0636\u063A\u0637 \u0627\u0644\u0628\u062E\u0627\u0631 \u062D\u0631\u062C.'}};
@@ -929,22 +936,25 @@ async function logIncident(type,severity,data){
     const json=await res.json();if(json.ok&&json.id)INCIDENTS[type].id=json.id;
   }catch(e){console.warn('[INC] log:',e.message);}
 }
-async function resolveIncident(type,dur){
+async function resolveIncident(type){
   const inc=INCIDENTS[type];if(!inc||!inc.id)return;
-  try{await fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'resolve',id:inc.id,stress_score:0})});}catch(e){}
+  const mins=Math.round((Date.now()-new Date(inc.startedAt))/60000);
+  const severity=type==='TEMP_SPIKE'||type==='TANK_DRY'?'critical':'warn';
+  const impact=assessImpact(mins,severity);
+  try{await fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'resolve',id:inc.id,stress_score:0,plant_impact:impact.ar,duration_mins:mins})});}catch(e){}
 }
 function detectIncidents(){
   const{tempW,humW,vpd,temp,hubTemp}=S.live;if(tempW===null)return;
   const now=new Date();
   const gradient=(temp!==null&&hubTemp!==null)?parseFloat((temp-hubTemp).toFixed(1)):null;
   if(gradient!==null&&gradient<=INC.GRADIENT_WEAK&&tempW>INC.TEMP_WARNING){if(!INCIDENTS.TANK_DRY){INCIDENTS.TANK_DRY={startedAt:now.toISOString(),peakTemp:tempW,peakHum:humW,peakVpd:vpd,minGradient:gradient,id:null};logIncident('TANK_DRY','critical',INCIDENTS.TANK_DRY);}else{if(tempW>INCIDENTS.TANK_DRY.peakTemp)INCIDENTS.TANK_DRY.peakTemp=tempW;if(gradient<INCIDENTS.TANK_DRY.minGradient)INCIDENTS.TANK_DRY.minGradient=gradient;}}
-  else if(INCIDENTS.TANK_DRY){resolveIncident('TANK_DRY',Math.round((now-new Date(INCIDENTS.TANK_DRY.startedAt))/60000));delete INCIDENTS.TANK_DRY;}
+  else if(INCIDENTS.TANK_DRY){resolveIncident('TANK_DRY');delete INCIDENTS.TANK_DRY;}
   if(tempW>INC.TEMP_CRITICAL){if(!INCIDENTS.TEMP_SPIKE){INCIDENTS.TEMP_SPIKE={startedAt:now.toISOString(),peakTemp:tempW,peakHum:humW,peakVpd:vpd,minGradient:gradient,id:null};logIncident('TEMP_SPIKE','critical',INCIDENTS.TEMP_SPIKE);}else if(tempW>INCIDENTS.TEMP_SPIKE.peakTemp)INCIDENTS.TEMP_SPIKE.peakTemp=tempW;}
-  else if(INCIDENTS.TEMP_SPIKE){resolveIncident('TEMP_SPIKE',Math.round((now-new Date(INCIDENTS.TEMP_SPIKE.startedAt))/60000));delete INCIDENTS.TEMP_SPIKE;}
+  else if(INCIDENTS.TEMP_SPIKE){resolveIncident('TEMP_SPIKE');delete INCIDENTS.TEMP_SPIKE;}
   if(humW!==null&&humW>INC.HUM_BOTRYTIS){if(!INCIDENTS.BOTRYTIS_RISK){INCIDENTS.BOTRYTIS_RISK={startedAt:now.toISOString(),peakTemp:tempW,peakHum:humW,peakVpd:vpd,minGradient:gradient,id:null};logIncident('BOTRYTIS_RISK','high',INCIDENTS.BOTRYTIS_RISK);}else if(humW>INCIDENTS.BOTRYTIS_RISK.peakHum)INCIDENTS.BOTRYTIS_RISK.peakHum=humW;}
-  else if(INCIDENTS.BOTRYTIS_RISK){resolveIncident('BOTRYTIS_RISK',Math.round((now-new Date(INCIDENTS.BOTRYTIS_RISK.startedAt))/60000));delete INCIDENTS.BOTRYTIS_RISK;}
+  else if(INCIDENTS.BOTRYTIS_RISK){resolveIncident('BOTRYTIS_RISK');delete INCIDENTS.BOTRYTIS_RISK;}
   if(vpd>INC.VPD_CRITICAL){if(!INCIDENTS.VPD_CRITICAL){INCIDENTS.VPD_CRITICAL={startedAt:now.toISOString(),peakTemp:tempW,peakHum:humW,peakVpd:vpd,minGradient:gradient,id:null};logIncident('VPD_CRITICAL','high',INCIDENTS.VPD_CRITICAL);}else if(vpd>INCIDENTS.VPD_CRITICAL.peakVpd)INCIDENTS.VPD_CRITICAL.peakVpd=vpd;}
-  else if(INCIDENTS.VPD_CRITICAL){resolveIncident('VPD_CRITICAL',Math.round((now-new Date(INCIDENTS.VPD_CRITICAL.startedAt))/60000));delete INCIDENTS.VPD_CRITICAL;}
+  else if(INCIDENTS.VPD_CRITICAL){resolveIncident('VPD_CRITICAL');delete INCIDENTS.VPD_CRITICAL;}
   const cnt=Object.keys(INCIDENTS).length;let badge=$('incidentBadge');
   const navA=document.querySelector('.nav a[onclick*="alerts"]');
   if(navA){if(cnt>0){if(!badge){badge=document.createElement('span');badge.id='incidentBadge';badge.style.cssText='background:var(--danger);color:#fff;border-radius:999px;padding:1px 7px;font-size:.6rem;font-weight:900;margin-left:auto';navA.appendChild(badge);}badge.textContent=cnt;}else if(badge)badge.remove();}
@@ -1085,7 +1095,8 @@ async function loadIncidents(){
           <div style="font-size:.68rem;color:var(--muted);font-family:var(--mono)">${ds} \u00B7 ${ts} \u00B7 ${dur}</div></div></div>
           <div>${status}</div>
         </div>
-        <div style="margin-top:8px;font-size:.78rem;color:var(--deep);line-height:1.5">${inc.description||''}</div>
+      <div style="margin-top:7px;font-size:.76rem;color:var(--deep);line-height:1.5">'+(inc.description||'')+'</div>
+        '+(inc.plant_impact?'<div style="margin-top:7px;padding:7px 10px;background:var(--soft-sage);border-radius:8px;font-size:.74rem;color:var(--deep);direction:rtl">🌱 '+inc.plant_impact+(inc.duration_mins?' — استمرت '+inc.duration_mins+' دقيقة':'')+'</div>':'')+'
         ${inc.plant_impact?`<div style="margin-top:8px;padding:8px 10px;background:var(--soft-sage);border-radius:8px;font-size:.74rem;color:var(--deep)">\uD83C\uDF31 <b>Plant Impact:</b> ${inc.plant_impact}</div>`:''}
         <div style="margin-top:8px;display:flex;align-items:center;gap:5px"><div style="flex:1;height:4px;background:rgba(6,68,46,.1);border-radius:2px;overflow:hidden"><div style="height:100%;width:${(stress/10)*100}%;background:${stress>=7?'var(--danger)':stress>=4?'var(--gold)':'#16894E'};border-radius:2px"></div></div><span style="font-family:var(--mono);font-size:.62rem;color:var(--muted)">${stress}/10</span></div>
       </div>`;
