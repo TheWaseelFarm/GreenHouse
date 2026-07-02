@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
 
   const since = new Date(Date.now() - hours * 3600000).toISOString();
 
-  const path = `/rest/v1/readings?select=recorded_at,co2,temperature,humidity,vpd,hub_temp,hub_humidity,water_leak_1,water_leak_2&recorded_at=gte.${since}&order=recorded_at.asc&limit=${limit}`;
+ const path = `/rest/v1/readings?select=recorded_at,co2,temperature,humidity,vpd,hub_temp,hub_humidity,temp_weighted,hum_weighted,water_leak_1,water_leak_2&recorded_at=gte.${since}&order=recorded_at.asc&limit=${limit}`;
 
   const options = {
     hostname: SUPABASE_URL.replace('https://', ''),
