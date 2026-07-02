@@ -1095,8 +1095,8 @@ async function loadIncidents(){
           <div style="font-size:.68rem;color:var(--muted);font-family:var(--mono)">${ds} \u00B7 ${ts} \u00B7 ${dur}</div></div></div>
           <div>${status}</div>
         </div>
-      <div style="margin-top:7px;font-size:.76rem;color:var(--deep);line-height:1.5">'+(inc.description||'')+'</div>
-        '+(inc.plant_impact?'<div style="margin-top:7px;padding:7px 10px;background:var(--soft-sage);border-radius:8px;font-size:.74rem;color:var(--deep);direction:rtl">🌱 '+inc.plant_impact+(inc.duration_mins?' — استمرت '+inc.duration_mins+' دقيقة':'')+'</div>':'')+'
+   <div style="margin-top:7px;font-size:.76rem;color:var(--deep);line-height:1.5">${inc.description||''}</div>
+        ${inc.plant_impact?`<div style="margin-top:7px;padding:7px 10px;background:var(--soft-sage);border-radius:8px;font-size:.74rem;color:var(--deep);direction:rtl">🌱 ${inc.plant_impact}${inc.duration_mins?' — lasted '+inc.duration_mins+' minutes':''}</div>`:''}
         ${inc.plant_impact?`<div style="margin-top:8px;padding:8px 10px;background:var(--soft-sage);border-radius:8px;font-size:.74rem;color:var(--deep)">\uD83C\uDF31 <b>Plant Impact:</b> ${inc.plant_impact}</div>`:''}
         <div style="margin-top:8px;display:flex;align-items:center;gap:5px"><div style="flex:1;height:4px;background:rgba(6,68,46,.1);border-radius:2px;overflow:hidden"><div style="height:100%;width:${(stress/10)*100}%;background:${stress>=7?'var(--danger)':stress>=4?'var(--gold)':'#16894E'};border-radius:2px"></div></div><span style="font-family:var(--mono);font-size:.62rem;color:var(--muted)">${stress}/10</span></div>
       </div>`;
