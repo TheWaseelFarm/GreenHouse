@@ -75,27 +75,23 @@ describe('calcHeatIndex', () => {
 });
 
 describe('calcAbsHumidity', () => {
-  // NOTE: these assertions pin CURRENT behaviour. The magnitudes (~1.4 g/m³
-  // at 25°C/60%) are ~10x below the physically expected ~13.8 g/m³, which
-  // points to a kPa-vs-hPa unit mismatch in the formula. See the test
-  // "flags the suspected unit bug" below — fix the formula and update these.
-  it('returns current (characterization) values', () => {
-    expect(calcAbsHumidity(25, 60)).toBe(1.4);
-    expect(calcAbsHumidity(30, 50)).toBe(1.5);
+  it('matches physically-expected magnitudes (g/m³)', () => {
+    // ~13.8 g/m³ at 25°C / 60% RH is the textbook reference value.
+    expect(calcAbsHumidity(25, 60)).toBeCloseTo(13.8, 1);
+    expect(calcAbsHumidity(30, 50)).toBeCloseTo(15.2, 1);
+    expect(calcAbsHumidity(20, 70)).toBeCloseTo(12.1, 1);
   });
 
   it('increases with humidity at fixed temperature', () => {
     expect(calcAbsHumidity(25, 80)).toBeGreaterThan(calcAbsHumidity(25, 40));
   });
 
-  it('is 0 at 0% humidity', () => {
-    expect(calcAbsHumidity(25, 0)).toBe(0);
+  it('increases with temperature at fixed humidity', () => {
+    expect(calcAbsHumidity(30, 60)).toBeGreaterThan(calcAbsHumidity(20, 60));
   });
 
-  it.fails('flags the suspected unit bug (expected ~13.8 g/m³ at 25°C/60%)', () => {
-    // Intentionally failing: documents the physically-correct target so the
-    // discrepancy is visible in CI. Remove `.fails` once the formula is fixed.
-    expect(calcAbsHumidity(25, 60)).toBeCloseTo(13.8, 1);
+  it('is 0 at 0% humidity', () => {
+    expect(calcAbsHumidity(25, 0)).toBe(0);
   });
 });
 

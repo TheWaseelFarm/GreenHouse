@@ -37,10 +37,12 @@ function calcHeatIndex(t, rh) {
   ).toFixed(1));
 }
 
-// Absolute humidity (g/m³).
+// Absolute humidity (g/m³). Derived from the ideal-gas law:
+//   AH = (Mw / R) * Pw / T = 2.1668 * Pw(Pa) / T(K)
+// where Pw is the actual water-vapour partial pressure and T is in Kelvin.
 function calcAbsHumidity(t, rh) {
-  const svp = saturationVaporPressure(t);
-  return parseFloat((216.7 * (rh / 100 * svp * 1000) / (273.15 + t) / 1000).toFixed(1));
+  const vaporPressurePa = (rh / 100) * saturationVaporPressure(t) * 1000; // kPa → Pa
+  return parseFloat((2.1668 * vaporPressurePa / (273.15 + t)).toFixed(1));
 }
 
 // Plant stress index (0–10). Additive score across VPD, temperature and
