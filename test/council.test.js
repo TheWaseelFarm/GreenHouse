@@ -29,12 +29,6 @@ describe('api/council', () => {
     expect(res.statusCode).toBe(405);
   });
 
-  it('rejects an unauthenticated request (401)', async () => {
-    const res = makeRes();
-    await council(makeReq({ method: 'GET', headers: {} }), res);
-    expect(res.statusCode).toBe(401);
-  });
-
   describe('GET', () => {
     it('returns the last decisions as JSON', async () => {
       const rows = [{ id: 1, question: 'q', summary: 's' }];

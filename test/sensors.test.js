@@ -23,20 +23,6 @@ beforeAll(() => nock.disableNetConnect());
 afterAll(() => nock.enableNetConnect());
 afterEach(() => nock.cleanAll());
 
-describe('auth gate', () => {
-  it('rejects unauthenticated requests to each read handler (401)', async () => {
-    for (const [handler, req] of [
-      [devices, makeReq({ method: 'GET', headers: {} })],
-      [status, makeReq({ method: 'GET', query: { id: 'X' }, headers: {} })],
-      [history, makeReq({ method: 'GET', query: {}, headers: {} })],
-    ]) {
-      const res = makeRes();
-      await handler(req, res);
-      expect(res.statusCode).toBe(401);
-    }
-  });
-});
-
 describe('api/devices', () => {
   it('responds 200 to OPTIONS preflight', async () => {
     const res = makeRes();

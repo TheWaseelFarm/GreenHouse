@@ -1,13 +1,11 @@
 const https = require('https');
 const crypto = require('crypto');
-const { requireAuth } = require('../_lib/auth');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', '*');
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
-  if (!requireAuth(req, res)) return;
 
   const TOKEN = process.env.SWITCHBOT_TOKEN;
   const SECRET = process.env.SWITCHBOT_SECRET;

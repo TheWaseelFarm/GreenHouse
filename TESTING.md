@@ -47,13 +47,6 @@ Outbound HTTP (Supabase, SwitchBot, Anthropic) is intercepted with
   `history`, `devices`, `status`: method guards, CORS, query defaults,
   request signing, validation and error paths.
 
-## Known issue surfaced by the tests
-
-`calcAbsHumidity` returns values ~10x below the physically expected magnitude
-(~1.4 g/m³ vs ~13.8 g/m³ at 25°C / 60% RH), consistent with a kPa-vs-hPa unit
-mismatch. `test/metrics.test.js` has a deliberately-failing `.fails` test
-documenting the correct target — fix the formula and remove that marker.
-
 ## Not yet covered
 
 - `api/gen-hash.js` — a self-described temporary bcrypt-hash endpoint. It is
@@ -61,22 +54,21 @@ documenting the correct target — fix the formula and remove that marker.
 - `api/page.js` dashboard-serve branch — depends on an `_index.html` file that
   isn't in the repo; only the auth-gate redirect paths are exercised.
 
-## Authentication
+## Authentication (currently disabled)
 
-The browser-facing endpoints — `devices`, `status`, `history`, `incidents`,
-`council`, `ask-council` — are gated by `requireAuth` (session-cookie JWT).
-Each has an unauthenticated-request test asserting a 401.
+The browser-facing endpoints (`devices`, `status`, `history`, `incidents`,
+`council`, `ask-council`) were briefly gated by `requireAuth` (session-cookie
+JWT), but that gating has been **removed for now**: the dashboard has no login
+UI wired up yet, so gating blocked all live data. The endpoints are public
+again, matching their original behavior. `_lib/auth.js` and its tests remain in
+place for when a proper login flow is built.
 
-Two ingest paths are intentionally **not** session-gated:
-
-- `api/cron-save.js` authenticates with its own `CRON_SECRET` bearer token.
-- `api/save-reading.js` is the device ingest endpoint (wide-open CORS, hit by
-  the sensor hardware, which has no browser session). It needs a **device API
-  key** rather than the cookie guard — a separate change, not done here.
+`api/cron-save.js` still authenticates with its own `CRON_SECRET` bearer token.
 
 ## Open follow-ups (not test work)
 
-- Give `api/save-reading.js` a device-token auth scheme (see above).
+- Re-introduce auth once a login page is wired to `/api/auth/login` (gate the
+  browser endpoints again, plus a device-token scheme for `api/save-reading.js`).
 - `api/ask-council.js` targets model `claude-sonnet-4-6`, which is not a valid
   model id.
 - Delete `api/gen-hash.js`.
