@@ -1114,7 +1114,10 @@ window.AlWaseelFarmDashboard={
 };
  
 document.addEventListener('DOMContentLoaded',function(){
-  buildChart();setActiveMetric('all');fetchLive();loadHistory(1);
+  // Guard chart setup so a rendering/library hiccup can't block live data or the clock.
+  try{buildChart();}catch(e){console.error('buildChart failed:',e);}
+  try{setActiveMetric('all');}catch(e){console.error('setActiveMetric failed:',e);}
+  fetchLive();loadHistory(1);
   setInterval(fetchLive,60000);setInterval(loadCams,5000);
   setInterval(()=>{
     const n=new Date();

@@ -1,5 +1,4 @@
 const https = require('https');
-const { requireAuth } = require('../_lib/auth');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
@@ -37,7 +36,6 @@ function supabaseRequest(method, path, body) {
 module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (!requireAuth(req, res)) return;
 
   if (req.method === 'GET') {
     const limit = req.query.limit || 50;
