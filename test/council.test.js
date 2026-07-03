@@ -2,10 +2,12 @@ import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 import { createRequire } from 'node:module';
 import nock from 'nock';
 import { makeReq, makeRes, waitUntilEnded } from './helpers/http.js';
+import { authedHeaders, TEST_SESSION_SECRET } from './helpers/auth.js';
 
 const SUPA = 'https://test.supabase.co';
 process.env.SUPABASE_URL = SUPA;
 process.env.SUPABASE_KEY = 'test-key';
+process.env.SESSION_SECRET = TEST_SESSION_SECRET;
 
 const require = createRequire(import.meta.url);
 const council = require('../api/council.js');
@@ -23,8 +25,14 @@ describe('api/council', () => {
 
   it('rejects unsupported methods (405)', async () => {
     const res = makeRes();
-    await council(makeReq({ method: 'DELETE' }), res);
+    await council(makeReq({ method: 'DELETE', headers: authedHeaders() }), res);
     expect(res.statusCode).toBe(405);
+  });
+
+  it('rejects an unauthenticated request (401)', async () => {
+    const res = makeRes();
+    await council(makeReq({ method: 'GET', headers: {} }), res);
+    expect(res.statusCode).toBe(401);
   });
 
   describe('GET', () => {
@@ -36,7 +44,7 @@ describe('api/council', () => {
         .reply(200, rows);
 
       const res = makeRes();
-      await council(makeReq({ method: 'GET' }), res);
+      await council(makeReq({ method: 'GET', headers: authedHeaders() }), res);
       await waitUntilEnded(res);
 
       expect(res.statusCode).toBe(200);
@@ -48,7 +56,7 @@ describe('api/council', () => {
       nock(SUPA).get('/rest/v1/council_decisions').query(true).reply(200, 'not-json');
 
       const res = makeRes();
-      await council(makeReq({ method: 'GET' }), res);
+      await council(makeReq({ method: 'GET', headers: authedHeaders() }), res);
       await waitUntilEnded(res);
 
       expect(res.statusCode).toBe(500);
@@ -59,7 +67,7 @@ describe('api/council', () => {
   describe('POST', () => {
     it('rejects a body missing question or summary (400)', async () => {
       const res = makeRes();
-      await council(makeReq({ method: 'POST', body: { question: 'q only' } }), res);
+      await council(makeReq({ method: 'POST', headers: authedHeaders(), body: { question: 'q only' } }), res);
       expect(res.statusCode).toBe(400);
       expect(res.body).toEqual({ error: 'question and summary required' });
     });
@@ -73,6 +81,7 @@ describe('api/council', () => {
       const res = makeRes();
       await council(makeReq({
         method: 'POST',
+        headers: authedHeaders(),
         body: { question: 'Should we vent?', summary: 'Yes, at noon.' },
       }), res);
       await waitUntilEnded(res);
@@ -96,6 +105,7 @@ describe('api/council', () => {
       const res = makeRes();
       await council(makeReq({
         method: 'POST',
+        headers: authedHeaders(),
         body: { question: 'q', summary: 's', agents_count: 3 },
       }), res);
       await waitUntilEnded(res);

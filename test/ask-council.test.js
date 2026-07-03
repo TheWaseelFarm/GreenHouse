@@ -2,8 +2,10 @@ import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 import { createRequire } from 'node:module';
 import nock from 'nock';
 import { makeReq, makeRes } from './helpers/http.js';
+import { authedHeaders, TEST_SESSION_SECRET } from './helpers/auth.js';
 
 process.env.ANTHROPIC_API_KEY = 'test-anthropic-key';
+process.env.SESSION_SECRET = TEST_SESSION_SECRET;
 
 const require = createRequire(import.meta.url);
 const askCouncil = require('../api/ask-council.js');
@@ -29,6 +31,12 @@ describe('api/ask-council', () => {
     expect(res.statusCode).toBe(405);
   });
 
+  it('rejects an unauthenticated POST (401)', async () => {
+    const res = makeRes();
+    await askCouncil(makeReq({ method: 'POST', headers: {}, body: baseBody }), res);
+    expect(res.statusCode).toBe(401);
+  });
+
   it('forwards the Anthropic response on success', async () => {
     const reply = { content: [{ type: 'text', text: 'مرحبا' }] };
     let sent;
@@ -37,7 +45,7 @@ describe('api/ask-council', () => {
       .reply(200, reply);
 
     const res = makeRes();
-    await askCouncil(makeReq({ method: 'POST', body: baseBody }), res);
+    await askCouncil(makeReq({ method: 'POST', headers: authedHeaders(), body: baseBody }), res);
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual(reply);
@@ -53,7 +61,7 @@ describe('api/ask-council', () => {
     nock(ANTHROPIC).post('/v1/messages', (b) => { sent = b; return true; }).reply(200, {});
 
     const res = makeRes();
-    await askCouncil(makeReq({ method: 'POST', body: { ...baseBody, isExec: true } }), res);
+    await askCouncil(makeReq({ method: 'POST', headers: authedHeaders(), body: { ...baseBody, isExec: true } }), res);
 
     expect(sent.max_tokens).toBe(1500);
     expect(sent.system).toContain('مهام محمد'); // exec-only heading
@@ -64,7 +72,7 @@ describe('api/ask-council', () => {
     nock(ANTHROPIC).post('/v1/messages', (b) => { sent = b; return true; }).reply(200, {});
 
     const res = makeRes();
-    await askCouncil(makeReq({ method: 'POST', body: { ...baseBody, isTech: true } }), res);
+    await askCouncil(makeReq({ method: 'POST', headers: authedHeaders(), body: { ...baseBody, isTech: true } }), res);
 
     expect(sent.max_tokens).toBe(900);
     expect(sent.system).toContain('اقتراح تقني'); // tech-only marker
@@ -75,7 +83,7 @@ describe('api/ask-council', () => {
     nock(ANTHROPIC).post('/v1/messages', (b) => { sent = b; return true; }).reply(200, {});
 
     const res = makeRes();
-    await askCouncil(makeReq({ method: 'POST', body: baseBody }), res);
+    await askCouncil(makeReq({ method: 'POST', headers: authedHeaders(), body: baseBody }), res);
 
     expect(sent.max_tokens).toBe(900);
     expect(sent.system).not.toContain('مهام محمد');
@@ -86,7 +94,7 @@ describe('api/ask-council', () => {
     nock(ANTHROPIC).post('/v1/messages').reply(200, 'garbled<<');
 
     const res = makeRes();
-    await askCouncil(makeReq({ method: 'POST', body: baseBody }), res);
+    await askCouncil(makeReq({ method: 'POST', headers: authedHeaders(), body: baseBody }), res);
 
     expect(res.statusCode).toBe(500);
     expect(res.body).toHaveProperty('error');

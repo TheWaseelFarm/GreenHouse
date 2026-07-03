@@ -1,10 +1,12 @@
 const https = require('https');
+const { requireAuth } = require('../_lib/auth');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', '*');
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
+  if (!requireAuth(req, res)) return;
 
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SUPABASE_KEY = process.env.SUPABASE_KEY;

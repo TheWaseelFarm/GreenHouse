@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 import { createRequire } from 'node:module';
 import nock from 'nock';
 import { makeReq, makeRes } from './helpers/http.js';
+import { authedHeaders, TEST_SESSION_SECRET } from './helpers/auth.js';
 
 // Env consumed by the SwitchBot handlers (HMAC signing) and Supabase history.
 process.env.SWITCHBOT_TOKEN = 'sb-token';
@@ -9,6 +10,7 @@ process.env.SWITCHBOT_SECRET = 'sb-secret';
 const SUPA = 'https://test.supabase.co';
 process.env.SUPABASE_URL = SUPA;
 process.env.SUPABASE_KEY = 'test-key';
+process.env.SESSION_SECRET = TEST_SESSION_SECRET;
 
 const require = createRequire(import.meta.url);
 const devices = require('../api/devices.js');
@@ -20,6 +22,20 @@ const SWITCHBOT = 'https://api.switch-bot.com';
 beforeAll(() => nock.disableNetConnect());
 afterAll(() => nock.enableNetConnect());
 afterEach(() => nock.cleanAll());
+
+describe('auth gate', () => {
+  it('rejects unauthenticated requests to each read handler (401)', async () => {
+    for (const [handler, req] of [
+      [devices, makeReq({ method: 'GET', headers: {} })],
+      [status, makeReq({ method: 'GET', query: { id: 'X' }, headers: {} })],
+      [history, makeReq({ method: 'GET', query: {}, headers: {} })],
+    ]) {
+      const res = makeRes();
+      await handler(req, res);
+      expect(res.statusCode).toBe(401);
+    }
+  });
+});
 
 describe('api/devices', () => {
   it('responds 200 to OPTIONS preflight', async () => {
@@ -36,7 +52,7 @@ describe('api/devices', () => {
       .reply(function () { seenHeaders = this.req.headers; return [200, payload]; });
 
     const res = makeRes();
-    await devices(makeReq({ method: 'GET' }), res);
+    await devices(makeReq({ method: 'GET', headers: authedHeaders() }), res);
 
     expect(res.body).toBe(payload);
     expect(scope.isDone()).toBe(true);
@@ -62,7 +78,7 @@ describe('api/status', () => {
       .reply(200, payload);
 
     const res = makeRes();
-    await status(makeReq({ method: 'GET', query: { id: 'METER123' } }), res);
+    await status(makeReq({ method: 'GET', query: { id: 'METER123' }, headers: authedHeaders() }), res);
 
     expect(res.body).toBe(payload);
     expect(scope.isDone()).toBe(true);
@@ -85,7 +101,7 @@ describe('api/history', () => {
       .reply(function (uri) { path = uri; return [200, rows]; });
 
     const res = makeRes();
-    await history(makeReq({ method: 'GET', query: {} }), res);
+    await history(makeReq({ method: 'GET', query: {}, headers: authedHeaders() }), res);
 
     expect(res.body).toBe(rows);
     expect(scope.isDone()).toBe(true);
@@ -102,7 +118,7 @@ describe('api/history', () => {
       .reply(function (uri) { path = uri; return [200, '[]']; });
 
     const res = makeRes();
-    await history(makeReq({ method: 'GET', query: { hours: 6, limit: 10 } }), res);
+    await history(makeReq({ method: 'GET', query: { hours: 6, limit: 10 }, headers: authedHeaders() }), res);
 
     expect(path).toContain('limit=10');
   });

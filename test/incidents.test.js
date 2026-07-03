@@ -2,11 +2,13 @@ import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 import { createRequire } from 'node:module';
 import nock from 'nock';
 import { makeReq, makeRes } from './helpers/http.js';
+import { authedHeaders, TEST_SESSION_SECRET } from './helpers/auth.js';
 
 // incidents.js reads SUPABASE_URL/KEY at module load, so set them first.
 const SUPA = 'https://test.supabase.co';
 process.env.SUPABASE_URL = SUPA;
 process.env.SUPABASE_KEY = 'test-key';
+process.env.SESSION_SECRET = TEST_SESSION_SECRET;
 
 const require = createRequire(import.meta.url);
 const incidents = require('../api/incidents.js');
@@ -25,8 +27,14 @@ describe('api/incidents', () => {
 
   it('rejects unsupported methods (405)', async () => {
     const res = makeRes();
-    await incidents(makeReq({ method: 'PUT' }), res);
+    await incidents(makeReq({ method: 'PUT', headers: authedHeaders() }), res);
     expect(res.statusCode).toBe(405);
+  });
+
+  it('rejects an unauthenticated request (401)', async () => {
+    const res = makeRes();
+    await incidents(makeReq({ method: 'GET', query: {}, headers: {} }), res);
+    expect(res.statusCode).toBe(401);
   });
 
   describe('GET', () => {
@@ -38,7 +46,7 @@ describe('api/incidents', () => {
         .reply(200, rows);
 
       const res = makeRes();
-      await incidents(makeReq({ method: 'GET', query: {} }), res);
+      await incidents(makeReq({ method: 'GET', query: {}, headers: authedHeaders() }), res);
 
       expect(res.body).toEqual(rows);
       expect(scope.isDone()).toBe(true);
@@ -51,7 +59,7 @@ describe('api/incidents', () => {
         .reply(200, []);
 
       const res = makeRes();
-      await incidents(makeReq({ method: 'GET', query: { limit: 5 } }), res);
+      await incidents(makeReq({ method: 'GET', query: { limit: 5 }, headers: authedHeaders() }), res);
 
       expect(res.body).toEqual([]);
       expect(scope.isDone()).toBe(true);
@@ -61,7 +69,7 @@ describe('api/incidents', () => {
       nock(SUPA).get('/rest/v1/incidents').query(true).reply(200, { message: 'oops' });
 
       const res = makeRes();
-      await incidents(makeReq({ method: 'GET', query: {} }), res);
+      await incidents(makeReq({ method: 'GET', query: {}, headers: authedHeaders() }), res);
 
       expect(res.body).toEqual([]);
     });
@@ -70,7 +78,7 @@ describe('api/incidents', () => {
       nock(SUPA).get('/rest/v1/incidents').query(true).reply(500, { error: 'boom' });
 
       const res = makeRes();
-      await incidents(makeReq({ method: 'GET', query: {} }), res);
+      await incidents(makeReq({ method: 'GET', query: {}, headers: authedHeaders() }), res);
 
       expect(res.statusCode).toBe(500);
       expect(res.body).toHaveProperty('error');
@@ -87,6 +95,7 @@ describe('api/incidents', () => {
       const res = makeRes();
       await incidents(makeReq({
         method: 'POST',
+        headers: authedHeaders(),
         body: { type: 'heat', severity: 'high', description: 'too hot' },
       }), res);
 
@@ -103,7 +112,7 @@ describe('api/incidents', () => {
         .reply(201, [{ id: 'x' }]);
 
       const res = makeRes();
-      await incidents(makeReq({ method: 'POST', body: { type: 'leak' } }), res);
+      await incidents(makeReq({ method: 'POST', headers: authedHeaders(), body: { type: 'leak' } }), res);
 
       expect(sentBody.peak_temp).toBeNull();
       expect(sentBody.peak_vpd).toBeNull();
@@ -117,7 +126,7 @@ describe('api/incidents', () => {
         .reply(201, [{ id: 'y' }]);
 
       const res = makeRes();
-      await incidents(makeReq({ method: 'POST', body: JSON.stringify({ type: 'heat' }) }), res);
+      await incidents(makeReq({ method: 'POST', headers: authedHeaders(), body: JSON.stringify({ type: 'heat' }) }), res);
 
       expect(sentBody.type).toBe('heat');
     });
@@ -138,7 +147,7 @@ describe('api/incidents', () => {
         .reply(200, {});
 
       const res = makeRes();
-      await incidents(makeReq({ method: 'POST', body: { action: 'resolve', id: 42 } }), res);
+      await incidents(makeReq({ method: 'POST', headers: authedHeaders(), body: { action: 'resolve', id: 42 } }), res);
 
       expect(res.body).toEqual({ ok: true });
       expect(patchBody.resolved).toBe(true);
@@ -159,7 +168,7 @@ describe('api/incidents', () => {
         .reply(200, {});
 
       const res = makeRes();
-      await incidents(makeReq({ method: 'POST', body: { action: 'resolve', id: 99 } }), res);
+      await incidents(makeReq({ method: 'POST', headers: authedHeaders(), body: { action: 'resolve', id: 99 } }), res);
 
       expect(res.body).toEqual({ ok: true });
       expect(patchBody.duration_minutes).toBeNull();

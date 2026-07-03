@@ -61,10 +61,22 @@ documenting the correct target — fix the formula and remove that marker.
 - `api/page.js` dashboard-serve branch — depends on an `_index.html` file that
   isn't in the repo; only the auth-gate redirect paths are exercised.
 
+## Authentication
+
+The browser-facing endpoints — `devices`, `status`, `history`, `incidents`,
+`council`, `ask-council` — are gated by `requireAuth` (session-cookie JWT).
+Each has an unauthenticated-request test asserting a 401.
+
+Two ingest paths are intentionally **not** session-gated:
+
+- `api/cron-save.js` authenticates with its own `CRON_SECRET` bearer token.
+- `api/save-reading.js` is the device ingest endpoint (wide-open CORS, hit by
+  the sensor hardware, which has no browser session). It needs a **device API
+  key** rather than the cookie guard — a separate change, not done here.
+
 ## Open follow-ups (not test work)
 
-- None of the data endpoints (`devices`, `status`, `history`, `save-reading`,
-  `incidents`, `council`) call `requireAuth` — they are publicly reachable.
+- Give `api/save-reading.js` a device-token auth scheme (see above).
 - `api/ask-council.js` targets model `claude-sonnet-4-6`, which is not a valid
   model id.
 - Delete `api/gen-hash.js`.
