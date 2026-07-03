@@ -18,8 +18,10 @@ export function makeReq({
   req.url = url;
   req.socket = socket;
   if (body !== undefined) {
-    // Vercel-style parsed body when it's an object; raw-stream otherwise.
-    if (typeof body === 'object') req.body = body;
+    // Expose both shapes: req.body mirrors Vercel's parsed body (object) or a
+    // raw string the handler may re-parse; req._raw feeds stream-reading
+    // handlers that consume req.on('data'). Streaming handlers ignore req.body.
+    req.body = body;
     req._raw = typeof body === 'string' ? body : JSON.stringify(body);
   }
   return req;
@@ -45,6 +47,21 @@ export function makeRes() {
     },
   };
   return res;
+}
+
+// Resolve once the response has been finalized. Needed for handlers that
+// fire an async request and write the response from a callback without
+// returning a promise (so `await handler()` alone doesn't wait for them).
+export function waitUntilEnded(res, timeout = 2000) {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    const check = () => {
+      if (res.ended) return resolve(res);
+      if (Date.now() - start > timeout) return reject(new Error('response never ended'));
+      setImmediate(check);
+    };
+    check();
+  });
 }
 
 // Drive a handler that reads its body off the request stream. Emits the
