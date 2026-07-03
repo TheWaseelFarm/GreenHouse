@@ -1,7 +1,10 @@
 
 const https = require('https');
 const crypto = require('crypto');
- 
+const {
+  calcVPD, calcDewPoint, calcHeatIndex, calcAbsHumidity, calcPSI
+} = require('../_lib/metrics');
+
 module.exports = async (req, res) => {
   const authHeader = req.headers['authorization'];
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -32,8 +35,7 @@ module.exports = async (req, res) => {
     const co2      = meterData.CO2 ?? meterData.co2 ?? 0;
     const temp     = parseFloat(meterData.temperature ?? 0);
     const humidity = parseFloat(meterData.humidity ?? 0);
-    const svp      = 0.6108 * Math.exp((17.27 * temp) / (temp + 237.3));
-    const vpd      = parseFloat((svp * (1 - humidity / 100)).toFixed(2));
+    const vpd      = calcVPD(temp, humidity);
  
     // Hub 2 — wet wall zone
     const hub_temp     = parseFloat(hubData.temperature ?? 0);
@@ -146,33 +148,4 @@ function httpPost(hostname, path, body, headers) {
     req.end();
   });
 }
- 
-// ── Calculations ───────────────────────────────────
-function calcDewPoint(t, rh) {
-  const a = 17.27, b = 237.3;
-  const alpha = (a * t) / (b + t) + Math.log(rh / 100);
-  return parseFloat((b * alpha / (a - alpha)).toFixed(1));
-}
- 
-function calcHeatIndex(t, rh) {
-  if (t < 27) return t;
-  return parseFloat((-8.78 + 1.61*t + 2.34*rh - 0.15*t*rh - 0.012*t*t - 0.016*rh*rh + 0.002*t*t*rh + 0.0007*t*rh*rh).toFixed(1));
-}
- 
-function calcAbsHumidity(t, rh) {
-  const svp = 0.6108 * Math.exp((17.27 * t) / (t + 237.3));
-  return parseFloat((216.7 * (rh / 100 * svp * 1000) / (273.15 + t) / 1000).toFixed(1));
-}
- 
-function calcPSI(vpd, temp, hum) {
-  let s = 0;
-  if (vpd > 1.0 && vpd <= 1.3) s += 2;
-  if (vpd > 1.3)                s += 4;
-  if (temp > 22 && temp <= 26)  s += 2;
-  if (temp > 26)                s += 4;
-  if (hum < 60 && hum >= 50)   s += 1;
-  if (hum < 50)                 s += 3;
-  if (hum > 85)                 s += 2;
-  return Math.min(s, 10);
-}
- 
+
