@@ -1,1250 +1,382 @@
+
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Al-Waseel Farm — Operations Platform</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Mizān — redesign concept</title>
 <style>
-:root{
-  --deep:#06442E;--forest:#032D21;--sage:#8FAF7A;--soft-sage:#E8F0E2;
-  --gold:#C49A3A;--light-gold:#E6D3A3;--cream:#F8F4EA;--card:#FFFDF7;
-  --muted:#6F765F;--danger:#C0392B;--soft-danger:#FDECEA;--blue:#1976D2;
-  --border:rgba(100,75,26,.16);--shadow:0 8px 32px rgba(48,39,18,.09);
-  --radius:22px;
-  --ar:"Segoe UI",Tahoma,Arial,sans-serif;
-  --mono:"SFMono-Regular","Cascadia Code",Consolas,monospace;
-  --sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
-}
-*{box-sizing:border-box} html{scroll-behavior:smooth}
-body{margin:0;min-height:100vh;font-family:var(--sans);color:var(--deep);
-  background:radial-gradient(circle at 10% 0%,rgba(196,154,58,.14),transparent 32%),
-    radial-gradient(circle at 86% 6%,rgba(143,175,122,.18),transparent 30%),
-    linear-gradient(180deg,var(--cream),#fffaf0 58%,#f3ead9);overflow-x:hidden}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;
-  background-image:linear-gradient(rgba(6,68,46,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(6,68,46,.03) 1px,transparent 1px);
-  background-size:44px 44px;-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.5),transparent 75%);mask-image:linear-gradient(to bottom,rgba(0,0,0,.5),transparent 75%)}
-.app{position:relative;z-index:1;display:grid;grid-template-columns:280px 1fr;min-height:100vh;width:min(1680px,100%);margin:0 auto;background:rgba(255,253,247,.4);box-shadow:0 0 0 1px rgba(196,154,58,.14)}
-.sidebar{border-right:1px solid var(--border);background:linear-gradient(180deg,rgba(255,253,247,.97),rgba(248,244,234,.94));padding:22px 16px;display:flex;flex-direction:column;gap:20px;min-height:100vh;position:sticky;top:0;align-self:start}
-.side-logo{display:grid;justify-items:center;text-align:center;gap:7px;padding-bottom:8px}
-.brand-ar{font-family:var(--ar);font-size:1.3rem;font-weight:900;color:var(--deep);direction:rtl}
-.brand-en{font-weight:900;letter-spacing:.12em;color:var(--deep);font-size:.76rem;text-transform:uppercase}
-.side-meta{display:flex;gap:6px;justify-content:center;color:var(--muted);font-size:.72rem;font-weight:700}
-.nav{display:grid;gap:5px}
-.nav a{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--deep);font-weight:800;padding:11px 13px;border-radius:12px;transition:.18s;font-size:.82rem;cursor:pointer;-webkit-user-select:none;user-select:none}
-.nav a i{font-size:1.1rem;color:#8d7335;flex-shrink:0}
-.nav a:hover{background:rgba(196,154,58,.1)}
-.nav a.active{color:#fff;background:linear-gradient(135deg,#7ea06d,#06442E);box-shadow:0 6px 18px rgba(6,68,46,.18)}
-.nav a.active i{color:var(--light-gold)}
-.nav a.logout-link{color:var(--danger);margin-top:4px}
-.nav a.logout-link i{color:var(--danger)}
-.nav a.logout-link:hover{background:rgba(192,57,43,.08)}
-.side-art{margin-top:auto;padding-top:14px;opacity:.85}
-.side-art svg{width:100%;height:auto}
-.side-art small{display:block;margin-top:6px;color:var(--muted);font-weight:800;font-size:.66rem;text-align:center;letter-spacing:.06em}
-.main{padding:22px;min-width:0}
-.topbar{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;margin-bottom:16px;background:rgba(255,253,247,.88);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;box-shadow:var(--shadow);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
-.title-block h1{margin:0;font-size:clamp(1.1rem,2vw,1.9rem);font-weight:950;text-transform:uppercase;letter-spacing:-.04em;line-height:1.1}
-.title-block p{margin:4px 0 0;color:var(--muted);font-family:var(--ar);font-weight:800;direction:rtl;text-align:left;font-size:.86rem}
-.status-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end}
-.status-item{display:flex;align-items:center;gap:8px;color:var(--deep);font-weight:800;font-size:.8rem}
-.status-item small{display:block;color:var(--muted);font-size:.65rem;font-weight:700;line-height:1.2}
-.status-item i{font-size:1.15rem;color:#8d7335}
-.tb-divider{width:1px;height:34px;background:var(--border)}
-.online-dot{width:12px;height:12px;border-radius:50%;background:#16a34a;flex-shrink:0;box-shadow:0 0 0 5px rgba(22,163,74,.1),0 0 14px rgba(22,163,74,.28);position:relative}
-.online-dot::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:1px solid #16a34a;animation:pulse 1.6s ease-out infinite}
-@keyframes pulse{from{transform:scale(.5);opacity:.8}to{transform:scale(1.9);opacity:0}}
-.status-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;border-radius:14px;border:1px solid var(--border);background:rgba(255,253,247,.92);margin-bottom:16px;box-shadow:0 2px 8px rgba(6,68,46,.04);flex-wrap:wrap}
-.status-left{display:flex;align-items:center;gap:9px}
-#statusDot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex-shrink:0}
-#statusEn{font-size:.82rem;font-weight:600}
-#statusAr{font-family:var(--ar);font-size:.76rem;color:var(--muted);direction:rtl}
-#lastSaved{font-family:var(--mono);font-size:.62rem;color:var(--muted)}
-#alertBanner{display:none;margin-bottom:16px;border-radius:16px;border:1px solid rgba(192,57,43,.22);background:var(--soft-danger);color:var(--danger);padding:14px 18px;box-shadow:0 8px 28px rgba(192,57,43,.1);align-items:center;justify-content:space-between;gap:14px}
-#alertBanner.active{display:flex}
-.alert-main{display:flex;gap:12px;align-items:center}
-.alert-main i{font-size:1.4rem}
-.alert-title{font-weight:950;font-size:.9rem}
-.alert-ar{font-family:var(--ar);direction:rtl;font-size:.8rem;margin-top:2px}
-#alertDetail{font-family:var(--mono);font-weight:800;font-size:.76rem;text-align:right}
-.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
-.metric{position:relative;overflow:hidden;cursor:pointer;background:linear-gradient(180deg,#fffefb,var(--card));border:1px solid rgba(196,154,58,.2);border-top:4px solid var(--status);border-radius:20px;padding:16px 16px 10px;box-shadow:var(--shadow);transition:transform .18s,border-color .2s,box-shadow .2s}
-.metric:hover{transform:translateY(-2px);border-color:rgba(196,154,58,.4);box-shadow:0 14px 44px rgba(48,39,18,.13)}
-.metric.selected{border-color:var(--gold)!important;box-shadow:0 0 0 2px rgba(196,154,58,.22),var(--shadow)}
-.metric::before{content:"";position:absolute;inset:auto -36px -36px auto;width:120px;height:120px;border-radius:50%;background:var(--status-soft);pointer-events:none}
-.metric.good{--status:#16894E;--status-soft:#E8F0E2}
-.metric.warning{--status:#C49A3A;--status-soft:#fff5d8}
-.metric.danger{--status:#C0392B;--status-soft:#FDECEA}
-.metric-top{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}
-.metric-icon{width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.metric-icon svg{width:100%;height:100%}
-.metric-label-en{color:var(--deep);font-size:.72rem;text-transform:uppercase;font-weight:950;letter-spacing:.08em}
-.metric-label-ar{font-family:var(--ar);direction:rtl;text-align:left;color:var(--muted);font-size:.82rem;margin-top:2px;font-weight:800}
-.mc-sub{font-size:.56rem;color:var(--gold);margin-top:2px;font-style:italic}
-.badge{padding:4px 8px;border-radius:999px;background:var(--status-soft);color:var(--status);font-family:var(--mono);font-size:.62rem;font-weight:950;text-transform:uppercase;border:1px solid rgba(0,0,0,.05);white-space:nowrap}
-.metric-value{position:relative;z-index:1;margin-top:12px;display:flex;align-items:baseline;gap:6px;font-family:var(--mono)}
-.metric-number{font-size:clamp(2.4rem,3.6vw,4rem);font-weight:950;letter-spacing:-.1em;line-height:.88;color:var(--deep)}
-.metric.warning .metric-number{color:var(--gold)}
-.metric.danger .metric-number{color:var(--danger)}
-.unit{font-weight:950;color:var(--muted);font-size:.88rem}
-.optimal{position:relative;z-index:1;margin-top:8px;color:var(--gold);font-weight:900;font-size:.76rem}
-.mc-bar{position:relative;z-index:1;margin-top:6px;height:3px;background:rgba(6,68,46,.08);border-radius:2px;overflow:hidden}
-.mc-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--status),var(--gold));transition:width .6s ease}
-.spark{position:relative;z-index:1;margin-top:8px;width:100%;height:24px}
-.spark path{fill:none;stroke:var(--status);stroke-width:2;stroke-linecap:round;opacity:.82}
-.spark .fill{fill:var(--status-soft);stroke:none;opacity:.6}
-.mc-hint{position:relative;z-index:1;font-size:.56rem;color:var(--muted);margin-top:4px;opacity:0;transition:opacity .2s}
-.metric:hover .mc-hint,.metric.selected .mc-hint{opacity:1}
-.metric.selected .mc-hint{color:var(--gold)}
-.panel{background:rgba(255,253,247,.9);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
-.panel-pad{padding:18px}
-.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.panel-title{margin:0;font-size:.86rem;color:var(--deep);font-weight:950;text-transform:uppercase;letter-spacing:-.02em}
-.panel-ar{font-family:var(--ar);direction:rtl;text-align:left;margin-top:3px;color:var(--muted);font-weight:800;font-size:.78rem}
-.action-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
-.rec-panel{padding:22px;border:2px solid rgba(196,154,58,.28);background:linear-gradient(135deg,rgba(248,244,234,.98),rgba(255,253,247,.98));display:flex;flex-direction:column}
-.rec-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid rgba(196,154,58,.2)}
-.rec-header i{font-size:1.5rem;color:var(--gold)}
-.rec-title-en{font-size:.82rem;font-weight:950;letter-spacing:.12em;text-transform:uppercase;color:var(--deep)}
-.rec-title-ar{font-family:var(--ar);direction:rtl;font-size:1rem;font-weight:900;color:var(--deep);margin-top:2px}
-.dec-item{display:flex;gap:12px;padding:14px;border-radius:14px;margin-bottom:10px;background:rgba(255,253,247,.95);border:1px solid var(--border);align-items:flex-start;box-shadow:0 2px 8px rgba(6,68,46,.04)}
-.dec-item:last-child{margin-bottom:0}
-.ptag{font-size:.62rem;font-weight:900;padding:4px 10px;border-radius:999px;white-space:nowrap;margin-top:2px;flex-shrink:0;letter-spacing:.04em}
-.ph{background:rgba(192,57,43,.1);color:var(--danger);border:1px solid rgba(192,57,43,.2)}
-.pm{background:rgba(196,154,58,.12);color:#8B5E00;border:1px solid rgba(196,154,58,.25)}
-.pl{background:rgba(22,137,78,.1);color:#16894E;border:1px solid rgba(22,137,78,.2)}
-.dec-en{font-size:.88rem;line-height:1.55;color:var(--deep);font-weight:600}
-.dec-ar{font-family:var(--ar);font-size:.8rem;color:var(--muted);direction:rtl;margin-top:5px;line-height:1.6;font-weight:700}
-.zones-panel{padding:18px;display:flex;flex-direction:column;gap:12px}
-.weighted-row{background:linear-gradient(135deg,var(--soft-sage),rgba(230,211,163,.35));border:1px solid rgba(196,154,58,.22);border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
-.wt-label{font-size:.62rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--deep)}
-.wt-label-ar{font-family:var(--ar);font-size:.72rem;color:var(--muted);direction:rtl;margin-top:3px}
-.wt-val{font-family:var(--mono);font-size:1.7rem;font-weight:950;color:var(--deep);letter-spacing:-.05em}
-.wt-sub{font-size:.62rem;color:var(--muted);text-align:right;margin-top:3px}
-.zones-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.zone-card{border-radius:13px;padding:14px;border:1px solid}
-.zone-card.wet{background:rgba(25,118,210,.05);border-color:rgba(25,118,210,.2)}
-.zone-card.cnp{background:var(--soft-sage);border-color:rgba(6,68,46,.15)}
-.zn{font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
-.zn.wet{color:var(--blue)}.zn.cnp{color:var(--deep)}
-.zn-ar{font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl;margin-bottom:10px}
-.z-readings{display:flex;justify-content:space-between}
-.z-val{text-align:center}
-.z-num{font-family:var(--mono);font-size:1.7rem;font-weight:950;letter-spacing:-.05em;color:var(--deep)}
-.z-lbl{font-size:.6rem;color:var(--muted);margin-top:2px}
-.z-src{font-size:.56rem;color:var(--muted);margin-top:7px;padding-top:7px;border-top:1px solid var(--border)}
-.cooling-row{background:rgba(248,244,234,.9);border:1px solid var(--border);border-radius:11px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center}
-.cl-desc{font-size:.7rem;color:var(--deep);font-weight:700}
-.cl-desc-ar{font-family:var(--ar);font-size:.64rem;color:var(--muted);direction:rtl;margin-top:2px}
-.cl-val{font-family:var(--mono);font-size:1.4rem;font-weight:950;letter-spacing:-.04em;color:var(--deep)}
-.w-card{padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(248,244,234,.8);display:flex;justify-content:space-between;align-items:center}
-.w-lbl{font-size:.62rem;color:var(--muted);font-weight:600}
-.w-lbl-ar{font-family:var(--ar);font-size:.6rem;color:var(--muted);direction:rtl}
-.w-status{font-size:.72rem;font-weight:700;color:#16894E}
-.climate-row{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px}
-.chart-panel{padding:20px}
-.chart-controls{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
-.time-range{display:flex;gap:4px}
-.range-btn{padding:4px 11px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.66rem;font-weight:700;cursor:pointer;font-family:var(--mono);transition:all .18s}
-.range-btn:hover{border-color:var(--gold);color:var(--deep)}
-.range-btn.active{background:var(--deep);border-color:var(--deep);color:var(--light-gold)}
-.metric-btns{display:flex;gap:4px;flex-wrap:wrap}
-.mbtn{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.65rem;font-weight:700;cursor:pointer;font-family:var(--mono);transition:all .18s}
-.mbtn .mdot{width:6px;height:6px;border-radius:50%}
-.mbtn.active{background:var(--soft-sage);border-color:rgba(6,68,46,.2);color:var(--deep)}
-.chart-box{height:300px;border-radius:14px;border:1px solid rgba(196,154,58,.12);background:linear-gradient(180deg,#fffefb,#fffaf0);padding:12px}
-.chart-note{font-size:.6rem;color:var(--muted);margin-top:6px;font-family:var(--mono)}
-.zone-strip{display:none;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;margin-top:10px;border-radius:12px;background:linear-gradient(135deg,#E8F0E2,rgba(230,211,163,0.3));border:1px solid rgba(196,154,58,0.25)}
-.zone-strip.visible{display:flex}
-.zone-strip-label{font-size:.63rem;font-weight:900;color:var(--deep);text-transform:uppercase;letter-spacing:.1em;flex-shrink:0}
-.zbtn{padding:6px 14px;border-radius:999px;cursor:pointer;font-size:.72rem;font-weight:700;font-family:var(--mono);transition:all .18s;border:1px solid rgba(6,68,46,.2);background:#FFFDF7;color:var(--deep)}
-.zbtn:hover{border-color:var(--gold);background:rgba(196,154,58,.08)}
-.zbtn.zactive{background:var(--deep);border:2px solid var(--gold);color:var(--light-gold);font-weight:800}
-.gauge-panel{--vpd-color:var(--deep);--needle-rotation:-90deg;padding:20px;display:flex;flex-direction:column;justify-content:space-between}
-.gauge-wrap{text-align:center;margin:4px 0}
-.gauge-svg{width:min(270px,100%);height:auto;margin:0 auto;display:block}
-.needle{transform-origin:160px 160px;transform:rotate(var(--needle-rotation));transition:transform .35s ease}
-.gauge-value{font-family:var(--mono);font-size:clamp(2.8rem,5vw,4.6rem);font-weight:950;letter-spacing:-.12em;color:var(--vpd-color);line-height:.88}
-.gauge-unit{font-family:var(--mono);font-weight:950;color:var(--deep);font-size:.95rem;margin-left:5px}
-.gauge-scale{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
-.scale-item{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
-.scale-item b{display:block;color:var(--deep);font-size:.8rem}
-.advice{margin-top:12px;border-radius:13px;background:var(--soft-sage);border:1px solid rgba(143,175,122,.28);padding:13px;flex:1}
-#adviceEn{color:var(--deep);font-weight:850;font-size:.82rem;line-height:1.5}
-#adviceAr{margin-top:7px;font-family:var(--ar);direction:rtl;text-align:right;line-height:1.6;color:var(--forest);font-weight:800;font-size:.78rem}
-.refresh-btn{border:1px solid rgba(196,154,58,.36);background:linear-gradient(135deg,var(--deep),var(--forest));color:#fff;border-radius:999px;padding:10px 18px;display:inline-flex;align-items:center;gap:8px;font-weight:950;min-height:40px;cursor:pointer;font-size:.8rem;box-shadow:0 8px 20px rgba(6,68,46,.18);transition:all .18s}
-.refresh-btn:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(6,68,46,.25)}
-.footer-info{display:grid;grid-template-columns:repeat(4,1fr);border-radius:var(--radius) var(--radius) 0 0;overflow:hidden}
-.foot-item{min-height:88px;display:flex;align-items:center;gap:12px;padding:14px 16px;border-right:1px solid var(--border);background:rgba(255,253,247,.92)}
-.foot-item:last-child{border-right:none;justify-content:flex-end}
-.foot-item i{font-size:1.7rem;color:var(--gold);flex-shrink:0}
-.foot-item b{display:block;color:var(--deep);font-size:.82rem}
-.foot-item small{display:block;color:var(--muted);margin-top:3px;font-weight:750;font-size:.68rem}
-.footer-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(90deg,var(--forest),var(--deep));color:#fff;padding:13px 20px;flex-wrap:wrap;font-size:.82rem}
-.footer-bar span:last-child{font-family:var(--ar);direction:rtl}
-#footerSaved{font-family:var(--mono);font-size:.6rem;color:rgba(255,255,255,.4)}
-@media(max-width:1180px){
-  .app{grid-template-columns:1fr}
-  .sidebar{position:relative;min-height:auto;flex-direction:row;align-items:center;flex-wrap:wrap;padding:14px 16px;gap:14px}
-  .side-logo{justify-items:start;text-align:left;padding:0}
-  .nav{flex-direction:row;flex-wrap:wrap;gap:4px}
-  .nav a{padding:8px 12px;font-size:.78rem}
-  .side-art{display:none}
-  .metrics{grid-template-columns:repeat(2,1fr)}
-  .action-row,.climate-row{grid-template-columns:1fr}
-  .footer-info{grid-template-columns:repeat(2,1fr)}
-  .foot-item:nth-child(2){border-right:none}
-}
-@media(max-width:768px){
-  .main{padding:14px}
-  .topbar{grid-template-columns:1fr;padding:14px}
-  .status-row{justify-content:flex-start;gap:10px}
-  .tb-divider{display:none}
-  .metrics,.footer-info{grid-template-columns:1fr}
-  .action-row,.climate-row{grid-template-columns:1fr}
-  .footer-bar{flex-direction:column;text-align:center;gap:7px}
-  .refresh-btn{width:100%;justify-content:center}
-  .foot-item{border-right:none;border-bottom:1px solid var(--border);min-height:74px}
-  .foot-item:last-child{justify-content:flex-start;border-bottom:none}
-}
-#loadingBar{position:fixed;top:0;left:0;right:0;height:3px;z-index:9999;background:linear-gradient(90deg,var(--deep),var(--gold),var(--sage));background-size:200% 100%;transform:scaleX(0);transform-origin:left;transition:transform 0.3s ease}
-#loadingBar.running{transform:scaleX(0.85);animation:loadpulse 1.2s ease-in-out infinite alternate}
-#loadingBar.done{transform:scaleX(1);transition:transform 0.2s ease}
-@keyframes loadpulse{from{background-position:0% 0%}to{background-position:100% 0%}}
-.reports-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(3,45,33,0.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
-.reports-overlay.open{display:flex}
-.reports-panel{background:var(--cream);border-radius:28px;width:min(1100px,100%);box-shadow:0 32px 80px rgba(3,45,33,0.3);border:1px solid var(--border);overflow:hidden}
-.rep-header{background:linear-gradient(135deg,var(--forest),var(--deep));padding:22px 28px;display:flex;align-items:center;justify-content:space-between}
-.rep-header h2{margin:0;color:var(--light-gold);font-size:1.1rem;font-weight:950;text-transform:uppercase;letter-spacing:0.08em}
-.rep-header-ar{font-family:var(--ar);color:rgba(255,255,255,0.6);direction:rtl;font-size:0.82rem;margin-top:3px}
-.rep-close{width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;display:grid;place-items:center;cursor:pointer;font-size:1.2rem}
-.rep-close:hover{background:rgba(255,255,255,0.2)}
-.rep-body{padding:24px 28px}
-.rep-controls{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
-.rep-select{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--deep);font-size:0.8rem;font-weight:700;cursor:pointer}
-.rep-btn{padding:8px 16px;border-radius:10px;border:1px solid rgba(196,154,58,.3);background:var(--deep);color:var(--light-gold);font-size:0.78rem;font-weight:800;cursor:pointer;transition:all 0.18s}
-.rep-btn:hover{background:var(--forest)}
-.rep-loading{text-align:center;padding:40px;color:var(--muted);font-size:0.9rem}
-.rep-table-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border)}
-.rep-table{width:100%;border-collapse:collapse;font-size:0.8rem}
-.rep-table th{background:linear-gradient(135deg,var(--soft-sage),rgba(230,211,163,0.3));padding:11px 14px;text-align:left;font-size:0.62rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--deep);white-space:nowrap;border-bottom:2px solid rgba(196,154,58,.3)}
-.rep-table td{padding:11px 14px;border-bottom:1px solid var(--border);color:var(--deep);font-family:var(--mono);font-size:0.8rem;white-space:nowrap}
-.rep-table tr:last-child td{border-bottom:none}
-.rep-table tr:hover td{background:rgba(196,154,58,0.05)}
-.rep-good{color:#16894E;font-weight:800}.rep-warn{color:var(--gold);font-weight:800}.rep-bad{color:var(--danger);font-weight:800}
-.rep-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:0.6rem;font-weight:900}
-.rep-badge.g{background:rgba(22,137,78,0.1);color:#16894E}
-.rep-badge.w{background:rgba(196,154,58,0.12);color:#8B5E00}
-.rep-badge.d{background:rgba(192,57,43,0.1);color:var(--danger)}
-.rep-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.rep-sum-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
-.rep-sum-val{font-family:var(--mono);font-size:1.6rem;font-weight:950;color:var(--deep);letter-spacing:-0.05em}
-.rep-sum-lbl{font-size:0.62rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-top:4px}
-.rep-sum-sub{font-family:var(--ar);font-size:0.68rem;color:var(--muted);margin-top:2px;direction:rtl}
-.rep-insight{background:linear-gradient(135deg,var(--soft-sage),rgba(255,253,247,0.9));border:1px solid rgba(143,175,122,0.3);border-radius:14px;padding:16px;margin-top:16px}
-.rep-insight-title{font-size:0.7rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--deep);margin-bottom:10px;display:flex;align-items:center;gap:7px}
-.rep-insight-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(143,175,122,0.2);align-items:flex-start}
-.rep-insight-item:last-child{border-bottom:none}
-.rep-insight-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
-.rep-insight-text{font-size:0.8rem;color:var(--deep);line-height:1.5}
-.rep-insight-ar{font-family:var(--ar);font-size:0.72rem;color:var(--muted);direction:rtl;margin-top:2px}
-@media(max-width:768px){.rep-summary{grid-template-columns:repeat(2,1fr)}.rep-body{padding:16px}}
+  :root{
+    --bg:#0A0F1C;
+    --surface:#111A30;
+    --surface-2:#16223E;
+    --raise:#1A2848;
+    --line:rgba(255,255,255,.07);
+    --line-2:rgba(255,255,255,.13);
+    --ink:#E6ECF7;
+    --muted:#8D9AB4;
+    --faint:#5C6b86;
+    --gold:#D9B450;
+    --gold-soft:rgba(217,180,80,.14);
+    --clean:#3ECB86;
+    --purify:#F3B24A;
+    --fail:#F0625A;
+    --clean-soft:rgba(62,203,134,.14);
+    --purify-soft:rgba(243,178,74,.14);
+    --fail-soft:rgba(240,98,90,.14);
+    --shadow:0 18px 44px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  body{background:#05070E;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    display:flex;justify-content:center;}
+  .app{width:100%;max-width:460px;height:100dvh;min-height:100dvh;position:relative;overflow:hidden;
+    background:radial-gradient(120% 60% at 50% -10%,rgba(217,180,80,.10),transparent 60%),linear-gradient(180deg,#0C1424 0%,#080D18 100%);
+    border-left:1px solid var(--line);border-right:1px solid var(--line);}
+ 
+  /* ---- panels / stack navigation ---- */
+  .panel{position:absolute;inset:0;display:flex;flex-direction:column;background:transparent;}
+  #detail{transform:translateX(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);z-index:25;
+    background:linear-gradient(180deg,#0C1424 0%,#080D18 100%);}
+  #detail.open{transform:translateX(0);}
+ 
+  .topbar{flex:0 0 auto;height:58px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;
+    background:rgba(10,15,28,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);z-index:20;}
+  .brand{display:flex;align-items:center;gap:9px;}
+  .mark{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+    background:radial-gradient(circle at 50% 30%,#1c2b4c,#0a1120);border:1px solid rgba(217,180,80,.5);box-shadow:inset 0 0 10px rgba(217,180,80,.15);}
+  .brand b{font-size:16px;letter-spacing:.5px;font-weight:800;color:#EBD79A;}
+  .top-actions{display:flex;gap:8px;}
+  .icon-btn{width:38px;height:38px;border:0;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.05);color:var(--ink);cursor:pointer;font-size:15px;border:1px solid var(--line);}
+  .icon-btn:active{transform:scale(.94);}
+ 
+  .scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;}
+  .scroll::-webkit-scrollbar{display:none;}
+ 
+  /* ---- hero balance ---- */
+  .hero{padding:18px 16px 6px;}
+  .hero .eyebrow{display:flex;align-items:center;justify-content:space-between;color:var(--faint);font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;}
+  .hero h1{margin:9px 0 2px;font-size:30px;font-weight:820;letter-spacing:-.8px;}
+  .hero h1 span{color:var(--muted);font-size:15px;font-weight:700;letter-spacing:0;}
+  .balance{margin-top:16px;}
+  .balance-track{height:14px;border-radius:8px;overflow:hidden;display:flex;background:var(--surface);border:1px solid var(--line);position:relative;}
+  .balance-track i{display:block;height:100%;}
+  .b-clean{background:linear-gradient(90deg,#34b978,#43d692);}
+  .b-purify{background:linear-gradient(90deg,#e7a63b,#f6bd5a);}
+  .b-fail{background:linear-gradient(90deg,#e15750,#f26f68);}
+  .fulcrum{position:absolute;top:-4px;bottom:-4px;left:50%;width:2px;transform:translateX(-50%);background:rgba(255,255,255,.28);border-radius:2px;}
+  .legend{margin-top:12px;display:flex;gap:16px;}
+  .legend div{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);font-weight:650;}
+  .legend b{color:var(--ink);font-weight:820;}
+  .dot{width:9px;height:9px;border-radius:50%;}
+  .dot.c{background:var(--clean);} .dot.p{background:var(--purify);} .dot.f{background:var(--fail);}
+ 
+  .segment{position:sticky;top:0;z-index:15;padding:14px 16px 12px;background:linear-gradient(180deg,rgba(10,15,28,.96),rgba(10,15,28,.82));backdrop-filter:blur(10px);display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;}
+  .segment::-webkit-scrollbar{display:none;}
+  .seg{flex:0 0 auto;padding:9px 15px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);color:var(--muted);font-size:13px;font-weight:750;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;transition:.15s;}
+  .seg .dot{width:8px;height:8px;}
+  .seg.active{color:#0A0F1C;background:var(--ink);border-color:var(--ink);}
+  .seg[data-v="clean"].active{background:var(--clean);border-color:var(--clean);}
+  .seg[data-v="purify"].active{background:var(--purify);border-color:var(--purify);}
+  .seg[data-v="fail"].active{background:var(--fail);border-color:var(--fail);}
+ 
+  .list-head{padding:6px 18px 10px;display:flex;align-items:baseline;justify-content:space-between;}
+  .list-head h2{font-size:13px;font-weight:800;letter-spacing:.3px;color:var(--muted);text-transform:uppercase;}
+  .list-head span{font-size:12px;color:var(--faint);font-weight:650;}
+ 
+  .list{padding:0 14px 26px;display:flex;flex-direction:column;gap:10px;}
+  .card{position:relative;border-radius:20px;padding:15px 15px 14px 18px;background:linear-gradient(180deg,var(--surface),#0F1830);border:1px solid var(--line);cursor:pointer;transition:transform .14s,border-color .14s;}
+  .card:active{transform:scale(.985);border-color:var(--line-2);}
+  .card::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--faint);}
+  .card.clean::before{background:var(--clean);}
+  .card.purify::before{background:var(--purify);}
+  .card.fail::before{background:var(--fail);}
+  .c-top{display:flex;align-items:center;gap:10px;}
+  .avatar{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center;font-size:11px;font-weight:820;color:var(--muted);background:var(--surface-2);border:1px solid var(--line-2);}
+  .avatar.fund{color:var(--gold);background:var(--gold-soft);border-color:rgba(217,180,80,.3);}
+  .c-who{min-width:0;flex:1;}
+  .c-who b{display:block;font-size:13px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .c-who span{font-size:11.5px;color:var(--faint);}
+  .c-time{font-size:11.5px;color:var(--faint);font-weight:650;flex:0 0 auto;}
+  .c-mid{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:12px;}
+  .c-ticker{font-size:25px;font-weight:850;letter-spacing:-.8px;line-height:1;}
+  .c-co{margin-top:4px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;}
+  .badge{flex:0 0 auto;padding:8px 12px;border-radius:12px;font-size:12px;font-weight:820;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .badge.clean{color:var(--clean);background:var(--clean-soft);}
+  .badge.purify{color:var(--purify);background:var(--purify-soft);}
+  .badge.fail{color:var(--fail);background:var(--fail-soft);}
+  .c-meta{margin-top:13px;padding-top:12px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;font-size:11.5px;color:var(--muted);font-weight:600;}
+  .side{padding:4px 9px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line-2);font-weight:750;font-size:11px;letter-spacing:.2px;color:var(--ink);}
+  .side.sell{color:var(--gold);background:var(--gold-soft);border-color:rgba(217,180,80,.25);}
+  .sep{color:var(--faint);}
+  .chev{margin-left:auto;color:var(--faint);font-size:15px;}
+ 
+  /* ---- bottom tabs ---- */
+  .tabs{flex:0 0 auto;height:74px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:rgba(9,13,24,.92);backdrop-filter:blur(16px);border-top:1px solid var(--line);z-index:20;}
+  .tab{border:0;background:transparent;color:var(--faint);display:grid;place-items:center;gap:3px;font-size:10.5px;font-weight:750;cursor:pointer;border-radius:14px;}
+  .tab .ti{font-size:18px;line-height:1;}
+  .tab.active{color:var(--gold);}
+ 
+  /* ---- filter sheet ---- */
+  .scrim{position:absolute;inset:0;background:rgba(4,7,14,.6);opacity:0;pointer-events:none;transition:.2s;z-index:30;}
+  .scrim.open{opacity:1;pointer-events:auto;}
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:31;transform:translateY(100%);transition:transform .26s cubic-bezier(.32,.72,0,1);background:linear-gradient(180deg,#13203A,#0C1424);border-top:1px solid var(--line-2);border-radius:26px 26px 0 0;padding:10px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:var(--shadow);}
+  .sheet.open{transform:translateY(0);}
+  .grab{width:40px;height:4px;border-radius:3px;background:var(--line-2);margin:4px auto 14px;}
+  .sheet h3{margin:0 0 4px;font-size:17px;font-weight:820;}
+  .sheet .sub{margin:0 0 16px;font-size:12.5px;color:var(--muted);}
+  .field{height:44px;border-radius:13px;background:var(--surface);border:1px solid var(--line-2);display:flex;align-items:center;gap:9px;padding:0 13px;color:var(--faint);margin-bottom:16px;}
+  .field input{border:0;background:transparent;color:var(--ink);width:100%;outline:0;font-size:14px;}
+  .flabel{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--faint);margin:0 0 8px;}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .chip{padding:9px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line-2);color:var(--muted);font-size:12.5px;font-weight:700;cursor:pointer;}
+  .chip.on{color:#0A0F1C;background:var(--gold);border-color:var(--gold);}
+  .apply{width:100%;height:50px;border:0;border-radius:15px;background:var(--gold);color:#1a1204;font-size:15px;font-weight:850;cursor:pointer;margin-top:4px;}
+ 
+  /* ---- DETAIL screen ---- */
+  .d-head{flex:0 0 auto;height:58px;padding:0 8px 0 6px;display:flex;align-items:center;gap:6px;background:rgba(10,15,28,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);z-index:20;}
+  .back{width:44px;height:44px;border:0;background:transparent;color:var(--ink);font-size:26px;cursor:pointer;border-radius:12px;}
+  .back:active{background:rgba(255,255,255,.06);}
+  .d-head .d-tk{font-size:15px;font-weight:820;letter-spacing:-.2px;}
+  .d-head .badge{margin-left:auto;margin-right:6px;padding:6px 11px;font-size:11.5px;}
+  .d-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:16px 16px 30px;}
+  .d-scroll::-webkit-scrollbar{display:none;}
+  .d-hero .eyebrow{color:var(--faint);font-size:11.5px;font-weight:750;}
+  .d-hero .d-big{font-size:42px;font-weight:860;letter-spacing:-1.4px;line-height:1;margin-top:8px;}
+  .d-hero .d-co{margin-top:6px;color:var(--muted);font-size:14px;}
+  .d-hero .d-line{margin-top:14px;display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--muted);font-weight:600;flex-wrap:wrap;}
+ 
+  .sect{margin-top:18px;border-radius:20px;background:var(--surface);border:1px solid var(--line);overflow:hidden;}
+  .sect-h{padding:14px 16px 4px;display:flex;align-items:center;justify-content:space-between;}
+  .sect-h h3{font-size:14px;font-weight:820;letter-spacing:.2px;}
+  .sect-h em{font-style:normal;color:var(--faint);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;}
+  .row{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid var(--line);}
+  .row:first-of-type{border-top:0;}
+  .row small{color:var(--muted);font-size:12.5px;font-weight:650;}
+  .row b{font-size:13px;font-weight:750;}
+  .vchip{padding:6px 11px;border-radius:9px;font-size:11.5px;font-weight:800;}
+  .vchip.pass{color:var(--clean);background:var(--clean-soft);}
+  .vchip.watch{color:var(--purify);background:var(--purify-soft);}
+  .vchip.fail{color:var(--fail);background:var(--fail-soft);}
+  .meter-row{padding:13px 16px;border-top:1px solid var(--line);}
+  .meter-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .meter-top small{color:var(--muted);font-size:12.5px;font-weight:650;}
+  .meter-top b{font-size:13px;font-weight:800;}
+  .meter{height:8px;border-radius:6px;background:var(--surface-2);overflow:hidden;}
+  .meter i{display:block;height:100%;border-radius:6px;}
+  .meter i.ok{background:var(--clean);}
+  .meter i.warn{background:var(--purify);}
+  .meter i.adv{background:linear-gradient(90deg,#5b6b90,#8391b0);}
+  .adv-tag{color:var(--faint);font-size:11px;font-weight:700;}
+  .why{padding:14px 16px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;line-height:1.55;}
+  .facts{padding:6px 16px 14px;display:grid;grid-template-columns:1fr 1fr;gap:14px 12px;}
+  .fact small{display:block;color:var(--faint);font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;}
+  .fact b{display:block;margin-top:4px;font-size:13px;font-weight:750;}
+  .disc{margin-top:16px;color:var(--faint);font-size:11px;line-height:1.5;text-align:center;padding:0 8px;}
+ 
+  .concept-tag{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:40;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);background:rgba(0,0,0,.35);padding:3px 10px;border-radius:999px;pointer-events:none;}
 </style>
 </head>
 <body>
-<div id="loadingBar"></div>
-<div class="app">
-<aside class="sidebar">
-  <div class="side-logo">
-    <div style="width:120px;max-width:82%;height:auto"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" role="img" aria-label="Al-Waseel Farm logo">
-  <defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E7D29A"/><stop offset="0.52" stop-color="#C8A96E"/><stop offset="1" stop-color="#8B6914"/></linearGradient>
-  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000000" flood-opacity="0.22"/></filter></defs>
-  <rect width="900" height="900" rx="220" fill="#F7F0E3"/>
-  <rect x="44" y="44" width="812" height="812" rx="188" fill="none" stroke="url(#gold)" stroke-width="20"/>
-  <rect x="82" y="82" width="736" height="736" rx="158" fill="none" stroke="#C8A96E" stroke-width="4" opacity="0.55"/>
-  <g filter="url(#shadow)">
-    <path d="M202 598 C270 526 318 520 384 564 C432 596 490 607 548 576 C602 547 658 535 708 568 L708 642 L202 642 Z" fill="url(#gold)" opacity="0.92"/>
-    <path d="M236 590 L236 526 L272 526 L272 558 L306 558 L306 494 L352 494 L352 564 L392 564 L392 516 L444 516 L444 570 L489 570 L489 498 L537 498 L537 558 L590 558 L590 510 L634 510 L634 585" fill="none" stroke="#8B6914" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
-  </g>
-  <text x="450" y="330" text-anchor="middle" font-family="Tahoma,serif" font-size="116" font-weight="800" fill="#1E2D1A">&#x627;&#x644;&#x648;&#x635;&#x64A;&#x644;</text>
-  <text x="450" y="228" text-anchor="middle" font-family="Tahoma,serif" font-size="44" font-weight="600" fill="#1E2D1A" opacity="0.82">&#x645;&#x632;&#x631;&#x639;&#x629;</text>
-  <text x="450" y="404" text-anchor="middle" font-family="Arial,sans-serif" font-size="39" font-weight="700" letter-spacing="8" fill="#4A6741">ALWASEEL FARM</text>
-  <line x1="260" y1="448" x2="640" y2="448" stroke="url(#gold)" stroke-width="6" stroke-linecap="round"/>
-  <text x="450" y="706" text-anchor="middle" font-family="Tahoma,serif" font-size="34" font-weight="700" fill="#1E2D1A">&#x627;&#x644;&#x62F;&#x631;&#x639;&#x64A;&#x629; &middot; &#x627;&#x644;&#x631;&#x64A;&#x627;&#x636;</text>
-</svg></div>
-    <div>
-      <div class="brand-ar">&#x645;&#x632;&#x631;&#x639;&#x629; &#x627;&#x644;&#x648;&#x635;&#x64A;&#x644;</div>
-      <div class="brand-en">AL-WASEEL FARM</div>
-      <div class="side-meta"><span>Diriyah</span><span>&middot;</span><span>Riyadh</span></div>
-    </div>
-  </div>
-  <nav class="nav" aria-label="Platform navigation">
-    <a class="active" onclick="navClick(this,'top')"><i class="ti ti-home"></i>Overview</a>
-    <a onclick="navClick(this,'environment')"><i class="ti ti-thermometer"></i>Environment</a>
-    <a onclick="navClick(this,'chart')"><i class="ti ti-chart-line"></i>Climate Trends</a>
-    <a onclick="navClick(this,'alerts')"><i class="ti ti-bell"></i>Alerts</a>
-    <a onclick="navClick(this,null);openReports()"><i class="ti ti-file-analytics"></i>Operations Report</a>
-    <a onclick="navClick(this,null);openCouncil()"><i class="ti ti-brain"></i>Expert Council</a>
-    <a onclick="navClick(this,'settings')"><i class="ti ti-settings"></i>Settings</a>
-    <a href="/api/auth/logout" class="logout-link"><i class="ti ti-logout"></i>Sign Out &mdash; &#x62E;&#x631;&#x648;&#x62C;</a>
-  </nav>
-  <div class="side-art">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 170" fill="none"><path d="M20 139h380M55 139V90l23-18 23 18v49M137 139V64h46v75M157 64V40h24v24M218 139V83l37-26 37 26v56M322 139V72h39v67" stroke="#C49A3A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/><path d="M70 99h12M70 116h12M151 83h10M151 101h10M151 119h10M235 96h10M255 96h10M275 96h10M335 91h9M335 110h9" stroke="#06442E" stroke-width="4" stroke-linecap="round" opacity=".65"/><path d="M25 151c62-14 99-13 151-4s88 5 127-3 64-4 92 5" stroke="#8FAF7A" stroke-width="3" stroke-linecap="round" opacity=".75"/></svg>
-    <small>Al-Waseel Farm Operations Platform</small>
-  </div>
-</aside>
-<main class="main" id="top">
-<header class="topbar">
-  <div class="title-block">
-    <h1>Farm Environment Monitor</h1>
-    <p>&#x645;&#x632;&#x631;&#x639;&#x629; &#x627;&#x644;&#x648;&#x635;&#x64A;&#x644; &mdash; &#x645;&#x646;&#x635;&#x629; &#x627;&#x644;&#x639;&#x645;&#x644;&#x64A;&#x627;&#x62A; &#x627;&#x644;&#x632;&#x631;&#x627;&#x639;&#x64A;&#x629;</p>
-  </div>
-  <div class="status-row">
-    <div class="status-item"><i class="ti ti-clock"></i><span id="timestamp">--:--:--</span><small>Last Reading</small></div>
-    <div class="tb-divider"></div>
-    <div class="status-item"><i class="ti ti-calendar"></i><span id="dateStamp">--</span><small>Date</small></div>
-    <div class="tb-divider"></div>
-    <div class="status-item"><span class="online-dot"></span><span>Systems Online<small>All Sensors Active</small></span></div>
-  </div>
-</header>
-<div class="status-bar">
-  <div class="status-left"><div id="statusDot"></div><div id="statusEn">Initializing sensor network...</div><div id="statusAr">&#x62C;&#x627;&#x631;&#x64A; &#x62A;&#x647;&#x64A;&#x626;&#x629; &#x634;&#x628;&#x643;&#x629; &#x627;&#x644;&#x627;&#x633;&#x62A;&#x634;&#x639;&#x627;&#x631;...</div></div>
-  <div id="lastSaved">&mdash;</div>
-</div>
-<section id="alertBanner" aria-live="polite">
-  <div class="alert-main"><i class="ti ti-alert-triangle"></i>
-    <div><div class="alert-title">Environment Alert — Action Required</div><div class="alert-ar">&#x62A;&#x646;&#x628;&#x64A;&#x647; &#x628;&#x64A;&#x626;&#x64A; &mdash; &#x64A;&#x633;&#x62A;&#x644;&#x632;&#x645; &#x62A;&#x62F;&#x62E;&#x644;</div></div>
-  </div>
-  <div id="alertDetail"></div>
-</section>
-<section id="environment" class="metrics">
-  <article class="metric good" id="co2Card" onclick="toggleMetric('co2')">
-    <div class="metric-top">
-      <div class="metric-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><path d="M22 50h25a12 12 0 0 0 1-24 17 17 0 0 0-32-2A14 14 0 0 0 22 50Z" stroke="#06442E" stroke-width="4" stroke-linejoin="round"/><text x="19" y="39" font-family="Arial" font-size="12" font-weight="700" fill="#C49A3A">CO&#x2082;</text></svg></div>
-      <div><div class="metric-label-en">CO&#x2082; Level</div><div class="metric-label-ar">&#x62B;&#x627;&#x646;&#x64A; &#x623;&#x643;&#x633;&#x64A;&#x62F; &#x627;&#x644;&#x643;&#x631;&#x628;&#x648;&#x646;</div></div>
-      <div id="co2Status" class="badge">Normal</div>
-    </div>
-    <div class="metric-value"><span id="co2Value" class="metric-number">&mdash;</span><span class="unit">ppm</span></div>
-    <div class="optimal">Target range: 350&ndash;500 ppm</div>
-    <div class="mc-bar"><div class="mc-bar-fill" id="bar-co2" style="width:0%"></div></div>
-    <svg class="spark" viewBox="0 0 220 28" preserveAspectRatio="none"><path class="fill" d="M0 20 C18 17 28 18 43 12 S80 21 99 16 124 13 142 22 179 11 220 18 V28 H0Z"/><path d="M0 20 C18 17 28 18 43 12 S80 21 99 16 124 13 142 22 179 11 220 18"/></svg>
-    <div class="mc-hint">Click to isolate metric</div>
-  </article>
-  <article class="metric good" id="tempCard" onclick="toggleMetric('temp')">
-    <div class="metric-top">
-      <div class="metric-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><path d="M32 7a9 9 0 0 0-9 9v20.7a16 16 0 1 0 18 0V16a9 9 0 0 0-9-9Z" stroke="#06442E" stroke-width="4" stroke-linecap="round"/><path d="M32 20v25" stroke="#8FAF7A" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="47" r="8" fill="#E8F0E2" stroke="#06442E" stroke-width="4"/></svg></div>
-      <div><div class="metric-label-en">Temperature</div><div class="metric-label-ar">&#x62F;&#x631;&#x62C;&#x629; &#x627;&#x644;&#x62D;&#x631;&#x627;&#x631;&#x629;</div><div class="mc-sub">Weighted avg: 70% canopy &middot; 30% wet wall</div></div>
-      <div id="tempStatus" class="badge">Optimal</div>
-    </div>
-    <div class="metric-value"><span id="tempValue" class="metric-number">&mdash;</span><span class="unit">&deg;C</span></div>
-    <div class="optimal">Operational range: 16&ndash;22 &deg;C</div>
-    <div class="mc-bar"><div class="mc-bar-fill" id="bar-temp" style="width:0%"></div></div>
-    <svg class="spark" viewBox="0 0 220 28" preserveAspectRatio="none"><path class="fill" d="M0 22 C25 8 40 18 58 16 S98 5 122 18 154 26 176 12 201 8 220 18 V28 H0Z"/><path d="M0 22 C25 8 40 18 58 16 S98 5 122 18 154 26 176 12 201 8 220 18"/></svg>
-    <div class="mc-hint">Click to drill down by zone</div>
-  </article>
-  <article class="metric good" id="humidityCard" onclick="toggleMetric('hum')">
-    <div class="metric-top">
-      <div class="metric-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><path d="M32 7C22 20 15 30 15 40a17 17 0 0 0 34 0C49 30 42 20 32 7Z" stroke="#1976D2" stroke-width="4" stroke-linejoin="round"/><path d="M24 43c2.5 5 9.2 7.5 15 2.5" stroke="#8FAF7A" stroke-width="4" stroke-linecap="round"/></svg></div>
-      <div><div class="metric-label-en">Humidity</div><div class="metric-label-ar">&#x627;&#x644;&#x631;&#x637;&#x648;&#x628;&#x629; &#x627;&#x644;&#x646;&#x633;&#x628;&#x64A;&#x629;</div><div class="mc-sub">Weighted avg: 70% canopy &middot; 30% wet wall</div></div>
-      <div id="humidityStatus" class="badge">Optimal</div>
-    </div>
-    <div class="metric-value"><span id="humidityValue" class="metric-number">&mdash;</span><span class="unit">%</span></div>
-    <div class="optimal">Operational range: 60&ndash;75 %</div>
-    <div class="mc-bar"><div class="mc-bar-fill" id="bar-hum" style="width:0%"></div></div>
-    <svg class="spark" viewBox="0 0 220 28" preserveAspectRatio="none"><path class="fill" d="M0 21 C24 22 31 11 51 9 S86 27 111 18 137 11 154 20 186 27 220 8 V28 H0Z"/><path d="M0 21 C24 22 31 11 51 9 S86 27 111 18 137 11 154 20 186 27 220 8"/></svg>
-    <div class="mc-hint">Click to drill down by zone</div>
-  </article>
-  <article class="metric good" id="vpdCard" onclick="toggleMetric('vpd')">
-    <div class="metric-top">
-      <div class="metric-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><path d="M52 10C30 12 15 25 15 43c0 7 4 11 10 11 18 0 29-20 27-44Z" stroke="#06442E" stroke-width="4" stroke-linejoin="round"/><path d="M18 51c9-17 18-25 31-37" stroke="#8FAF7A" stroke-width="4" stroke-linecap="round"/></svg></div>
-      <div><div class="metric-label-en">VPD</div><div class="metric-label-ar">&#x639;&#x62C;&#x632; &#x636;&#x63A;&#x637; &#x627;&#x644;&#x628;&#x62E;&#x627;&#x631;</div></div>
-      <div id="vpdStatus" class="badge">Optimal</div>
-    </div>
-    <div class="metric-value"><span id="vpdValue" class="metric-number">&mdash;</span><span class="unit">kPa</span></div>
-    <div class="optimal">Operational range: 0.5&ndash;1.0 kPa</div>
-    <div class="mc-bar"><div class="mc-bar-fill" id="bar-vpd" style="width:0%"></div></div>
-    <svg class="spark" viewBox="0 0 220 28" preserveAspectRatio="none"><path class="fill" d="M0 21 C22 11 32 18 45 16 S75 7 99 19 132 28 152 15 185 7 220 14 V28 H0Z"/><path d="M0 21 C22 11 32 18 45 16 S75 7 99 19 132 28 152 15 185 7 220 14"/></svg>
-    <div class="mc-hint">Click to isolate metric</div>
-  </article>
-</section>
-<div class="action-row" id="alerts">
-  <div class="panel rec-panel">
-    <div class="rec-header"><i class="ti ti-clipboard-list"></i>
-      <div><div class="rec-title-en">Operational Directives</div><div class="rec-title-ar">&#x627;&#x644;&#x62A;&#x648;&#x62C;&#x64A;&#x647;&#x627;&#x62A; &#x627;&#x644;&#x62A;&#x634;&#x63A;&#x64A;&#x644;&#x64A;&#x629; &mdash; &#x625;&#x62C;&#x631;&#x627;&#x621;&#x627;&#x62A; &#x627;&#x644;&#x645;&#x64A;&#x62F;&#x627;&#x646;</div></div>
-    </div>
-    <div id="decisionsBody"></div>
-  </div>
-  <div class="panel zones-panel">
-    <div class="panel-head"><div>
-      <h2 class="panel-title"><i class="ti ti-building-warehouse" style="margin-right:5px"></i>Zone Monitoring</h2>
-      <div class="panel-ar">&#x645;&#x631;&#x627;&#x642;&#x628;&#x629; &#x627;&#x644;&#x645;&#x646;&#x627;&#x637;&#x642; &mdash; &#x62A;&#x628;&#x631;&#x64A;&#x62F; &#x648;&#x645;&#x62D;&#x635;&#x648;&#x644;</div>
-    </div></div>
-    <div class="weighted-row">
-      <div><div class="wt-label">Weighted Greenhouse Avg</div><div class="wt-label-ar">&#x645;&#x62A;&#x648;&#x633;&#x637; &#x645;&#x648;&#x632;&#x648;&#x646; &middot; 70% &#x645;&#x62D;&#x635;&#x648;&#x644; + 30% &#x62A;&#x628;&#x631;&#x64A;&#x62F;</div></div>
-      <div style="text-align:right"><div class="wt-val" id="wtTemp">&mdash;&deg;C</div><div class="wt-sub" id="wtHum">Humidity: &mdash;%</div></div>
-    </div>
-    <div class="zones-grid">
-      <div class="zone-card wet">
-        <div class="zn wet">&#x1F30A; Wet Wall Zone</div><div class="zn-ar">&#x645;&#x646;&#x637;&#x642;&#x629; &#x627;&#x644;&#x62C;&#x62F;&#x627;&#x631; &#x627;&#x644;&#x645;&#x628;&#x644;&#x644; &middot; 30%</div>
-        <div class="z-readings">
-          <div class="z-val"><div class="z-num" id="hubTemp">&mdash;</div><div class="z-lbl">&deg;C</div></div>
-          <div class="z-val"><div class="z-num" id="hubHum">&mdash;</div><div class="z-lbl">%</div></div>
-        </div>
-        <div class="z-src">Hub 2 &middot; Cooling wall sensor</div>
-      </div>
-      <div class="zone-card cnp">
-        <div class="zn cnp">&#x1F33F; Canopy Zone</div><div class="zn-ar">&#x645;&#x646;&#x637;&#x642;&#x629; &#x627;&#x644;&#x645;&#x62D;&#x635;&#x648;&#x644; &middot; 70%</div>
-        <div class="z-readings">
-          <div class="z-val"><div class="z-num" id="canTemp">&mdash;</div><div class="z-lbl">&deg;C</div></div>
-          <div class="z-val"><div class="z-num" id="canHum">&mdash;</div><div class="z-lbl">%</div></div>
-        </div>
-        <div class="z-src">Meter Pro CO&#x2082; &middot; Canopy sensor</div>
-      </div>
-    </div>
-    <div class="cooling-row">
-      <div><div class="cl-desc">Cooling Gradient</div><div class="cl-desc-ar" id="clDesc">&#x62A;&#x62F;&#x631;&#x62C; &#x627;&#x644;&#x62A;&#x628;&#x631;&#x64A;&#x62F;</div></div>
-      <div style="text-align:right"><div class="cl-val" id="clVal">&mdash;</div><div style="font-size:.56rem;color:var(--muted)">&deg;C canopy vs wet wall</div></div>
-    </div>
-    <div class="w-card" style="margin-top:4px">
-      <div><div class="w-lbl">&#x1F4A7; Leak Detection Sensor</div><div class="w-lbl-ar">&#x645;&#x633;&#x62A;&#x634;&#x639;&#x631; &#x627;&#x644;&#x643;&#x634;&#x641; &#x639;&#x646; &#x627;&#x644;&#x62A;&#x633;&#x631;&#x628;</div></div>
-      <div id="w1Status" class="w-status">&mdash;</div>
-    </div>
-  </div>
-</div>
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px">
-  <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:10px">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Ambient Temperature</div>
-        <div style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">&#x62D;&#x631;&#x627;&#x631;&#x629; &#x627;&#x644;&#x645;&#x62D;&#x64A;&#x637; &#x627;&#x644;&#x62E;&#x627;&#x631;&#x62C;&#x64A; &middot; &#x627;&#x644;&#x62F;&#x631;&#x639;&#x64A;&#x629;</div>
-        <div style="font-size:.56rem;color:var(--muted);margin-top:2px;font-family:var(--mono)">Source: Open-Meteo API &middot; Diriyah station &middot; 10-min interval</div>
-      </div>
-      <div id="outsideBadge" class="badge" style="background:rgba(6,68,46,.08);color:var(--muted)">&mdash;</div>
-    </div>
-    <div style="display:flex;align-items:baseline;gap:6px">
-      <span id="outsideTempVal" style="font-family:var(--mono);font-size:2.6rem;font-weight:950;letter-spacing:-.08em;color:var(--deep)">&mdash;</span>
-      <span style="font-weight:900;color:var(--muted)">&deg;C</span>
-    </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--soft-sage);border-radius:10px">
-      <span style="font-size:.72rem;font-weight:700;color:var(--deep)">Indoor &mdash; Outdoor Delta</span>
-      <span id="coolingDeltaOut" style="font-family:var(--mono);font-weight:950;font-size:.9rem;color:var(--deep)">&mdash;</span>
-    </div>
-  </div>
-  <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:10px">
-    <div>
-      <div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Cooling System Performance</div>
-      <div style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">&#x623;&#x62F;&#x627;&#x621; &#x645;&#x646;&#x638;&#x648;&#x645;&#x629; &#x627;&#x644;&#x62A;&#x628;&#x631;&#x64A;&#x62F;</div>
-    </div>
-    <div style="display:flex;align-items:baseline;gap:4px">
-      <span id="coolingScore" style="font-family:var(--mono);font-size:2.6rem;font-weight:950;letter-spacing:-.08em;color:var(--deep)">&mdash;</span>
-      <span style="font-weight:900;color:var(--muted);font-size:.9rem">/100</span>
-    </div>
-    <div style="height:6px;background:rgba(6,68,46,.08);border-radius:3px;overflow:hidden">
-      <div id="coolingScoreBar" style="height:100%;width:0%;background:#16894E;border-radius:3px;transition:width .6s ease"></div>
-    </div>
-    <div style="font-size:.68rem;color:var(--muted);line-height:1.5">Composite score: ambient delta + wet wall gradient.<br>
-      <span style="color:#16894E;font-weight:700">70&ndash;100</span> Optimal &middot;
-      <span style="color:var(--gold);font-weight:700">40&ndash;69</span> Monitor &middot;
-      <span style="color:var(--danger);font-weight:700">0&ndash;39</span> Intervention required
-    </div>
-  </div>
-  <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:10px">
-    <div>
-      <div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Stress Accumulation &mdash; Current Shift</div>
-      <div style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">&#x62A;&#x631;&#x627;&#x643;&#x645; &#x627;&#x644;&#x625;&#x62C;&#x647;&#x627;&#x62F; &mdash; &#x627;&#x644;&#x648;&#x631;&#x62F;&#x64A;&#x629; &#x627;&#x644;&#x62D;&#x627;&#x644;&#x64A;&#x629;</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:7px">
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--soft-sage);border-radius:8px">
-        <span style="font-size:.72rem;font-weight:700;color:var(--deep)">&#x1F321; Temperature deviation</span>
-        <span id="stressTempMins" style="font-family:var(--mono);font-weight:800;font-size:.78rem;color:#16894E">&#x2713; None</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--soft-sage);border-radius:8px">
-        <span style="font-size:.72rem;font-weight:700;color:var(--deep)">&#x1F4A7; Humidity deviation</span>
-        <span id="stressHumMins" style="font-family:var(--mono);font-weight:800;font-size:.78rem;color:#16894E">&#x2713; None</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--soft-sage);border-radius:8px">
-        <span style="font-size:.72rem;font-weight:700;color:var(--deep)">&#x26A1; VPD deviation</span>
-        <span id="stressVpdMins" style="font-family:var(--mono);font-weight:800;font-size:.78rem;color:#16894E">&#x2713; None</span>
-      </div>
-    </div>
-    <div style="font-size:.6rem;color:var(--muted)">Cumulative minutes outside operational range &middot; resets at 00:00</div>
-  </div>
-</div>
-<section id="chart" class="climate-row">
-  <section class="panel chart-panel">
-    <div class="panel-head">
-      <div><h2 class="panel-title" id="chartTitle">Climate Trend Overview</h2><div class="panel-ar" id="chartTitleAr">&#x646;&#x638;&#x631;&#x629; &#x639;&#x627;&#x645;&#x629; &#x639;&#x644;&#x649; &#x62C;&#x645;&#x64A;&#x639; &#x627;&#x644;&#x645;&#x624;&#x634;&#x631;&#x627;&#x62A;</div></div>
-      <div class="chart-controls">
-        <div class="time-range">
-          <button class="range-btn active" onclick="setRange(1)" id="rng-1h">1H</button>
-          <button class="range-btn" onclick="setRange(6)" id="rng-6h">6H</button>
-          <button class="range-btn" onclick="setRange(24)" id="rng-24h">24H</button>
-          <button class="range-btn" onclick="setRange(168)" id="rng-7d">7D</button>
-        </div>
-        <div class="metric-btns chart-metric-btns">
-          <button class="mbtn active" onclick="selectMetricBtn('all')" id="mb-all"><span class="mdot" style="background:#aaa"></span>All</button>
-          <button class="mbtn" onclick="selectMetricBtn('co2')" id="mb-co2"><span class="mdot" style="background:#8FAF7A"></span>CO&#x2082;</button>
-          <button class="mbtn" onclick="selectMetricBtn('temp')" id="mb-temp"><span class="mdot" style="background:#06442E"></span>Temp</button>
-          <button class="mbtn" onclick="selectMetricBtn('hum')" id="mb-hum"><span class="mdot" style="background:#1976D2"></span>Humidity</button>
-          <button class="mbtn" onclick="selectMetricBtn('vpd')" id="mb-vpd"><span class="mdot" style="background:#C49A3A"></span>VPD</button>
-        </div>
-      </div>
-    </div>
-    <div class="chart-box"><canvas id="trendChart"></canvas></div>
-    <div id="sstemp" class="zone-strip">
-      <span class="zone-strip-label">&#x1F321; Temp Zone:</span>
-      <button class="zbtn zactive" onclick="zoneClick(this,'temp','weighted')">Weighted 70/30</button>
-      <button class="zbtn" onclick="zoneClick(this,'temp','canopy')">&#x1F33F; Canopy Only</button>
-      <button class="zbtn" onclick="zoneClick(this,'temp','wetwall')">&#x1F30A; Wet Wall Only</button>
-      <button class="zbtn" onclick="zoneClick(this,'temp','compare')">&#x2696; Compare Zones</button>
-    </div>
-    <div id="sshum" class="zone-strip">
-      <span class="zone-strip-label">&#x1F4A7; Humidity Zone:</span>
-      <button class="zbtn zactive" onclick="zoneClick(this,'hum','weighted')">Weighted 70/30</button>
-      <button class="zbtn" onclick="zoneClick(this,'hum','canopy')">&#x1F33F; Canopy Only</button>
-      <button class="zbtn" onclick="zoneClick(this,'hum','wetwall')">&#x1F30A; Wet Wall Only</button>
-      <button class="zbtn" onclick="zoneClick(this,'hum','compare')">&#x2696; Compare Zones</button>
-    </div>
-    <div class="chart-note" id="chartNote">Weighted averages: 70% canopy zone + 30% wet wall zone</div>
-    <button class="refresh-btn" style="margin-top:14px" onclick="doRefresh(this)"><i class="ti ti-refresh"></i>Refresh Data &mdash; &#x62A;&#x62D;&#x62F;&#x64A;&#x62B; &#x627;&#x644;&#x628;&#x64A;&#x627;&#x646;&#x627;&#x62A;</button>
-  </section>
-  <aside class="panel gauge-panel" id="gaugePanel">
-    <div>
-      <div class="panel-head"><div><h2 class="panel-title">VPD Status</h2><div class="panel-ar">&#x645;&#x624;&#x634;&#x631; &#x639;&#x62C;&#x632; &#x636;&#x63A;&#x637; &#x627;&#x644;&#x628;&#x62E;&#x627;&#x631;</div></div></div>
-      <div class="gauge-wrap">
-        <svg class="gauge-svg" viewBox="0 0 320 190" aria-label="VPD gauge">
-          <path d="M45 160 A115 115 0 0 1 160 45" fill="none" stroke="#16894E" stroke-width="22" stroke-linecap="round"/>
-          <path d="M160 45 A115 115 0 0 1 236 75" fill="none" stroke="#8FAF7A" stroke-width="22" stroke-linecap="round"/>
-          <path d="M236 75 A115 115 0 0 1 275 160" fill="none" stroke="#C49A3A" stroke-width="22" stroke-linecap="round"/>
-          <g class="needle"><line x1="160" y1="160" x2="160" y2="70" stroke="#06442E" stroke-width="7" stroke-linecap="round"/><circle cx="160" cy="160" r="13" fill="#FFFDF7" stroke="#06442E" stroke-width="7"/></g>
-        </svg>
-        <div><span id="vpdGaugeNumber" class="gauge-value">&mdash;</span><span class="gauge-unit">kPa</span></div>
-      </div>
-      <div class="gauge-scale">
-        <div class="scale-item"><b>Low</b>&lt; 0.8</div>
-        <div class="scale-item"><b>Optimal</b>0.8&ndash;1.6</div>
-        <div class="scale-item"><b>High</b>&gt; 1.6</div>
-      </div>
-    </div>
-    <div class="advice"><div id="adviceEn">Awaiting sensor data...</div><div id="adviceAr">&#x641;&#x64A; &#x627;&#x646;&#x62A;&#x638;&#x627;&#x631; &#x628;&#x64A;&#x627;&#x646;&#x627;&#x62A; &#x627;&#x644;&#x645;&#x633;&#x62A;&#x634;&#x639;&#x631;...</div></div>
-  </aside>
-</section>
-<footer id="settings" class="panel" style="margin-top:18px">
-  <div class="footer-info">
-    <div class="foot-item"><i class="ti ti-map-pin-filled"></i><div><b>Diriyah, Riyadh</b><small>Kingdom of Saudi Arabia</small><small>&#x627;&#x644;&#x62F;&#x631;&#x639;&#x64A;&#x629;&#x60C; &#x627;&#x644;&#x631;&#x64A;&#x627;&#x636;</small></div></div>
-    <div class="foot-item"><i class="ti ti-leaf"></i><div><b>Albion Frigo &middot; Hydroponic &middot; Vertical</b><small>1000 plants &middot; 6 lines &middot; 174 towers</small></div></div>
-    <div class="foot-item"><i class="ti ti-temperature"></i><div><b>Post-harvest: 2&ndash;4&deg;C</b><small>Cold chain required</small></div></div>
-    <div class="foot-item" style="justify-content:flex-end"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" style="height:68px;width:auto" aria-label="Al-Waseel Farm logo"><defs><linearGradient id="gold2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E7D29A"/><stop offset="0.52" stop-color="#C8A96E"/><stop offset="1" stop-color="#8B6914"/></linearGradient></defs><rect width="900" height="900" rx="220" fill="#F7F0E3"/><rect x="44" y="44" width="812" height="812" rx="188" fill="none" stroke="url(#gold2)" stroke-width="20"/><text x="450" y="330" text-anchor="middle" font-family="Tahoma,serif" font-size="116" font-weight="800" fill="#1E2D1A">&#x627;&#x644;&#x648;&#x635;&#x64A;&#x644;</text><text x="450" y="404" text-anchor="middle" font-family="Arial,sans-serif" font-size="39" font-weight="700" letter-spacing="8" fill="#4A6741">ALWASEEL FARM</text></svg></div>
-  </div>
-  <div class="footer-bar">
-    <span>&copy; 2026 Al-Waseel Farm Operations Platform</span>
-    <span id="footerSaved">&mdash;</span>
-    <span>&#x645;&#x646;&#x635;&#x629; &#x639;&#x645;&#x644;&#x64A;&#x627;&#x62A; &#x645;&#x632;&#x631;&#x639;&#x629; &#x627;&#x644;&#x648;&#x635;&#x64A;&#x644;</span>
-  </div>
-</footer>
-</main>
-</div>
-<!-- REPORTS OVERLAY -->
-<div class="reports-overlay" id="reportsOverlay">
-  <div class="reports-panel">
-    <div class="rep-header">
-      <div><h2><i class="ti ti-file-analytics" style="margin-right:8px"></i>Farm Operations Report</h2><div class="rep-header-ar">تقرير العمليات الزراعية &mdash; مزرعة الوصيل</div></div>
-      <button class="rep-close" onclick="closeReports()" aria-label="Close"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="rep-body">
-      <div class="rep-controls">
-        <select class="rep-select" id="repDays" onchange="loadReport()" aria-label="Report period">
-          <option value="7">Last 7 days</option>
-          <option value="14">Last 14 days</option>
-          <option value="30">Last 30 days</option>
-        </select>
-        <button class="rep-btn" onclick="loadReport()"><i class="ti ti-refresh"></i> Refresh</button>
-        <span id="repStatus" style="font-size:0.72rem;color:var(--muted);font-family:var(--mono)"></span>
-      </div>
-      <div id="repSummary" class="rep-summary"></div>
-      <div id="repContent" class="rep-loading"><i class="ti ti-loader" style="font-size:2rem;color:var(--gold)"></i><p>Retrieving operational data...</p></div>
-      <div id="repInsight" class="rep-insight" style="display:none">
-        <div class="rep-insight-title"><i class="ti ti-chart-bar"></i>Agronomic Performance Analysis &mdash; تحليل الأداء الزراعي</div>
-        <div id="repInsightBody"></div>
-      </div>
-      <div style="margin-top:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-          <div>
-            <div style="font-size:.7rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--deep);display:flex;align-items:center;gap:7px"><i class="ti ti-alert-circle" style="color:var(--danger)"></i>Incident Registry &mdash; سجل الحوادث التشغيلية</div>
-            <div style="font-family:var(--ar);font-size:.72rem;color:var(--muted);direction:rtl;margin-top:2px">حوادث مكتشفة تلقائياً &middot; مرتبة بالأحدث أولاً</div>
+  <div class="app">
+    <div class="concept-tag" id="tag">Concept · Home</div>
+ 
+    <!-- ============ HOME ============ -->
+    <div class="panel" id="home">
+      <div class="topbar">
+        <div class="brand">
+          <div class="mark">
+            <svg viewBox="0 0 48 48" width="19" height="19" aria-hidden="true">
+              <defs><linearGradient id="mzg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#B98E2C"/><stop offset="1" stop-color="#F0D483"/></linearGradient></defs>
+              <path d="M9 39 V15 L24 31 L39 15 V39" fill="none" stroke="url(#mzg)" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M33 7.4 l1.2 2.8 2.8 1.2 -2.8 1.2 L33 16.6 l-1.2 -2.8 -2.8 -1.2 2.8 -1.2 Z" fill="#F3E2B0"/>
+            </svg>
           </div>
-          <button onclick="loadIncidents()" class="rep-btn"><i class="ti ti-refresh"></i> Refresh</button>
+          <b>Mizān</b>
         </div>
-        <div id="incidentLog"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">Click Refresh to load incident registry</div></div>
+        <div class="top-actions">
+          <button class="icon-btn" onclick="openSheet()" aria-label="Filter">⚙</button>
+          <button class="icon-btn" aria-label="Notifications">🔔</button>
+        </div>
       </div>
+ 
+      <div class="scroll">
+        <div class="hero">
+          <div class="eyebrow"><span>Today · 3 Jul</span><span>Screened live</span></div>
+          <h1>66 <span>new disclosures</span></h1>
+          <div class="balance">
+            <div class="balance-track">
+              <i class="b-clean" style="width:18%"></i><i class="b-purify" style="width:73%"></i><i class="b-fail" style="width:9%"></i>
+              <span class="fulcrum"></span>
+            </div>
+            <div class="legend">
+              <div><span class="dot c"></span><b>12</b> Clean</div>
+              <div><span class="dot p"></span><b>48</b> Purify</div>
+              <div><span class="dot f"></span><b>6</b> Fail</div>
+            </div>
+          </div>
+        </div>
+ 
+        <div class="segment" id="segment">
+          <button class="seg active" data-v="all" onclick="setSeg(this)">All</button>
+          <button class="seg" data-v="clean" onclick="setSeg(this)"><span class="dot c"></span>Clean</button>
+          <button class="seg" data-v="purify" onclick="setSeg(this)"><span class="dot p"></span>Purify</button>
+          <button class="seg" data-v="fail" onclick="setSeg(this)"><span class="dot f"></span>Fail</button>
+        </div>
+ 
+        <div class="list-head"><h2>Latest disclosures</h2><span id="count">66 shown</span></div>
+        <div class="list" id="list"></div>
+      </div>
+ 
+      <nav class="tabs">
+        <button class="tab active"><span class="ti">◈</span>Alerts</button>
+        <button class="tab"><span class="ti">◎</span>Watchlist</button>
+        <button class="tab"><span class="ti">✓</span>Verdicts</button>
+        <button class="tab"><span class="ti">☰</span>More</button>
+      </nav>
+    </div>
+ 
+    <!-- ============ DETAIL ============ -->
+    <div class="panel" id="detail">
+      <div class="d-head">
+        <button class="back" onclick="closeDetail()" aria-label="Back">‹</button>
+        <span class="d-tk" id="d-tk">—</span>
+        <span class="badge" id="d-badge">—</span>
+      </div>
+      <div class="d-scroll" id="d-body"></div>
+    </div>
+ 
+    <!-- ============ SHEET ============ -->
+    <div class="scrim" id="scrim" onclick="closeSheet()"></div>
+    <div class="sheet" id="sheet">
+      <div class="grab"></div>
+      <h3>Filter & sort</h3>
+      <p class="sub">Narrow the feed. Verdict is set by the pills above.</p>
+      <div class="field"><span>⌕</span><input placeholder="Search ticker, company, or source" /></div>
+      <p class="flabel">Trade side</p>
+      <div class="chips"><span class="chip on">All</span><span class="chip">Buy</span><span class="chip">Sell</span></div>
+      <p class="flabel">Source</p>
+      <div class="chips"><span class="chip on">All</span><span class="chip">Officials</span><span class="chip">Funds</span></div>
+      <p class="flabel">Sort by</p>
+      <div class="chips"><span class="chip on">Newest</span><span class="chip">Amount</span><span class="chip">Biggest move</span></div>
+      <button class="apply" onclick="closeSheet()">Show results</button>
     </div>
   </div>
-</div>
+ 
 <script>
-const HUB_ID='FDD0AE072D7C',WATER1_ID='E7760186472B';
-const W_CANOPY=0.70,W_WETWALL=0.30,ALERT_TEMP=26,ALERT_VPD=1.3;
-const T={co2:{ok:[350,500],warn:[300,800]},temp:{ok:[16,22],warn:[14,26]},hum:{ok:[60,75],warn:[50,85]},vpd:{ok:[0.5,1.0],warn:[0,1.3]}};
-const S={live:{co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,tempW:null,humW:null,outsideTemp:null},metric:'all',subView:{temp:'weighted',hum:'weighted'},range:1,lastAlert:0,localHist:[],chart:null,lastWeatherFetch:0};
-const $=id=>document.getElementById(id);
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-function calcVPD(t,rh){return parseFloat((0.6108*Math.exp((17.27*t)/(t+237.3))*(1-rh/100)).toFixed(2));}
-function weighted(c,w){return parseFloat((c*W_CANOPY+w*W_WETWALL).toFixed(1));}
-function showLoadingBar(){const b=$('loadingBar');b.classList.remove('done');b.classList.add('running');}
-function hideLoadingBar(){const b=$('loadingBar');b.classList.remove('running');b.classList.add('done');setTimeout(()=>b.classList.remove('done'),400);}
-function navClick(el,sid){document.querySelectorAll('.nav a:not(.logout-link)').forEach(a=>a.classList.remove('active'));el.classList.add('active');if(sid){const t=document.getElementById(sid);if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}}
-function doRefresh(btn){btn.disabled=true;btn.style.opacity='0.6';showLoadingBar();fetchLive().finally(()=>{btn.disabled=false;btn.style.opacity='1';hideLoadingBar();});}
-function getStatus(m,v){if(m==='hum')return(v>=T.hum.ok[0]&&v<=T.hum.ok[1])?'good':'warn';if(v>=T[m].ok[0]&&v<=T[m].ok[1])return'good';if(v>=T[m].warn[0]&&v<=T[m].warn[1])return'warn';return'danger';}
-function getHumBadge(v){if(v>=T.hum.ok[0]&&v<=T.hum.ok[1])return{s:'good',t:'Optimal'};if(v>T.hum.ok[1])return{s:'warning',t:'Elevated'};if(v>=T.hum.warn[0])return{s:'warning',t:'Below Range'};return{s:'danger',t:'Critical'};}
-function getBadge(m,v){if(m==='hum')return getHumBadge(v);const s=getStatus(m,v);const map={co2:{good:'Normal',warn:'Monitor',danger:'Check'},temp:{good:'Optimal',warn:'Above Range',danger:'Critical'},vpd:{good:'Optimal',warn:'Elevated',danger:'Critical'}};return{s,t:(map[m]||{})[s==='good'?'good':s==='warn'?'warn':'danger']||s};}
-function col(s){return s==='good'?'#16894E':s==='warn'?'var(--gold)':'var(--danger)';}
-function rangeBar(m,v){const t=T[m];return clamp(((v-t.warn[0])/(t.warn[1]-t.warn[0]))*100,0,100);}
-function renderMetrics(){
-  const{co2,temp,hum,vpd,tempW,humW}=S.live;
-  if(co2===null)return;
-  updateCard('co2',co2);updateCard('vpd',vpd);
-  if(tempW!==null)updateCard('temp',tempW);
-  if(humW!==null)updateCard('hum',humW);
-  const gp=$('gaugePanel');
-  const vs=getStatus('vpd',vpd);const vc=col(vs);
-  if(gp){const pct=clamp(vpd/3,0,1);const rot=-90+(pct*180);gp.style.setProperty('--needle-rotation',rot+'deg');gp.style.setProperty('--vpd-color',vc);}
-  $('vpdGaugeNumber').textContent=Number(vpd).toFixed(2);
-  const adv={good:{en:`VPD ${Number(vpd).toFixed(2)} kPa — within operational range. Stomata active, photosynthesis and sugar development proceeding normally.`,ar:`عجز ضغط البخار مثالي. الثغور مفتوحة وتطور السكر في ذروته.`},warn:{en:`VPD ${Number(vpd).toFixed(2)} kPa — mild transpiration stress. Directive: increase humidity 5-10% or reduce canopy temperature by 2°C.`,ar:`إجهاد نتح خفيف. التوجيه: ارفع الرطوبة 5-10% أو اخفض الحرارة 2°م.`},danger:{en:`VPD ${Number(vpd).toFixed(2)} kPa — CRITICAL. Stomata closing, fruit quality at risk. Activate misting system immediately.`,ar:`عجز ضغط البخار حرج. الثغور تنغلق وجودة الثمار في خطر. شغّل نظام الرذاذ فوراً.`}};
-  $('adviceEn').textContent=adv[vs].en;$('adviceAr').textContent=adv[vs].ar;
-  const tw=tempW??temp,hw=humW??hum;
-  const checks=[getStatus('co2',co2),getStatus('temp',tw),getHumBadge(hw).s,vs];
-  const overall=checks.includes('danger')?'danger':checks.includes('warn')?'warn':'good';
-  $('statusDot').style.background=col(overall);
-  const sm={good:{en:'All parameters within operational range — no intervention required',ar:'جميع المعايير ضمن النطاق التشغيلي — لا يلزم تدخل'},warn:{en:`Suboptimal conditions detected — weighted temp ${tw.toFixed(1)}°C, humidity ${hw.toFixed(0)}%, VPD ${Number(vpd).toFixed(2)} kPa`,ar:'ظروف دون المثالية — راجع التوجيهات التشغيلية'},danger:{en:'Critical deviation detected — immediate intervention required',ar:'انحراف حرج — تدخل فوري مطلوب'}};
-  $('statusEn').textContent=sm[overall].en;$('statusAr').textContent=sm[overall].ar;
-  renderCoolingScore();
-}
-function updateCard(m,v){
-  const idMap={co2:'co2Card',temp:'tempCard',hum:'humidityCard',vpd:'vpdCard'};
-  const valMap={co2:'co2Value',temp:'tempValue',hum:'humidityValue',vpd:'vpdValue'};
-  const badgeMap={co2:'co2Status',temp:'tempStatus',hum:'humidityStatus',vpd:'vpdStatus'};
-  const mc=$(idMap[m]);if(!mc)return;
-  const bd=getBadge(m,v);const cls=bd.s==='good'?'good':bd.s==='warning'?'warning':'danger';
-  const sel=mc.classList.contains('selected');
-  mc.className='metric '+cls+(sel?' selected':'');
-  const valEl=$(valMap[m]);if(valEl)valEl.textContent=m==='vpd'?Number(v).toFixed(2):m==='temp'?Number(v).toFixed(1):Math.round(v);
-  const badgeEl=$(badgeMap[m]);if(badgeEl)badgeEl.textContent=bd.t||bd.s;
-  const barEl=$('bar-'+m);if(barEl)barEl.style.width=rangeBar(m,parseFloat(v))+'%';
-}
-function renderZones(){
-  const{hubTemp,hubHum,temp,hum,tempW,humW,w1}=S.live;
-  if(hubTemp===null)return;
-  $('hubTemp').textContent=Number(hubTemp).toFixed(1);$('hubHum').textContent=hubHum;
-  $('canTemp').textContent=Number(temp).toFixed(1);$('canHum').textContent=hum;
-  $('canTemp').style.color=col(getStatus('temp',temp));$('canHum').style.color=col(getHumBadge(hum).s);
-  $('wtTemp').textContent=tempW!==null?tempW.toFixed(1)+'°C':'--°C';
-  $('wtHum').textContent=humW!==null?'Humidity: '+humW.toFixed(0)+'%':'Humidity: --%';
-  const delta=parseFloat((temp-hubTemp).toFixed(1));
-  const cv=$('clVal');cv.textContent=(delta>0?'+':'')+delta+'°C';
-  if(delta>=3){cv.style.color='#16894E';$('clDesc').innerHTML='✅ Cooling gradient nominal — wet wall operating at rated capacity';}
-  else if(delta>=1){cv.style.color='#16894E';$('clDesc').innerHTML='✓ Adequate gradient — cooling effective';}
-  else if(delta>=0){cv.style.color='var(--gold)';$('clDesc').innerHTML='⚠️ Insufficient gradient — only '+delta+'°C. Inspect wet wall pump and pad condition';}
-  else{cv.style.color='var(--danger)';$('clDesc').innerHTML='🚨 Reverse gradient detected — wet wall zone hotter than canopy. Immediate inspection required';}
-  const w1El=$('w1Status');
-  if(w1El){w1El.textContent=w1?'🚨 LEAK DETECTED':'✓ No leak';w1El.style.color=w1?'var(--danger)':'#16894E';w1El.style.fontWeight='800';}
-  if(w1)showAlert('Leak Detection Alert','Water sensor triggered. Inspect tank and irrigation lines immediately.','تنبيه كشف تسرب — افحص الخزان وخطوط الري فوراً.');
-}
-function renderDecisions(){
-  const{co2,temp,hum,vpd,hubTemp,tempW,humW}=S.live;
-  if(co2===null)return;
-  const tw=tempW??temp,hw=humW??hum,acts=[];
-  const delta=hubTemp!==null?parseFloat((temp-hubTemp).toFixed(1)):null;
-  if(tw>26)acts.push({p:'h',en:`Canopy temp ${tw.toFixed(1)}°C — critical threshold exceeded. Sugar development arrested. Activate full cooling protocol immediately.`,ar:`درجة حرارة المحصول ${tw.toFixed(1)}°م — تجاوزت الحد الحرج. تطور السكر متوقف. شغّل بروتوكول التبريد الكامل فوراً.`});
-  else if(tw>22)acts.push({p:'m',en:`Canopy temp ${tw.toFixed(1)}°C — above operational range. Increase cooling capacity.`,ar:`درجة الحرارة ${tw.toFixed(1)}°م — فوق النطاق التشغيلي. زد طاقة التبريد.`});
-  if(vpd>1.3)acts.push({p:'h',en:`VPD ${Number(vpd).toFixed(2)} kPa — critical. Stomata closure imminent. Activate misting system immediately.`,ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} حرج. الثغور تنغلق. شغّل نظام الرذاذ فوراً.`});
-  else if(vpd>1.0)acts.push({p:'m',en:`VPD ${Number(vpd).toFixed(2)} kPa — elevated. Increase relative humidity by 5-10%.`,ar:`عجز ضغط البخار مرتفع. ارفع الرطوبة النسبية 5-10%.`});
-  if(hw>85)acts.push({p:'h',en:`Humidity ${hw.toFixed(0)}% — Botrytis risk zone. Activate ventilation immediately to prevent fungal establishment.`,ar:`الرطوبة ${hw.toFixed(0)}% — نطاق خطر البوتريتيس. شغّل التهوية فوراً لمنع تكون الفطريات.`});
-  else if(hw>75)acts.push({p:'m',en:`Humidity ${hw.toFixed(0)}% — above optimal. Monitor foliage for early Botrytis signs.`,ar:`الرطوبة ${hw.toFixed(0)}% — فوق المثالي. راقب الأوراق للكشف المبكر عن البوتريتيس.`});
-  else if(hw<50)acts.push({p:'h',en:`Humidity ${hw.toFixed(0)}% — critically low. Risk of desiccation stress. Activate misting immediately.`,ar:`الرطوبة ${hw.toFixed(0)}% — منخفضة جداً. خطر إجهاد الجفاف. شغّل الرذاذ فوراً.`});
-  else if(hw<60)acts.push({p:'m',en:`Humidity ${hw.toFixed(0)}% — below operational range. Review irrigation schedule.`,ar:`الرطوبة ${hw.toFixed(0)}% — أقل من النطاق التشغيلي. راجع جدول الري.`});
-  if(delta!==null&&delta<1)acts.push({p:'m',en:`Cooling gradient ${delta}°C — below effective threshold. Inspect wet wall pump pressure and pad saturation.`,ar:`تدرج التبريد ${delta}°م — أقل من العتبة الفعالة. افحص ضغط مضخة الجدار المبلل وتشبع الألواح.`});
-  if(acts.length===0)acts.push({p:'l',en:`All parameters nominal. Weighted temp ${tw.toFixed(1)}°C, humidity ${hw.toFixed(0)}%, VPD ${Number(vpd).toFixed(2)} kPa. Continue monitoring at standard interval.`,ar:`جميع المعايير ضمن النطاق. موزون: ${tw.toFixed(1)}°م، رطوبة ${hw.toFixed(0)}%، VPD ${Number(vpd).toFixed(2)}. استمر في المراقبة بالتوقيت المعتاد.`});
-  $('decisionsBody').innerHTML=acts.map(a=>`<div class="dec-item"><span class="ptag ${a.p==='h'?'ph':a.p==='m'?'pm':'pl'}">${a.p==='h'?'URGENT':a.p==='m'?'ACTION':'STATUS'}</span><div><div class="dec-en">${a.en}</div><div class="dec-ar">${a.ar}</div></div></div>`).join('');
-}
-function showAlert(t,b,ar){
-  $('alertBanner').classList.add('active');
-  const tEl=$('alertBanner').querySelector('.alert-title');if(tEl)tEl.textContent=t;
-  const aEl=$('alertBanner').querySelector('.alert-ar');if(aEl)aEl.textContent=ar;
-  const dEl=$('alertDetail');if(dEl)dEl.textContent=b;
-}
-const ALERT_TIMERS={};
-function checkAlerts(){
-  const{tempW,humW,vpd}=S.live;if(tempW===null)return;
-  const now=Date.now();
-  const issues=[];
-  if(tempW>ALERT_TEMP){
-    if(!ALERT_TIMERS.temp)ALERT_TIMERS.temp=now;
-    const mins=Math.round((now-ALERT_TIMERS.temp)/60000);
-    const children=[];
-    if(humW&&humW<60)children.push({ar:'رطوبة منخفضة '+humW.toFixed(0)+'%',cause:'ناتج عن ارتفاع الحرارة'});
-    if(vpd>1.0)children.push({ar:'ارتفاع VPD '+Number(vpd).toFixed(2)+' kPa',cause:'ناتج عن انخفاض الرطوبة'});
-    if(mins>15)children.push({ar:'إجهاد نبات محتمل',cause:'الارتفاع مستمر منذ '+mins+' دقيقة'});
-    issues.push({root:'ارتفاع درجة الحرارة '+tempW.toFixed(1)+'°م',mins,children,severity:mins>30?'danger':mins>15?'warn':'info'});
-  }else{delete ALERT_TIMERS.temp;}
-  if(humW&&humW>85){
-    if(!ALERT_TIMERS.hum)ALERT_TIMERS.hum=now;
-    const mins=Math.round((now-ALERT_TIMERS.hum)/60000);
-    issues.push({root:'رطوبة عالية '+humW.toFixed(0)+'%',mins,children:[{ar:'خطر البوتريتيس',cause:'الرطوبة فوق 85% منذ '+mins+' دقيقة'}],severity:mins>30?'danger':mins>15?'warn':'info'});
-  }else{delete ALERT_TIMERS.hum;}
-  const banner=$('alertBanner');
-  if(issues.length===0){banner.classList.remove('active');return;}
-  const worst=issues.reduce((a,b)=>(['danger','warn','info'].indexOf(a.severity)<['danger','warn','info'].indexOf(b.severity)?a:b));
-  const icon=worst.severity==='danger'?'🔴':worst.severity==='warn'?'🟠':'🟡';
-  banner.classList.add('active');
-  banner.style.cursor='pointer';
-  banner.onclick=()=>showAlertDetail(issues);
-  const tEl=banner.querySelector('.alert-title');
-  if(tEl)tEl.textContent=icon+' '+worst.root+' — منذ '+worst.mins+' دقيقة';
-  const aEl=banner.querySelector('.alert-ar');
-  if(aEl)aEl.textContent='اضغط لعرض تسلسل الأسباب الجذرية';
-  const dEl=$('alertDetail');
-  if(dEl)dEl.textContent=issues.length>1?issues.length+' حوادث نشطة':'';
-}
-function showAlertDetail(issues){
-  const existing=$('alertDetailOverlay');if(existing)existing.remove();
-  const overlay=document.createElement('div');
-  overlay.id='alertDetailOverlay';
-  overlay.style.cssText='position:fixed;inset:0;z-index:600;background:rgba(3,45,33,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
-  overlay.innerHTML=`<div style="background:var(--cream);border-radius:20px;width:min(600px,100%);box-shadow:0 24px 64px rgba(3,45,33,.3);border:1px solid var(--border);overflow:hidden">
-    <div style="background:var(--danger);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
-      <div style="color:#fff;font-weight:800;font-size:.9rem">Root Cause Analysis — تحليل الأسباب الجذرية</div>
-      <button onclick="document.getElementById('alertDetailOverlay').remove()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:.8rem">✕ Close</button>
-    </div>
-    <div style="padding:20px;display:flex;flex-direction:column;gap:14px;direction:rtl">
-      ${issues.map(issue=>{
-        const color=issue.severity==='danger'?'var(--danger)':issue.severity==='warn'?'var(--gold)':'#8B5E00';
-        const icon=issue.severity==='danger'?'🔴':issue.severity==='warn'?'🟠':'🟡';
-        const timeMsg=issue.mins>30?'⚠️ تأثير فعلي على الإنتاج محتمل':issue.mins>15?'يتطلب مراقبة مكثفة':'انحراف مؤقت';
-        return`<div style="border:1px solid ${color};border-radius:12px;overflow:hidden">
-          <div style="background:${color};padding:10px 14px;color:#fff;font-weight:800;font-size:.86rem;display:flex;justify-content:space-between;align-items:center">
-            <span>${icon} ${issue.root}</span>
-            <span style="font-size:.72rem;opacity:.9">منذ ${issue.mins} دقيقة</span>
-          </div>
-          <div style="padding:10px 14px;background:var(--card);font-size:.76rem;color:var(--muted)">${timeMsg}</div>
-          ${issue.children.map((c,i)=>`
-          <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;background:${i%2===0?'var(--soft-sage)':'var(--card)'}">
-            <span style="color:var(--muted);font-size:.8rem;margin-top:1px">${i===0?'└──':'&nbsp;&nbsp;&nbsp;└──'}</span>
-            <div><div style="font-weight:700;font-size:.82rem;color:var(--deep)">${c.ar}</div><div style="font-size:.7rem;color:var(--muted);margin-top:2px">${c.cause}</div></div>
-          </div>`).join('')}
-        </div>`;
-      }).join('')}
-      <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px;font-size:.76rem;color:var(--deep);font-weight:700">
-        معالجة السبب الجذري تحل جميع المشكلات الفرعية تلقائياً
-      </div>
-    </div>
-  </div>`;
-  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
-  document.body.appendChild(overlay);
-}
-function buildChart(){
-  const ctx=$('trendChart');if(!ctx)return;
-  if(S.chart){S.chart.destroy();S.chart=null;}
-  S.chart=new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:350,easing:'easeOutQuart'},interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',align:'end',labels:{color:'#06442E',usePointStyle:true,pointStyle:'circle',boxWidth:8,boxHeight:8,padding:16,font:{family:'SFMono-Regular,Consolas,monospace',size:11,weight:'700'}}},tooltip:{backgroundColor:'rgba(6,68,46,0.95)',borderColor:'rgba(196,154,58,0.3)',borderWidth:1,titleColor:'#F8F4EA',bodyColor:'#E6D3A3',padding:11}},scales:{x:{grid:{color:'rgba(6,68,46,0.07)'},ticks:{color:'#6F765F',maxTicksLimit:10,font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},y1:{position:'left',min:350,max:600,title:{display:true,text:'CO₂ ppm',color:'#8FAF7A'},grid:{color:'rgba(6,68,46,0.06)'},ticks:{color:'#8FAF7A',font:{family:'SFMono-Regular,Consolas,monospace',size:10}},border:{color:'rgba(143,175,122,0.3)'}},y2:{position:'right',min:0,max:100,title:{display:true,text:'°C / %',color:'#6F765F'},grid:{display:false},ticks:{color:'#1976D2',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},y3:{position:'right',display:false,min:0,max:2.5}}}});
-}
-function getDatasets(data,metric,subView){
-  const fmt=r=>{const d=new Date(r.recorded_at||r.time||Date.now());return S.range<=6?d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});};
-  const labels=data.map(fmt);
-  const calcW=(r,type)=>{const c=type==='temp'?(r.temperature??r.temp):r.humidity;const w=type==='temp'?r.hub_temp:r.hub_humidity;return(c!=null&&w!=null)?parseFloat((c*W_CANOPY+w*W_WETWALL).toFixed(1)):c??null;};
-  let datasets=[],note='';
-  if(metric==='all'){datasets=[{label:'CO₂ ppm',data:data.map(r=>r.co2),borderColor:'#8FAF7A',backgroundColor:'rgba(143,175,122,0.08)',tension:0.3,borderWidth:2,pointRadius:0,pointHoverRadius:4,fill:false,yAxisID:'y1'},{label:'Temp °C (W)',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),borderColor:'#06442E',backgroundColor:'transparent',tension:0.45,borderWidth:2,pointRadius:0,pointHoverRadius:4,fill:false,yAxisID:'y2'},{label:'Humidity % (W)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#1976D2',backgroundColor:'transparent',tension:0.45,borderWidth:2,pointRadius:0,pointHoverRadius:4,fill:false,yAxisID:'y2'},{label:'VPD kPa',data:data.map(r=>{const v=r.vpd;return(v!==null&&v!==undefined&&v>0&&v<3.0)?parseFloat(Number(v).toFixed(2)):null;}),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.3,borderWidth:2,pointRadius:0,pointHoverRadius:4,fill:false,yAxisID:'y3'}];note='Weighted averages: 70% canopy zone + 30% wet wall zone';}
-  else if(metric==='co2'){datasets=[{label:'CO₂ ppm',data:data.map(r=>r.co2),borderColor:'#8FAF7A',backgroundColor:'rgba(143,175,122,0.1)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y1'}];note='CO₂ concentration — Meter Pro canopy sensor — target range: 350–500 ppm';}
-  else if(metric==='vpd'){datasets=[{label:'VPD kPa',data:data.map(r=>r.vpd),borderColor:'#C49A3A',backgroundColor:'rgba(196,154,58,0.1)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y2'}];note='VPD calculated from canopy temperature and humidity — operational target: 0.5–1.0 kPa';}
-  else if(metric==='temp'){const sv=subView||S.subView.temp;if(sv==='weighted'){datasets=[{label:'Weighted Temp °C (70/30)',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y1'}];note='Weighted temperature — operational range: 16–22°C';}else if(sv==='canopy'){datasets=[{label:'Canopy Temp °C',data:data.map(r=>{const v=r.temperature??r.temp;return(v&&v>5&&v<45)?v:null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y1'}];note='Canopy zone temperature — Meter Pro sensor';}else if(sv==='wetwall'){datasets=[{label:'Wet Wall Temp °C',data:data.map(r=>(r.hub_temp&&r.hub_temp>5&&r.hub_temp<45)?r.hub_temp:null),borderColor:'#3B82C4',backgroundColor:'rgba(59,130,196,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y1'}];note='Wet wall zone temperature — Hub 2 sensor';}else{datasets=[{label:'Canopy Temp °C',data:data.map(r=>{const v=r.temperature??r.temp;return(v&&v>5&&v<45)?v:null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.3,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y1'},{label:'Wet Wall Temp',data:data.map(r=>(r.hub_temp&&r.hub_temp>5&&r.hub_temp<45)?r.hub_temp:null),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y1'},{label:'Weighted Temp °C',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.3,borderWidth:2,pointRadius:0,yAxisID:'y1'}];note='Zone comparison — gradient between lines indicates cooling effectiveness';}}
-  else if(metric==='hum'){const sv=subView||S.subView.hum;if(sv==='weighted'){datasets=[{label:'Weighted Humidity % (70/30)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C49A3A',backgroundColor:'rgba(196,154,58,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Weighted humidity — operational range: 60–75%';}else if(sv==='canopy'){datasets=[{label:'Canopy Humidity %',data:data.map(r=>(r.humidity&&r.humidity>0&&r.humidity<100)?r.humidity:null),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Canopy zone humidity (Meter Pro, 70% weight)';}else if(sv==='wetwall'){datasets=[{label:'Wet Wall Humidity %',data:data.map(r=>r.hub_humidity),borderColor:'#3B82C4',backgroundColor:'rgba(59,130,196,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Wet wall zone humidity (Hub 2, 30% weight)';}else{datasets=[{label:'Canopy Hum',data:data.map(r=>(r.humidity&&r.humidity>0&&r.humidity<100)?r.humidity:null),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y2'},{label:'Wet Wall Hum',data:data.map(r=>r.hub_humidity),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y2'},{label:'Weighted (70/30)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.38,borderWidth:1.6,pointRadius:0,borderDash:[2,4],yAxisID:'y2'}];note='Zone humidity comparison — canopy vs wet wall vs weighted composite';}}
-  return{labels,datasets,note};
-}
-function applyChart(data){
-  if(!S.chart)buildChart();
-  const{labels,datasets,note}=getDatasets(data,S.metric,S.subView[S.metric]);
-  S.chart.data.labels=labels;S.chart.data.datasets=datasets;
-  updateChartAxes(S.metric);S.chart.update();
-  if($('chartNote'))$('chartNote').textContent=note;
-}
-function updateChartAxes(metric){
-  if(!S.chart)return;
-  const sc=S.chart.options.scales;
-  sc.y1.display=false;sc.y2.display=false;sc.y3.display=false;
-  if(metric==='all'){sc.y1.display=true;sc.y1.min=350;sc.y1.max=650;sc.y1.title.text='CO₂ ppm';sc.y1.ticks.color='#8FAF7A';sc.y2.display=true;sc.y2.min=0;sc.y2.max=100;sc.y2.title.text='°C / %';sc.y2.ticks.color='#06442E';sc.y2.grid.display=false;}
-  else if(metric==='co2'){sc.y1.display=true;sc.y1.min=350;sc.y1.max=700;sc.y1.title.text='CO₂ ppm';sc.y1.ticks.color='#8FAF7A';}
-  else if(metric==='temp'){sc.y1.display=true;sc.y1.min=10;sc.y1.max=40;sc.y1.title.text='Temperature °C';sc.y1.ticks.color='#06442E';}
-  else if(metric==='hum'){sc.y2.display=true;sc.y2.min=0;sc.y2.max=100;sc.y2.title.text='Humidity %';sc.y2.ticks.color='#1976D2';}
-  else if(metric==='vpd'){sc.y2.display=true;sc.y2.min=0;sc.y2.max=3;sc.y2.title.text='VPD kPa';sc.y2.ticks.color='#C49A3A';}
-}
-const CHART_META={all:{t:'Climate Trend Overview',ar:'نظرة عامة على جميع المؤشرات'},co2:{t:'CO₂ Analysis',ar:'تحليل ثاني أكسيد الكربون'},temp:{t:'Temperature Analysis',ar:'تحليل درجة الحرارة'},hum:{t:'Humidity Analysis',ar:'تحليل الرطوبة'},vpd:{t:'VPD Analysis',ar:'تحليل عجز ضغط البخار'}};
-function toggleMetric(m){if(S.metric===m)setActiveMetric('all');else setActiveMetric(m);}
-function setActiveMetric(m){
-  S.metric=m;
-  ['co2','temp','hum','vpd'].forEach(k=>{const mc=$({co2:'co2Card',temp:'tempCard',hum:'humidityCard',vpd:'vpdCard'}[k]);if(mc)mc.classList.toggle('selected',k===m);});
-  var st=$('sstemp'),sh=$('sshum');
-  if(st){if(m==='temp')st.classList.add('visible');else st.classList.remove('visible');}
-  if(sh){if(m==='hum')sh.classList.add('visible');else sh.classList.remove('visible');}
-  document.querySelectorAll('.chart-metric-btns .mbtn').forEach(b=>b.classList.remove('active'));
-  const mbtn=$('mb-'+(m==='all'?'all':m));if(mbtn)mbtn.classList.add('active');
-  const meta=CHART_META[m]||CHART_META.all;
-  $('chartTitle').textContent=meta.t;$('chartTitleAr').textContent=meta.ar;
-  refreshChart();
-}
-function selectMetricBtn(m){setActiveMetric(m);}
-function refreshChart(){if(S.range===1)applyChart(S.localHist.map(r=>({...r,recorded_at:r.time})));else loadHistory(S.range);}
-function setRange(h){
-  S.range=h;
-  document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
-  const map={1:'rng-1h',6:'rng-6h',24:'rng-24h',168:'rng-7d'};
-  const btn=$(map[h]);if(btn)btn.classList.add('active');
-  if(h===1)applyChart(S.localHist.map(r=>({...r,recorded_at:r.time})));
-  else loadHistory(h);
-}
-async function loadHistory(hours){
-  try{const res=await fetch('/api/history?hours='+hours+'&limit=500');const data=await res.json();if(Array.isArray(data)&&data.length>0)applyChart(data);}catch(e){console.warn('History:',e.message);}
-}
-function zoneClick(btn,metric,view){
-  S.subView[metric]=view;S.metric=metric;
-  var container=$('ss'+metric);
-  if(container)container.querySelectorAll('.zbtn').forEach(b=>b.classList.remove('zactive'));
-  btn.classList.add('zactive');
-  var labels={weighted:'Weighted 70/30',canopy:'Canopy Zone',wetwall:'Wet Wall Zone',compare:'Zone Comparison'};
-  var ct=$('chartTitle'),ca=$('chartTitleAr');
-  if(ct)ct.textContent=(metric==='temp'?'Temperature — ':'Humidity — ')+(labels[view]||view);
-  function applyZone(data){if(!S.chart||!Array.isArray(data)||!data.length)return;var r=getDatasets(data,metric,view);S.chart.data.labels=r.labels;S.chart.data.datasets=r.datasets;updateChartAxes(metric);S.chart.update();var cn=$('chartNote');if(cn)cn.textContent=r.note;}
-  if(S.range===1&&S.localHist.length>0)applyZone(S.localHist.map(r=>Object.assign({},r,{recorded_at:r.time})));
-  else fetch('/api/history?hours='+S.range+'&limit=500').then(r=>r.json()).then(applyZone).catch(e=>console.warn('zoneClick:',e.message));
-}
-function calcDP(t,rh){const a=17.27,b=237.3,al=(a*t)/(b+t)+Math.log(rh/100);return parseFloat((b*al/(a-al)).toFixed(1));}
-function calcHI(t,rh){if(t<27)return t;return parseFloat((-8.78+1.61*t+2.34*rh-0.15*t*rh-0.012*t*t-0.016*rh*rh+0.002*t*t*rh+0.0007*t*rh*rh).toFixed(1));}
-function calcPSI(v,t,h){let s=0;if(v>1.0&&v<=1.3)s+=2;if(v>1.3)s+=4;if(t>22&&t<=26)s+=2;if(t>26)s+=4;if(h<60&&h>=50)s+=1;if(h<50)s+=3;if(h>85)s+=2;return Math.min(s,10);}
-async function saveReading(payload){
-  try{const res=await fetch('/api/save-reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(res.ok){const t=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});$('lastSaved').textContent='Saved '+t;$('footerSaved').textContent='Last sync: '+t;}}catch(e){}
-}
-async function fetchLive(){
-  try{
-    const devRes=await fetch('/api/devices');
-    const devData=await devRes.json();
-    const devices=devData.body?.deviceList||[];
-    let device=devices.find(d=>{const t=(d.deviceType||'').toLowerCase();const n=(d.deviceName||'').toLowerCase();return t.includes('co2')||n.includes('co2')||n.includes('meter pro')||t.includes('meter');});
-    if(!device)device=devices.find(d=>{const t=(d.deviceType||'').toLowerCase();return !t.includes('hub')&&!t.includes('leak')&&!t.includes('remote');});
-    if(!device){const names=devices.map(d=>d.deviceName||d.deviceType).join(', ');$('statusEn').textContent='No sensor detected. Available devices: '+(names||'none');return;}
-    const sRes=await fetch(`/api/status?id=${device.deviceId}`);
-    const sJson=await sRes.json();
-    const b=sJson.body;
-    if(!b||b.temperature===undefined||b.temperature===null){
-      const sEn=$('statusEn');
-      if(sEn)sEn.textContent='Sensor data unavailable — SwitchBot rate limit active. Retrying in 60s.';
-      return;
-    }
-    const co2=b.CO2??b.co2??0,temp=parseFloat(b.temperature??0),hum=parseFloat(b.humidity??0),vpd=calcVPD(temp,hum);
-    const [hubRes,w1Res]=await Promise.all([fetch(`/api/status?id=${HUB_ID}`).then(r=>r.json()),fetch(`/api/status?id=${WATER1_ID}`).then(r=>r.json())]);
-    const hub=hubRes.body??{};
-    const hubTemp=parseFloat(hub.temperature??0),hubHum=parseFloat(hub.humidity??0);
-    const w1=w1Res.body?.status==='leak_detected'||w1Res.body?.detectionState==='detected';
-    const tempW=weighted(temp,hubTemp),humW=weighted(hum,hubHum);
-    S.live={co2,temp,hum,vpd,hubTemp,hubHum,w1,tempW,humW,outsideTemp:S.live.outsideTemp};
-    saveReading({co2,temperature:temp,humidity:hum,vpd,hub_temp:hubTemp,hub_humidity:hubHum,temp_weighted:tempW,hum_weighted:humW,cooling_delta:parseFloat((temp-hubTemp).toFixed(1)),water_leak_1:w1,heat_index:calcHI(temp,hum),dew_point:calcDP(temp,hum),plant_stress_index:calcPSI(vpd,temp,hum),abs_humidity:parseFloat((0.6108*Math.exp((17.27*temp)/(temp+237.3))*(hum/100)*1000/(0.4615*(273.15+temp))).toFixed(1))});
-    const now=new Date();
-    S.localHist.push({co2,temperature:temp,humidity:hum,vpd,hub_temp:hubTemp,hub_humidity:hubHum,temp_weighted:tempW,hum_weighted:humW,time:now.toISOString()});
-    if(S.localHist.length>72)S.localHist.shift();
-    if(S.range===1)applyChart(S.localHist.map(r=>({...r,recorded_at:r.time})));
-    renderMetrics();renderZones();checkAlerts();renderDecisions();detectIncidents();updateStressTracker();
-  }catch(e){
-    console.error('fetchLive error:',e);
-    const sEn=$('statusEn');if(sEn)sEn.textContent='Sensor network error: '+e.message;
-  }
-}
-async function fetchOutsideTemp(){
-  try{
-    const now=Date.now();if(now-S.lastWeatherFetch<5*60*1000)return;S.lastWeatherFetch=now;
-    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=24.734&longitude=46.5753&current=temperature_2m&timezone=Asia/Riyadh');
-    const d=await r.json();
-    S.live.outsideTemp=parseFloat(d.current?.temperature_2m??null);
-    renderCoolingScore();
-  }catch(e){console.warn('Weather:',e.message);}
-}
-function calcCoolingScore(ot,it,g){
-  if(ot===null||it===null)return null;
-  const delta=ot-it;let s=0;
-  if(delta>=20)s+=60;else if(delta>=15)s+=50;else if(delta>=10)s+=35;else if(delta>=5)s+=20;else s+=5;
-  if(g>=3)s+=40;else if(g>=2)s+=30;else if(g>=1)s+=20;else if(g>=0)s+=10;
-  return Math.min(100,s);
-}
-function renderCoolingScore(){
-  const ot=S.live.outsideTemp,tw=S.live.tempW!==null?S.live.tempW:S.live.temp;
-  const grad=(S.live.temp&&S.live.hubTemp)?parseFloat((S.live.temp-S.live.hubTemp).toFixed(1)):0;
-  const el=$('coolingScore'),barEl=$('coolingScoreBar');
-  const tEl=$('outsideTempVal'),deltaEl=$('coolingDeltaOut'),badgeEl=$('outsideBadge');
-  if(tEl&&ot!==null)tEl.textContent=ot.toFixed(1);
-  if(!el)return;
-  if(tw===null||tw===undefined){el.textContent='—';return;}
-  const score=ot!==null?calcCoolingScore(ot,tw,grad):Math.min(100,Math.max(0,grad>=3?80:grad>=1?60:grad>=0?30:5));
-  el.textContent=isNaN(score)?'—':score;
-  const color=score>=70?'#16894E':score>=40?'var(--gold)':'var(--danger)';
-  el.style.color=color;
-  if(barEl){barEl.style.width=(isNaN(score)?0:score)+'%';barEl.style.background=color;}
-  if(deltaEl&&ot!==null&&tw!==null){
-    const delta=parseFloat((ot-tw).toFixed(1));
-    deltaEl.textContent=isNaN(delta)?'—':(delta>0?'+':'')+delta+'°C';
-    deltaEl.style.color=delta>15?'#16894E':delta>8?'var(--gold)':'var(--danger)';
-    if(badgeEl){
-      if(delta>15){badgeEl.textContent='Excellent';badgeEl.style.background='rgba(22,137,78,.1)';badgeEl.style.color='#16894E';}
-      else if(delta>8){badgeEl.textContent='Operational';badgeEl.style.background='rgba(196,154,58,.12)';badgeEl.style.color='#8B5E00';}
-      else{badgeEl.textContent='Insufficient';badgeEl.style.background='rgba(192,57,43,.1)';badgeEl.style.color='var(--danger)';}
-    }
-  }
-}
-const STRESS={date:null,t:0,h:0,v:0};
-function updateStressTracker(){
-  const{tempW,humW,vpd}=S.live;if(tempW===null)return;
-  const today=new Date().toDateString();
-  if(STRESS.date!==today){STRESS.date=today;STRESS.t=0;STRESS.h=0;STRESS.v=0;}
-  if(tempW>22)STRESS.t++;if(humW&&(humW>75||humW<60))STRESS.h++;if(vpd>1.0)STRESS.v++;
-  const tEl=$('stressTempMins'),hEl=$('stressHumMins'),vEl=$('stressVpdMins');
-  if(tEl){tEl.textContent=STRESS.t>0?STRESS.t+' min':'✓ None';tEl.style.color=STRESS.t>60?'var(--danger)':STRESS.t>30?'var(--gold)':'#16894E';}
-  if(hEl){hEl.textContent=STRESS.h>0?STRESS.h+' min':'✓ None';hEl.style.color=STRESS.h>60?'var(--danger)':STRESS.h>30?'var(--gold)':'#16894E';}
-  if(vEl){vEl.textContent=STRESS.v>0?STRESS.v+' min':'✓ None';vEl.style.color=STRESS.v>60?'var(--danger)':STRESS.v>30?'var(--gold)':'#16894E';}
-}
-const INCIDENTS={};
-const INC={TEMP_CRITICAL:26,TEMP_WARNING:23,HUM_BOTRYTIS:85,VPD_CRITICAL:1.3,GRADIENT_WEAK:0.5};
-function assessImpact(mins,severity){
-  if(mins<15)return{level:'none',ar:'لا تأثير — انحراف مؤقت'};
-  if(mins<30&&severity==='warn')return{level:'low',ar:'تأثير منخفض — يتطلب مراقبة'};
-  if(mins<30&&severity==='critical')return{level:'medium',ar:'تأثير متوسط — جودة الإنتاج قد تتأثر'};
-  if(mins>=30&&severity==='warn')return{level:'medium',ar:'تأثير متوسط — راجع سجل الإنتاج'};
-  return{level:'high',ar:'تأثير عالٍ — جودة الثمار في خطر فعلي'};
-}
-async function logIncident(type,severity,data){
-  try{
-    const descs={TANK_DRY:{en:`Cooling system failure — gradient ${data.minGradient}°C, canopy temp ${data.peakTemp}°C.`,ar:'فشل منظومة التبريد — تحقق من خزان المياه فوراً.'},TEMP_SPIKE:{en:`Temperature exceedance — canopy reached ${data.peakTemp}°C.`,ar:'تجاوز درجة الحرارة الحرجة.'},BOTRYTIS_RISK:{en:`Humidity sustained at ${data.peakHum}% — Botrytis risk active.`,ar:'خطر البوتريتيس نشط — رطوبة فوق الحد المقبول.'},VPD_CRITICAL:{en:`VPD at ${data.peakVpd} kPa — transpiration stress.`,ar:'إجهاد نتح حرج — عجز ضغط البخار مرتفع.'}};
-    const desc=descs[type]||{en:type,ar:type};
-    const body={started_at:data.startedAt,type,severity,peak_temp:data.peakTemp||null,peak_humidity:data.peakHum||null,peak_vpd:data.peakVpd||null,min_gradient:data.minGradient||null,description:desc.en,description_ar:desc.ar,stress_score:0};
-    const res=await fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const json=await res.json();if(json.ok&&json.id)INCIDENTS[type].id=json.id;
-  }catch(e){console.warn('[INC] log:',e.message);}
-}
-async function resolveIncident(type){
-  const inc=INCIDENTS[type];if(!inc||!inc.id)return;
-  const mins=Math.round((Date.now()-new Date(inc.startedAt))/60000);
-  const severity=type==='TEMP_SPIKE'||type==='TANK_DRY'?'critical':'warn';
-  const impact=assessImpact(mins,severity);
-  try{await fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'resolve',id:inc.id,stress_score:0,plant_impact:impact.ar,duration_mins:mins})});}catch(e){}
-}
-function detectIncidents(){
-  const{tempW,humW,vpd,temp,hubTemp}=S.live;if(tempW===null)return;
-  const now=new Date();
-  const gradient=(temp!==null&&hubTemp!==null)?parseFloat((temp-hubTemp).toFixed(1)):null;
-  if(gradient!==null&&gradient<=INC.GRADIENT_WEAK&&tempW>INC.TEMP_WARNING){if(!INCIDENTS.TANK_DRY){INCIDENTS.TANK_DRY={startedAt:now.toISOString(),peakTemp:tempW,peakHum:humW,peakVpd:vpd,minGradient:gradient,id:null};logIncident('TANK_DRY','critical',INCIDENTS.TANK_DRY);}else{if(tempW>INCIDENTS.TANK_DRY.peakTemp)INCIDENTS.TANK_DRY.peakTemp=tempW;if(gradient<INCIDENTS.TANK_DRY.minGradient)INCIDENTS.TANK_DRY.minGradient=gradient;}}
-  else if(INCIDENTS.TANK_DRY){resolveIncident('TANK_DRY');delete INCIDENTS.TANK_DRY;}
-  if(tempW>INC.TEMP_CRITICAL){if(!INCIDENTS.TEMP_SPIKE){INCIDENTS.TEMP_SPIKE={startedAt:now.toISOString(),peakTemp:tempW,peakHum:humW,peakVpd:vpd,minGradient:gradient,id:null};logIncident('TEMP_SPIKE','critical',INCIDENTS.TEMP_SPIKE);}else if(tempW>INCIDENTS.TEMP_SPIKE.peakTemp)INCIDENTS.TEMP_SPIKE.peakTemp=tempW;}
-  else if(INCIDENTS.TEMP_SPIKE){resolveIncident('TEMP_SPIKE');delete INCIDENTS.TEMP_SPIKE;}
-  if(humW!==null&&humW>INC.HUM_BOTRYTIS){if(!INCIDENTS.BOTRYTIS_RISK){INCIDENTS.BOTRYTIS_RISK={startedAt:now.toISOString(),peakTemp:tempW,peakHum:humW,peakVpd:vpd,minGradient:gradient,id:null};logIncident('BOTRYTIS_RISK','high',INCIDENTS.BOTRYTIS_RISK);}else if(humW>INCIDENTS.BOTRYTIS_RISK.peakHum)INCIDENTS.BOTRYTIS_RISK.peakHum=humW;}
-  else if(INCIDENTS.BOTRYTIS_RISK){resolveIncident('BOTRYTIS_RISK');delete INCIDENTS.BOTRYTIS_RISK;}
-  if(vpd>INC.VPD_CRITICAL){if(!INCIDENTS.VPD_CRITICAL){INCIDENTS.VPD_CRITICAL={startedAt:now.toISOString(),peakTemp:tempW,peakHum:humW,peakVpd:vpd,minGradient:gradient,id:null};logIncident('VPD_CRITICAL','high',INCIDENTS.VPD_CRITICAL);}else if(vpd>INCIDENTS.VPD_CRITICAL.peakVpd)INCIDENTS.VPD_CRITICAL.peakVpd=vpd;}
-  else if(INCIDENTS.VPD_CRITICAL){resolveIncident('VPD_CRITICAL');delete INCIDENTS.VPD_CRITICAL;}
-  const cnt=Object.keys(INCIDENTS).length;let badge=$('incidentBadge');
-  const navA=document.querySelector('.nav a[onclick*="alerts"]');
-  if(navA){if(cnt>0){if(!badge){badge=document.createElement('span');badge.id='incidentBadge';badge.style.cssText='background:var(--danger);color:#fff;border-radius:999px;padding:1px 7px;font-size:.6rem;font-weight:900;margin-left:auto';navA.appendChild(badge);}badge.textContent=cnt;}else if(badge)badge.remove();}
-}
-function openReports(){$('reportsOverlay').classList.add('open');loadReport();loadIncidents();}
-function closeReports(){$('reportsOverlay').classList.remove('open');}
-async function loadReport(){
-  const days=parseInt($('repDays').value)||7;const hours=days*24;
-  $('repContent').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)"><p>Retrieving operational data...</p></div>';
-  $('repSummary').innerHTML='';$('repInsight').style.display='none';$('repStatus').textContent='Fetching...';
-  try{
-    const res=await fetch('/api/history?hours='+hours+'&limit=2000');
-    const data=await res.json();
-    if(!Array.isArray(data)||data.length===0){$('repContent').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">No operational data available for this period.</div>';return;}
-    $('repStatus').textContent=data.length+' readings loaded';renderReport(data,days);
-  }catch(e){$('repContent').innerHTML='<div style="text-align:center;padding:40px;color:var(--danger)">Data retrieval error: '+e.message+'</div>';}
-}
-var _repDays={};
-function renderReport(data,days){
-  const byDay={};
-  data.forEach(r=>{
-    const d=new Date(r.recorded_at);
-    const key=d.toLocaleDateString('en-GB',{year:'numeric',month:'short',day:'2-digit'});
-    if(!byDay[key])byDay[key]={tempW:[],humW:[],vpds:[],co2s:[],leaks:0,readings:0,date:d};
-    const day=byDay[key];day.readings++;
-    let tw=r.temp_weighted;if(!tw&&r.temperature&&r.hub_temp)tw=parseFloat((r.temperature*0.7+r.hub_temp*0.3).toFixed(1));if(!tw&&r.temperature)tw=parseFloat(r.temperature);
-    let hw=r.hum_weighted;if(!hw&&r.humidity&&r.hub_humidity)hw=parseFloat((r.humidity*0.7+r.hub_humidity*0.3).toFixed(1));if(!hw&&r.humidity)hw=parseFloat(r.humidity);
-    if(tw&&tw>5&&tw<40)day.tempW.push(tw);if(hw&&hw>0&&hw<100)day.humW.push(hw);
-    const vv=parseFloat(r.vpd);if(!isNaN(vv)&&vv>0&&vv<3)day.vpds.push(vv);
-    const cv=parseFloat(r.co2);if(!isNaN(cv)&&cv>300&&cv<2000)day.co2s.push(cv);
-    if(r.water_leak_1||r.water_leak_2)day.leaks++;
-  });
-  const avg=arr=>arr.length?parseFloat((arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1)):null;
-  const mx=arr=>arr.length?parseFloat(Math.max(...arr).toFixed(1)):null;
-  const mn=arr=>arr.length?parseFloat(Math.min(...arr).toFixed(1)):null;
-  const ds=Object.entries(byDay).sort((a,b)=>b[1].date-a[1].date);
-  const allT=data.map(r=>{let v=r.temp_weighted;if(!v&&r.temperature&&r.hub_temp)v=r.temperature*0.7+r.hub_temp*0.3;if(!v)v=r.temperature;return v?parseFloat(v):null;}).filter(v=>v&&v>5&&v<40);
-  const allH=data.map(r=>{let v=r.hum_weighted;if(!v&&r.humidity&&r.hub_humidity)v=r.humidity*0.7+r.hub_humidity*0.3;if(!v)v=r.humidity;return v?parseFloat(v):null;}).filter(v=>v&&v>0&&v<100);
-  const allV=data.map(r=>parseFloat(r.vpd)).filter(v=>!isNaN(v)&&v>0&&v<3);
-  const allC=data.map(r=>parseFloat(r.co2)).filter(v=>!isNaN(v)&&v>300&&v<2000);
-  const avgT=avg(allT),avgH=avg(allH),avgV=avg(allV),avgC=avg(allC);
-  function cls(m,v){if(v===null)return'';if(m==='t')return v<16||v>26?'rep-bad':v>22?'rep-warn':'rep-good';if(m==='h')return v>85||v<50?'rep-bad':v>75||v<60?'rep-warn':'rep-good';if(m==='v')return v>1.3?'rep-bad':v>1.0?'rep-warn':'rep-good';return'';}
-  var rt=r=>'<div style="margin-top:5px;font-size:.6rem;font-family:monospace;color:#6F765F;background:rgba(6,68,46,.06);border-radius:6px;padding:2px 7px;display:inline-block">'+r+'</div>';
-  $('repSummary').innerHTML=
-    '<div class="rep-sum-card"><div class="rep-sum-val '+cls('t',avgT)+'">'+(avgT!==null?avgT+'&deg;C':'&mdash;')+'</div><div class="rep-sum-lbl">Avg Temperature</div><div class="rep-sum-sub">متوسط درجة الحرارة</div>'+rt('&#x2713; 16&ndash;22&deg;C')+'</div>'+
-    '<div class="rep-sum-card"><div class="rep-sum-val '+cls('h',avgH)+'">'+(avgH!==null?avgH+'%':'&mdash;')+'</div><div class="rep-sum-lbl">Avg Humidity</div><div class="rep-sum-sub">متوسط الرطوبة</div>'+rt('&#x2713; 60&ndash;75%')+'</div>'+
-    '<div class="rep-sum-card"><div class="rep-sum-val '+cls('v',avgV)+'">'+(avgV!==null?avgV:'&mdash;')+'</div><div class="rep-sum-lbl">Avg VPD kPa</div><div class="rep-sum-sub">متوسط عجز ضغط البخار</div>'+rt('&#x2713; 0.5&ndash;1.0 kPa')+'</div>'+
-    '<div class="rep-sum-card"><div class="rep-sum-val">'+(avgC!==null?Math.round(avgC):'&mdash;')+'</div><div class="rep-sum-lbl">Avg CO&#x2082; ppm</div><div class="rep-sum-sub">متوسط ثاني أكسيد الكربون</div>'+rt('&#x2713; 350&ndash;500 ppm')+'</div>';
-  let rows='';
-  ds.forEach(([date,d])=>{
-    const t=avg(d.tempW),h=avg(d.humW),v=avg(d.vpds),co2=avg(d.co2s);
-    const maxT=mx(d.tempW),minT=mn(d.tempW),maxH=mx(d.humW);
-    let score=100;if(t&&t>22)score-=15;if(t&&t>26)score-=25;if(h&&h>75)score-=10;if(h&&h>85)score-=20;if(v&&v>1.0)score-=10;if(v&&v>1.3)score-=20;if(d.leaks>0)score-=30;score=Math.max(0,score);
-    const sc=score>=80?'rep-badge g':score>=60?'rep-badge w':'rep-badge d';
-    const sl=score>=80?'Optimal':score>=60?'Suboptimal':'Critical';
-    const conds=[];if(h&&h>85)conds.push('🍄 Botrytis risk');else if(h&&h>75)conds.push('💧 Elevated humidity');if(t&&t>22)conds.push('🌡 Above range');if(t&&t>26)conds.push('🔥 Critical temp');if(v&&v>1.3)conds.push('⚠️ High VPD');if(d.leaks>0)conds.push('🚨 Leak event');if(!conds.length)conds.push('✅ All nominal');
-    _repDays[date]=d;
-    rows+=`<tr style="cursor:pointer" onclick="drillDay('${date}')">
-      <td style="font-weight:800">${date}</td>
-      <td style="text-align:center"><span class="${sc}">${score}% ${sl}</span></td>
-      <td class="${cls('t',t)}">${t!==null?t+'°C':'—'}<small style="color:var(--muted);display:block;font-size:.65rem">${minT!==null?minT+'–'+maxT+'°C':''}</small></td>
-      <td class="${cls('h',h)}">${h!==null?h+'%':'—'}<small style="color:var(--muted);display:block;font-size:.65rem">${maxH!==null?'peak '+maxH+'%':''}</small></td>
-      <td class="${cls('v',v)}">${v!==null?v:'—'}</td>
-      <td>${co2!==null?Math.round(co2):'—'}</td>
-      <td style="color:var(--muted);font-size:.72rem">${d.readings}</td>
-      <td style="font-size:.74rem">${conds.join(', ')}</td>
-    </tr>`;
-  });
-  $('repContent').innerHTML=`<p style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Select a date to view full operational breakdown for that day</p>
-    <div class="rep-table-wrap"><table class="rep-table">
-      <thead><tr><th>Date</th><th>Operational Rating</th><th>Avg Temp<br><small>✓ 16–22°C</small></th><th>Avg Humidity<br><small>✓ 60–75%</small></th><th>Avg VPD<br><small>✓ 0.5–1.0</small></th><th>Avg CO₂<br><small>✓ 350–500</small></th><th>Readings</th><th>Field Status</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>`;
-  generateInsights(ds,avgT,avgH,avgV);
-}
-function drillDay(date){
-  var d=_repDays[date]||{};
-  const avg=arr=>arr.length?parseFloat((arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1)):null;
-  const t=avg(d.tempW||[]),h=avg(d.humW||[]),v=avg(d.vpds||[]),co2=avg(d.co2s||[]);
-  function cls(m,v){if(v===null)return'color:var(--muted)';if(m==='t')return v>26?'color:var(--danger)':v>22?'color:var(--gold)':'color:#16894E';if(m==='h')return v>85||v<50?'color:var(--danger)':v>75||v<60?'color:var(--gold)':'color:#16894E';if(m==='v')return v>1.3?'color:var(--danger)':v>1.0?'color:var(--gold)':'color:#16894E';return'color:var(--deep)';}
-  const an=[];
-  if(t!==null){if(t>26)an.push({i:'🔥',en:`Temperature averaged ${t}°C — critical threshold exceeded. Sugar development arrested above 26°C.`,ar:`درجة الحرارة ${t}°م — تجاوزت الحد الحرج. تطور السكر يتوقف فوق 26°م.`});else if(t>22)an.push({i:'🌡',en:`Temperature averaged ${t}°C — above operational range (16–22°C). Mild production stress.`,ar:`درجة الحرارة ${t}°م — فوق النطاق التشغيلي. إجهاد خفيف على الإنتاج.`});else an.push({i:'✅',en:`Temperature averaged ${t}°C — within operational range.`,ar:`درجة الحرارة ${t}°م — ضمن النطاق التشغيلي.`});}
-  if(h!==null){if(h>85)an.push({i:'🍄',en:`Humidity averaged ${h}% — Botrytis risk zone. Extended exposure increases fungal establishment probability.`,ar:`الرطوبة ${h}% — نطاق خطر البوتريتيس. التعرض المطول يزيد احتمالية تكون الفطريات.`});else if(h<60)an.push({i:'🏜',en:`Humidity averaged ${h}% — below operational range. Risk of flower and fruit desiccation.`,ar:`الرطوبة ${h}% — أقل من النطاق التشغيلي. خطر جفاف الأزهار والثمار.`});else an.push({i:'✅',en:`Humidity averaged ${h}% — within operational range.`,ar:`الرطوبة ${h}% — ضمن النطاق التشغيلي.`});}
-  if(v!==null){if(v>1.3)an.push({i:'⚠️',en:`VPD averaged ${v} kPa — above critical threshold. Stomata closure reduces photosynthesis and fruit sugar accumulation.`,ar:`عجز ضغط البخار ${v} — فوق الحد الحرج. إغلاق الثغور يقلل التمثيل الضوئي وتراكم سكر الثمار.`});else an.push({i:'✅',en:`VPD averaged ${v} kPa — within operational range. Transpiration proceeding normally.`,ar:`عجز ضغط البخار ${v} — ضمن النطاق التشغيلي.`});}
-  const html=`<div style="background:var(--card);border:1px solid rgba(196,154,58,.3);border-radius:16px;padding:18px;margin-top:16px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div><div style="font-size:.62rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Daily Operational Breakdown</div><div style="font-weight:950;color:var(--deep);font-size:1rem">${date}</div></div>
-      <button onclick="this.closest('div[style]').remove()" style="border:1px solid var(--border);border-radius:8px;padding:4px 10px;background:var(--card);cursor:pointer;font-size:.72rem;color:var(--muted)">✕ Close</button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
-      <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px"><div style="font-family:var(--mono);font-size:1.4rem;font-weight:950;${cls('t',t)}">${t!==null?t+'°C':'—'}</div><div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-top:3px">AVG TEMP</div><div style="font-size:.58rem;color:var(--muted);background:rgba(6,68,46,.07);border-radius:5px;padding:2px 6px;display:inline-block;margin-top:5px">✓ 16–22°C</div></div>
-      <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px"><div style="font-family:var(--mono);font-size:1.4rem;font-weight:950;${cls('h',h)}">${h!==null?h+'%':'—'}</div><div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-top:3px">AVG HUMIDITY</div><div style="font-size:.58rem;color:var(--muted);background:rgba(6,68,46,.07);border-radius:5px;padding:2px 6px;display:inline-block;margin-top:5px">✓ 60–75%</div></div>
-      <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px"><div style="font-family:var(--mono);font-size:1.4rem;font-weight:950;${cls('v',v)}">${v!==null?v:'—'}</div><div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-top:3px">AVG VPD kPa</div><div style="font-size:.58rem;color:var(--muted);background:rgba(6,68,46,.07);border-radius:5px;padding:2px 6px;display:inline-block;margin-top:5px">✓ 0.5–1.0</div></div>
-      <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px"><div style="font-family:var(--mono);font-size:1.4rem;font-weight:950;color:var(--deep)">${co2!==null?Math.round(co2):'—'}</div><div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-top:3px">AVG CO₂</div><div style="font-size:.58rem;color:var(--muted);background:rgba(6,68,46,.07);border-radius:5px;padding:2px 6px;display:inline-block;margin-top:5px">✓ 350–500</div></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px">${an.map(a=>`<div style="display:flex;gap:10px;padding:10px;border-radius:10px;background:rgba(248,244,234,0.8);border:1px solid var(--border)"><span style="font-size:1.1rem;flex-shrink:0">${a.i}</span><div><div style="font-size:.82rem;color:var(--deep);line-height:1.5">${a.en}</div><div style="font-family:var(--ar);font-size:.76rem;color:var(--muted);direction:rtl;margin-top:4px">${a.ar}</div></div></div>`).join('')}</div>
-    <div style="margin-top:10px;font-size:.66rem;color:var(--muted);font-family:var(--mono)">${d.readings||0} readings logged · ${d.leaks>0?'🚨 Leak event recorded':'✓ No leak events'}</div>
-  </div>`;
-  const content=$('repContent');
-  const ex=content.querySelector('div[style*="border-radius:16px"]');if(ex)ex.remove();
-  content.insertAdjacentHTML('beforeend',html);
-  content.lastElementChild.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function generateInsights(days,avgT,avgH,avgV){
-  const insights=[];
-  const avg=arr=>arr.length?parseFloat((arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1)):null;
-  const hh=days.filter(([,d])=>(avg(d.humW)||0)>75).length;
-  if(hh>0)insights.push({icon:'🍄',en:`Humidity exceeded operational threshold (>75%) on ${hh} of ${days.length} days. Sustained Botrytis risk — review ventilation protocol.`,ar:`تجاوزت الرطوبة العتبة التشغيلية في ${hh} من ${days.length} يوم. خطر البوتريتيس مستمر — راجع بروتوكول التهوية.`});
-  const ww=days.filter(([,d])=>(avg(d.tempW)||0)>22).length;
-  if(ww>0)insights.push({icon:'🌡',en:`Temperature exceeded operational range (>22°C) on ${ww} days. Assess wet wall pump performance and pad condition.`,ar:`تجاوزت درجة الحرارة النطاق التشغيلي في ${ww} يوم. قيّم أداء مضخة الجدار المبلل وحالة الألواح.`});
-  const best=days.reduce((b,c)=>{const ah=avg(c[1].humW)||100,at=avg(c[1].tempW)||30,sc=Math.abs(ah-67)+Math.abs(at-19);const bh=avg(b[1].humW)||100,bt=avg(b[1].tempW)||30,bs=Math.abs(bh-67)+Math.abs(bt-19);return sc<bs?c:b;},days[0]);
-  if(best)insights.push({icon:'⭐',en:`Peak performance recorded on ${best[0]} — closest to optimal strawberry production climate. Use as reference for system calibration.`,ar:`أفضل أداء تشغيلي سُجّل في ${best[0]} — استخدمه مرجعاً لمعايرة المنظومة.`});
-  if(avgV!==null){if(avgV<0.5)insights.push({icon:'💧',en:`Period average VPD ${avgV} kPa below operational range. Reduce misting frequency to prevent oversaturation.`,ar:`متوسط عجز ضغط البخار ${avgV} أقل من النطاق التشغيلي. قلل تردد الرذاذ لتجنب الإشباع الزائد.`});else if(avgV>1.0)insights.push({icon:'⚠️',en:`Period average VPD ${avgV} kPa above operational range. Plants under sustained transpiration stress — productivity impact likely.`,ar:`متوسط عجز ضغط البخار ${avgV} فوق النطاق التشغيلي. النباتات تحت إجهاد نتح مستمر — تأثير متوقع على الإنتاجية.`});}
-  if(insights.length===0)insights.push({icon:'✅',en:'All performance indicators within operational range for this period. Farm operating at target parameters.',ar:'جميع مؤشرات الأداء ضمن النطاق التشغيلي. المزرعة تعمل وفق المعايير المستهدفة.'});
-  $('repInsightBody').innerHTML=insights.map(i=>`<div class="rep-insight-item"><span class="rep-insight-icon">${i.icon}</span><div><div class="rep-insight-text">${i.en}</div><div class="rep-insight-ar">${i.ar}</div></div></div>`).join('');
-  $('repInsight').style.display='block';
-}
-async function loadIncidents(){
-  const el=$('incidentLog');if(!el)return;
-  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted)">Loading incident registry...</div>';
-  try{
-    const res=await fetch('/api/incidents?limit=30');const data=await res.json();
-    if(!Array.isArray(data)||data.length===0){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">✅ No incidents on record</div>';return;}
-    const typeIcon={TANK_DRY:'🚰',TEMP_SPIKE:'🌡',BOTRYTIS_RISK:'🍄',VPD_CRITICAL:'⚠️'};
-    const typeLabel={TANK_DRY:'Cooling System Failure',TEMP_SPIKE:'Temperature Exceedance',BOTRYTIS_RISK:'Botrytis Risk Event',VPD_CRITICAL:'VPD Critical Event'};
-    const sevColor={critical:'var(--danger)',high:'var(--gold)',medium:'#06442E'};
-    el.innerHTML=data.map(inc=>{
-      const start=new Date(inc.started_at);
-      const ds=start.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-      const ts=start.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-      const dur=inc.duration_mins?inc.duration_mins+' min':'Ongoing';
-      const status=inc.resolved?'<span style="color:#16894E;font-weight:800;font-size:.68rem">✓ Resolved</span>':'<span style="color:var(--danger);font-weight:800;font-size:.68rem">● Active</span>';
-      const stress=inc.stress_score||0;
-      return`<div style="padding:14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,253,247,.9);margin-bottom:8px">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">
-          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:1.1rem">${typeIcon[inc.type]||'⚡'}</span>
-          <div><div style="font-weight:900;font-size:.82rem;color:${sevColor[inc.severity]||'var(--deep)'}">${typeLabel[inc.type]||inc.type}</div>
-          <div style="font-size:.68rem;color:var(--muted);font-family:var(--mono)">${ds} · ${ts} · Duration: ${dur}</div></div></div>
-          <div>${status}</div>
-        </div>
-        <div style="margin-top:8px;font-size:.78rem;color:var(--deep);line-height:1.5">${inc.description||''}</div>
-        ${inc.plant_impact?`<div style="margin-top:7px;padding:7px 10px;background:var(--soft-sage);border-radius:8px;font-size:.74rem;color:var(--deep);direction:rtl">🌱 Production impact: ${inc.plant_impact}${inc.duration_mins?' — duration: '+inc.duration_mins+' min':''}</div>`:''}
-        <div style="margin-top:8px;display:flex;align-items:center;gap:5px"><div style="flex:1;height:4px;background:rgba(6,68,46,.1);border-radius:2px;overflow:hidden"><div style="height:100%;width:${(stress/10)*100}%;background:${stress>=7?'var(--danger)':stress>=4?'var(--gold)':'#16894E'};border-radius:2px"></div></div><span style="font-family:var(--mono);font-size:.62rem;color:var(--muted)">Stress index: ${stress}/10</span></div>
-      </div>`;
-    }).join('');
-  }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger);font-size:.8rem">Error loading registry: '+e.message+'</div>';}
-}
-window.AlWaseelFarmDashboard={state:S,refreshData:fetchLive};
-document.addEventListener('DOMContentLoaded',function(){
-  buildChart();setActiveMetric('all');fetchLive();loadHistory(1);
-  fetchOutsideTemp();
-  setInterval(fetchLive,60000);
-  setInterval(fetchOutsideTemp,600000);
-  setInterval(()=>{
-    const n=new Date();
-    const ts=$('timestamp');if(ts)ts.textContent=n.toLocaleTimeString('en-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    const ds=$('dateStamp');if(ds)ds.textContent=n.toLocaleDateString('en-SA',{day:'2-digit',month:'short',year:'numeric'});
-  },1000);
-  const ov=$('reportsOverlay');
-  if(ov)ov.addEventListener('click',function(e){if(e.target===this)closeReports();});
-});
-function openCouncil(){$('councilOverlay').classList.add('open');loadCouncilDecisions();}
-function closeCouncil(){$('councilOverlay').classList.remove('open');}
-async function loadCouncilDecisions(){
-  const el=$('councilLog');if(!el)return;
-  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted)">Loading...</div>';
-  try{
-    const res=await fetch('/api/council');const data=await res.json();
-    if(!Array.isArray(data)||data.length===0){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">No council decisions on record.</div>';return;}
-    el.innerHTML=data.map(function(d){
-      const dt=new Date(d.created_at);
-      const ds=dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-      const q=(d.question||'').replace(/</g,'&lt;');
-      const s=(d.summary||'').replace(/</g,'&lt;');
-      return '<div style="padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,253,247,.9);margin-bottom:8px"><div style="font-size:.62rem;color:var(--muted);margin-bottom:4px">'+ds+' · '+(d.agents_count||7)+' experts consulted</div><div style="font-weight:800;font-size:.82rem;color:var(--deep);margin-bottom:6px">'+q+'</div><div style="font-size:.76rem;color:var(--deep);line-height:1.6;background:var(--soft-sage);padding:8px 10px;border-radius:8px;white-space:pre-wrap">'+(s.length>300?s.substring(0,300)+'...':s)+'</div></div>';
-    }).join('');
-  }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger)">Error: '+e.message+'</div>';}
-}
-async function askCouncil(){
-  const q=$('councilQuestion').value.trim();if(!q)return;
-  const btn=$('councilAskBtn');btn.disabled=true;btn.innerHTML='...';
-  const disc=$('councilDiscussion');disc.innerHTML='';
-  const agents=[
-    {name:'Dr. Growth',emoji:'🌱',role:'Hydroponics & Plant Growth',color:'#2E7D32',system:'You are Dr. Growth, expert in vertical hydroponic strawberry farming. Farm: Al-Waseel, Diriyah Riyadh, 1000 Albion Frigo plants, 6 lines 174 towers, 30x9m greenhouse. Give concise expert opinion (3-4 sentences) then note agreement/disagreement with previous experts.'},
-    {name:'Dr. Diagnosis',emoji:'🔬',role:'Plant Disease & Pests',color:'#C62828',system:'You are Dr. Diagnosis, expert in plant diseases in hydroponics. Farm: Al-Waseel, Diriyah Riyadh, 1000 Albion Frigo strawberry plants. Give concise expert opinion (3-4 sentences) then note agreement/disagreement with previous experts.'},
-    {name:'Dr. Climate',emoji:'🌡️',role:'Greenhouse Environment',color:'#E65100',system:'You are Dr. Climate, expert in greenhouse climate management in hot regions. Farm: Al-Waseel Diriyah Riyadh, 30x9m greenhouse, max outside temp 45C, 2000L tank. Give concise expert opinion (3-4 sentences) then note agreement/disagreement.'},
-    {name:'Dr. Economics',emoji:'💼',role:'Agricultural Economics',color:'#1565C0',system:'You are Dr. Economics, expert in farm investment and ROI. Farm: Al-Waseel, 97,000 SAR infrastructure, 1000 trial strawberry plants, target 18-25 SAR/kg direct sales. Give concise expert opinion (3-4 sentences) and add economic angle.'},
-    {name:'Dr. Market',emoji:'🛒',role:'Marketing & Sales',color:'#6A1B9A',system:'You are Dr. Market, expert in premium agricultural marketing in Saudi Arabia. Farm: Al-Waseel brand, Albion strawberries, hydroponic = competitive edge, target restaurants and direct sales. Give concise expert opinion (3-4 sentences) and add marketing insight.'},
-    {name:'Dr. Tech',emoji:'💻',role:'Digital & Smart Farming',color:'#00695C',isTech:true,system:'You are Dr. Tech, expert in smart farming technology. Farm: Al-Waseel has a live dashboard built by the owner Khalid on Vercel+Supabase+SwitchBot. Your suggestions must be practical dashboard improvements that Khalid can implement himself. Explain each suggestion in simple terms showing its benefit to the farm.'},
-    {name:'Abu AbdulAziz',emoji:'👤',role:'Executive Summary',color:'#8B6914',system:'You are Abu AbdulAziz, owner of Al-Waseel Farm in Diriyah Riyadh. After hearing all experts, write your executive summary in Arabic only. Include: 1) Key agreed points 2) Numbered action steps labeled [TODAY] [THIS WEEK] [THIS MONTH] 3) A direct note to Mohammed the on-site engineer. Be decisive and operational.'}
+  const vtext = {clean:"Clean", purify:"Purify-at-sale", fail:"Fail"};
+  const vshort = {clean:"Clean", purify:"Purify", fail:"Fail"};
+  const rows = [
+    {who:"Renaissance Technologies",sub:"Institutional · 13F",init:"RT",fund:true,ticker:"NVDA",co:"NVIDIA Corp.",side:"Buy",amt:"$15K–$50K",when:"2d",tdate:"Jun 17, 2026",fdate:"Jun 25, 2026",v:"clean",biz:"Hardware, chips, AI infrastructure",bizS:"pass",impure:0,debt:3.2,why:"Permissible technology business with no impure income to purify and debt well within the advisory reference. A clean buy — nothing to purify at sale."},
+    {who:"Public Official Filing",sub:"Officials · House PTR",init:"PO",fund:false,ticker:"AVGO",co:"Broadcom Inc.",side:"Buy",amt:"$50K–$100K",when:"2d",tdate:"Jun 15, 2026",fdate:"Jun 24, 2026",v:"purify",biz:"Semiconductors & infrastructure software",bizS:"watch",impure:1.4,debt:19,why:"Core business is permissible, but a small slice of revenue is non-operating/interest income. Buyable as Purify-at-sale; purify the impure portion of any gain when sold."},
+    {who:"Top Growth Fund",sub:"Institutional · 13F",init:"TG",fund:true,ticker:"COST",co:"Costco Wholesale",side:"Buy",amt:"$1K–$15K",when:"3d",tdate:"Jun 09, 2026",fdate:"Jun 22, 2026",v:"purify",biz:"Retail — small non-compliant items",bizS:"watch",impure:2.3,debt:8.5,why:"Retail is generally permissible; a minor non-compliant revenue component applies. Buyable with a charity purification amount at sale."},
+    {who:"Public Official Filing",sub:"Officials · Senate PTR",init:"PO",fund:false,ticker:"JPM",co:"JPMorgan Chase & Co.",side:"Sell",amt:"$50K–$100K",when:"3d",tdate:"Jun 11, 2026",fdate:"Jun 23, 2026",v:"fail",biz:"Conventional interest-based banking",bizS:"fail",impure:71,debt:0,why:"Excluded at the business-activity level: conventional banking and interest income are core to the model. Blocked before financial ratios matter."},
+    {who:"Crescent Lake Capital",sub:"Institutional · 13F",init:"CL",fund:true,ticker:"META",co:"Meta Platforms Inc.",side:"Buy",amt:"18,900 sh",when:"4d",tdate:"Jun 03, 2026",fdate:"Jun 18, 2026",v:"purify",biz:"Digital advertising platform",bizS:"watch",impure:1.9,debt:1.5,why:"Primary business permissible; a small questionable revenue component flags it. Shown buyable with purification due at sale."},
+    {who:"Global Value Fund",sub:"Institutional · 13F",init:"GV",fund:true,ticker:"TSM",co:"Taiwan Semiconductor",side:"Buy",amt:"$15K–$50K",when:"4d",tdate:"May 30, 2026",fdate:"Jun 20, 2026",v:"clean",biz:"Semiconductor manufacturing",bizS:"pass",impure:0,debt:6,why:"Permissible manufacturing business, no impure income, debt within the advisory reference. Clean — nothing to purify."},
+    {who:"Public Official Filing",sub:"Officials · House PTR",init:"PO",fund:false,ticker:"XOM",co:"Exxon Mobil Corp.",side:"Sell",amt:"$15K–$50K",when:"5d",tdate:"Jun 02, 2026",fdate:"Jun 17, 2026",v:"purify",biz:"Energy production",bizS:"pass",impure:0,debt:52,why:"Permissible energy business with no impure income. Debt sits above the advisory reference — but under Framework B debt is advisory only and never disqualifies, so it stays Purify-at-sale, not Fail."},
+    {who:"Northstar Quant Partners",sub:"Institutional · 13F",init:"NQ",fund:true,ticker:"BAC",co:"Bank of America Corp.",side:"Buy",amt:"$1K–$15K",when:"5d",tdate:"Jun 06, 2026",fdate:"Jun 19, 2026",v:"fail",biz:"Conventional banking",bizS:"fail",impure:68,debt:0,why:"Relevant as a signal, but excluded by the Sharia business screen due to conventional banking exposure."},
   ];
-  const responses=[];
-  let farmContext='';
-  try{
-    const histRes=await fetch('/api/history?hours=24&limit=288');
-    const histData=await histRes.json();
-    let avgT='unknown',avgH='unknown',avgV='unknown',avgC='unknown',maxT='unknown',minT='unknown';
-    if(Array.isArray(histData)&&histData.length>0){
-      const temps=histData.map(r=>r.temp_weighted||r.temperature).filter(v=>v&&v>5&&v<45);
-      const hums=histData.map(r=>r.hum_weighted||r.humidity).filter(v=>v&&v>0&&v<100);
-      const vpds=histData.map(r=>r.vpd).filter(v=>v&&v>0&&v<3);
-      const co2s=histData.map(r=>r.co2).filter(v=>v&&v>300&&v<2000);
-      const avg=arr=>arr.length?(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1):null;
-      avgT=avg(temps)||'unknown';avgH=avg(hums)||'unknown';avgV=avg(vpds)||'unknown';avgC=avg(co2s)||'unknown';
-      maxT=temps.length?Math.max(...temps).toFixed(1)+'C':'unknown';
-      minT=temps.length?Math.min(...temps).toFixed(1)+'C':'unknown';
-    }
-    const live=S.live;
-    farmContext='Al-Waseel Farm, Diriyah Riyadh. SEEDLINGS: 1000 Albion Frigo, arrived June 7 2026, currently week '
-      +Math.floor((Date.now()-new Date('2026-06-07'))/604800000)
-      +' of establishment in peat moss small pots before tower transfer. '
-      +'LIVE NOW: Temp='+(live.tempW?live.tempW.toFixed(1)+'C weighted (canopy '+live.temp+'C / wet wall '+live.hubTemp+'C)':'unknown')
-      +', Humidity='+(live.humW?live.humW.toFixed(0)+'%':'unknown')
-      +', VPD='+(live.vpd?live.vpd.toFixed(2)+' kPa':'unknown')
-      +', CO2='+(live.co2?live.co2+' ppm':'unknown')
-      +', Outside='+(live.outsideTemp?live.outsideTemp+'C':'unknown')
-      +', Cooling gradient='+(live.temp&&live.hubTemp?(live.temp-live.hubTemp).toFixed(1)+'C':'unknown')
-      +', Water leak: '+(live.w1?'LEAK DETECTED':'dry')+'.'
-      +' LAST 24H: Avg temp='+avgT+'C, Max='+maxT+', Min='+minT
-      +', Avg humidity='+avgH+'%, Avg VPD='+avgV+' kPa, Avg CO2='+avgC+' ppm.'
-      +' FARM: 6-line vertical hydroponic tower system, 30x9m greenhouse, 2000L drinking water tank.'
-      +' Owner: Khalid AlHakbani. Engineer Mohammed on site.';
-  }catch(e){
-    farmContext='Al-Waseel Farm, Diriyah Riyadh. 1000 Albion Frigo strawberry plants week '
-      +Math.floor((Date.now()-new Date('2026-06-07'))/604800000)
-      +' of establishment. 6-line vertical hydroponic system, 30x9m greenhouse.';
+  let filter = "all";
+ 
+  function card(r,i){
+    return `<article class="card ${r.v}" onclick="openDetail(${i})">
+      <div class="c-top">
+        <div class="avatar ${r.fund?'fund':''}">${r.init}</div>
+        <div class="c-who"><b>${r.who}</b><span>${r.sub}</span></div>
+        <div class="c-time">${r.when}</div>
+      </div>
+      <div class="c-mid">
+        <div><div class="c-ticker">${r.ticker}</div><div class="c-co">${r.co}</div></div>
+        <div class="badge ${r.v}">${vshort[r.v]}</div>
+      </div>
+      <div class="c-meta">
+        <span class="side ${r.side==='Sell'?'sell':''}">Disclosed ${r.side}</span>
+        <span class="sep">·</span><span>${r.amt}</span>
+        <span class="chev">›</span>
+      </div>
+    </article>`;
   }
-  for(let i=0;i<agents.length;i++){
-    const agent=agents[i];
-    const ctx=responses.length>0?'\n\nPrevious experts said:\n'+responses.map(r=>r.name+': '+r.text).join('\n\n'):'';
-    const card=document.createElement('div');
-    card.style.cssText='padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,253,247,.95);margin-bottom:10px;direction:rtl;text-align:right;';
-    card.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:1.1rem">'+agent.emoji+'</span><div><div style="font-weight:900;font-size:.85rem;color:'+agent.color+'">'+agent.name+'</div><div style="font-size:.68rem;color:var(--muted)">'+agent.role+'</div></div><div style="margin-left:auto;font-size:.65rem;padding:2px 8px;border-radius:8px;background:var(--soft-sage);color:var(--deep);font-weight:700" id="status-'+i+'">Processing...</div></div><div id="text-'+i+'" style="font-size:.82rem;color:var(--deep);line-height:1.7;background:var(--soft-sage);padding:10px 12px;border-radius:8px">...</div>';
-    disc.appendChild(card);
-    card.scrollIntoView({behavior:'smooth',block:'nearest'});
-    try{
-      const res=await fetch('/api/ask-council',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:agent.system,isExec:i===6,isTech:agent.isTech===true,messages:[{role:'user',content:'Farm context:\n'+farmContext+'\n\nAdditional context:\n'+(document.getElementById('councilContext').value.trim()||'None provided')+'\n\nQuestion: '+q+ctx+'\n\nProvide your expert assessment.'}]})});
-      const data=await res.json();
-      const raw=(data.content&&data.content[0]&&data.content[0].text)?data.content[0].text:JSON.stringify(data);
-      const parts=raw.split('---');
-      const enText=(parts[0]||'').trim();
-      const arText=(parts[1]||'').trim();
-      function fmt(t){return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/#+\s*/g,'').replace(/\n/g,'<br>');}
-      document.getElementById('text-'+i).innerHTML=
-        '<div style="font-size:.85rem;color:var(--deep);line-height:1.9">'+fmt(enText)+'</div>'
-        +(arText?'<div style="margin-top:12px;padding-top:12px;border-top:2px solid rgba(6,68,46,.12);font-family:var(--ar);direction:rtl;text-align:right;font-size:.84rem;color:var(--deep);line-height:1.9">'+fmt(arText)+'</div>':'');
-      const st=document.getElementById('status-'+i);
-      st.textContent='✓ Complete';st.style.background='rgba(22,137,78,.1)';st.style.color='#16894E';
-      responses.push({name:agent.name,text:raw});
-      if(i===6){
-        try{await fetch('/api/council',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,summary:raw,agents_count:7})});}catch(e){}
-      }
-    }catch(e){document.getElementById('text-'+i).textContent='Error: '+e.message;}
-    await new Promise(r=>setTimeout(r,300));
+  function paint(){
+    const shown = rows.map((r,i)=>[r,i]).filter(([r])=>filter==="all"||r.v===filter);
+    document.getElementById('list').innerHTML = shown.map(([r,i])=>card(r,i)).join("");
+    document.getElementById('count').textContent = `${shown.length} shown`;
   }
-  btn.disabled=false;btn.innerHTML='Consult<br>🏛️';
-}
-document.addEventListener('DOMContentLoaded',function(){
-  const co=$('councilOverlay');
-  if(co)co.addEventListener('click',function(e){if(e.target===this)closeCouncil();});
-});
+  function setSeg(el){
+    document.querySelectorAll('.seg').forEach(s=>s.classList.remove('active'));
+    el.classList.add('active'); filter = el.dataset.v; paint();
+  }
+  function meterKind(r,which){
+    if(which==='impure') return r.impure>5 ? 'warn' : (r.impure>0 ? 'warn':'ok');
+    return 'adv';
+  }
+  function openDetail(i){
+    const r = rows[i];
+    document.getElementById('d-tk').textContent = r.ticker;
+    const badge = document.getElementById('d-badge');
+    badge.className = 'badge '+r.v; badge.textContent = vshort[r.v];
+    const impureW = Math.min(100, r.impure===0?4:(r.impure/5)*100);
+    const debtW = Math.min(100, r.debt===0?4:(r.debt/33)*100);
+    document.getElementById('d-body').innerHTML = `
+      <div class="d-hero">
+        <div class="eyebrow">${r.who} · ${r.sub.split(' · ')[1]||r.sub}</div>
+        <div class="d-big">${r.ticker}</div>
+        <div class="d-co">${r.co}</div>
+        <div class="d-line">
+          <span class="side ${r.side==='Sell'?'sell':''}">Disclosed ${r.side}</span>
+          <span class="sep">·</span><span>${r.amt}</span>
+          <span class="sep">·</span><span>trade ${r.tdate}</span>
+        </div>
+      </div>
+ 
+      <div class="sect">
+        <div class="sect-h"><h3>Sharia verdict</h3><em>Framework B · Hanbali</em></div>
+        <div class="row"><small>Business activity</small><span class="vchip ${r.bizS}">${r.bizS==='fail'?'Excluded':r.bizS==='watch'?'Permitted · watch':'Permitted'}</span></div>
+        <div class="meter-row">
+          <div class="meter-top"><small>Impure income</small><b>${r.impure.toFixed(1)}% <span class="adv-tag">/ ≤5%</span></b></div>
+          <div class="meter"><i class="${r.impure>5?'warn':r.impure>0?'warn':'ok'}" style="width:${impureW}%"></i></div>
+        </div>
+        <div class="meter-row">
+          <div class="meter-top"><small>Debt / market cap</small><b>${r.debt===0?'N/A':r.debt.toFixed(1)+'%'} <span class="adv-tag">/ advisory</span></b></div>
+          <div class="meter"><i class="adv" style="width:${debtW}%"></i></div>
+        </div>
+        <div class="why">${r.why}</div>
+      </div>
+ 
+      <div class="sect">
+        <div class="sect-h"><h3>Disclosure</h3></div>
+        <div class="facts">
+          <div class="fact"><small>Filed by</small><b>${r.who}</b></div>
+          <div class="fact"><small>Source</small><b>${r.sub.split(' · ')[1]||r.sub}</b></div>
+          <div class="fact"><small>Side</small><b>Disclosed ${r.side}</b></div>
+          <div class="fact"><small>Amount</small><b>${r.amt}</b></div>
+          <div class="fact"><small>Trade date</small><b>${r.tdate}</b></div>
+          <div class="fact"><small>Filing received</small><b>${r.fdate}</b></div>
+        </div>
+      </div>
+ 
+      <p class="disc">Mizān provides informational disclosure monitoring and Sharia screening only — not investment advice, brokerage, or a fatwa.</p>
+    `;
+    document.getElementById('detail').classList.add('open');
+    document.getElementById('tag').textContent = 'Concept · Detail';
+    document.getElementById('d-body').scrollTop = 0;
+  }
+  function closeDetail(){
+    document.getElementById('detail').classList.remove('open');
+    document.getElementById('tag').textContent = 'Concept · Home';
+  }
+  function openSheet(){ document.getElementById('scrim').classList.add('open'); document.getElementById('sheet').classList.add('open'); }
+  function closeSheet(){ document.getElementById('scrim').classList.remove('open'); document.getElementById('sheet').classList.remove('open'); }
+  document.querySelectorAll('.chips').forEach(g=>g.addEventListener('click',e=>{
+    if(!e.target.classList.contains('chip'))return;
+    g.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+    e.target.classList.add('on');
+  }));
+  paint();
 </script>
-<!-- EXPERT COUNCIL OVERLAY -->
-<div class="reports-overlay" id="councilOverlay">
-  <div class="reports-panel" style="max-width:860px">
-    <div class="rep-header">
-      <div><h2><i class="ti ti-brain" style="margin-right:8px"></i>Expert Advisory Council</h2><div class="rep-header-ar">المجلس الاستشاري التخصصي &mdash; مزرعة الوصيل</div></div>
-      <button class="rep-close" onclick="closeCouncil()"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="rep-body">
-      <div style="margin-bottom:18px">
-        <div style="font-size:.72rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--deep);margin-bottom:8px">Submit Consultation — تقديم استشارة</div>
-        <div style="display:flex;gap:8px;align-items:flex-end">
-          <textarea id="councilQuestion" placeholder="Describe the issue or question for expert consultation..." style="flex:1;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-family:var(--sans);font-size:.85rem;outline:none;resize:vertical;min-height:60px;background:var(--soft-sage);color:var(--deep)"></textarea>
-        </div>
-        <div style="margin-top:8px">
-          <div style="font-size:.68rem;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Field Context (optional) — سياق ميداني إضافي</div>
-          <textarea id="councilContext" placeholder="e.g. Plants are 3 weeks old, water EC is 1.2, leaf tips showing yellowing since yesterday..." style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-family:var(--sans);font-size:.82rem;outline:none;resize:vertical;min-height:50px;background:#fffdf7;color:var(--deep);direction:ltr"></textarea>
-        </div>
-        <button onclick="askCouncil()" id="councilAskBtn" style="margin-top:8px;padding:10px 18px;background:linear-gradient(135deg,#7ea06d,var(--deep));color:var(--light-gold);border:none;border-radius:10px;font-weight:800;font-size:.82rem;cursor:pointer;height:50px">Consult Council 🏛️</button>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
-        <span onclick="$('councilQuestion').value=this.textContent" style="padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:16px;font-size:.72rem;cursor:pointer;color:var(--deep)">Are seedlings ready for tower transfer?</span>
-        <span onclick="$('councilQuestion').value=this.textContent" style="padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:16px;font-size:.72rem;cursor:pointer;color:var(--deep)">How to maximize Albion sale price?</span>
-        <span onclick="$('councilQuestion').value=this.textContent" style="padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:16px;font-size:.72rem;cursor:pointer;color:var(--deep)">Water temperature too high — action plan?</span>
-        <span onclick="$('councilQuestion').value=this.textContent" style="padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:16px;font-size:.72rem;cursor:pointer;color:var(--deep)">Leaf yellowing observed — diagnosis?</span>
-      </div>
-      <div id="councilDiscussion"></div>
-      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <div style="font-size:.68rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Previous Council Decisions</div>
-          <button class="rep-btn" onclick="loadCouncilDecisions()"><i class="ti ti-refresh"></i> Load</button>
-        </div>
-        <div id="councilLog"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">Click Load to retrieve past council decisions</div></div>
-      </div>
-    </div>
-  </div>
-</div>
 </body>
 </html>
  
-
-
 
 
 
