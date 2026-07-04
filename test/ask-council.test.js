@@ -75,7 +75,7 @@ describe('api/ask-council', () => {
     const res = makeRes();
     await askCouncil(makeReq({ method: 'POST', headers: authedHeaders(), body: { ...baseBody, isExec: true } }), res);
 
-    expect(sent.max_tokens).toBe(1500);
+    expect(sent.max_tokens).toBe(3000);
     expect(sent.system).toContain('مهام محمد'); // exec-only heading
   });
 
@@ -86,18 +86,18 @@ describe('api/ask-council', () => {
     const res = makeRes();
     await askCouncil(makeReq({ method: 'POST', headers: authedHeaders(), body: { ...baseBody, isTech: true } }), res);
 
-    expect(sent.max_tokens).toBe(900);
+    expect(sent.max_tokens).toBe(2000);
     expect(sent.system).toContain('اقتراح تقني'); // tech-only marker
   });
 
-  it('defaults to the expert instruction and 900 tokens', async () => {
+  it('defaults to the expert instruction and 2000 tokens', async () => {
     let sent;
     nock(ANTHROPIC).post('/v1/messages', (b) => { sent = b; return true; }).reply(200, {});
 
     const res = makeRes();
     await askCouncil(makeReq({ method: 'POST', headers: authedHeaders(), body: baseBody }), res);
 
-    expect(sent.max_tokens).toBe(900);
+    expect(sent.max_tokens).toBe(2000);
     expect(sent.system).not.toContain('مهام محمد');
     expect(sent.system).not.toContain('اقتراح تقني');
   });

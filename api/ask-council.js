@@ -44,7 +44,10 @@ module.exports = async (req, res) => {
  
     const payload = JSON.stringify({
       model: 'claude-sonnet-5',
-      max_tokens: isExec ? 1500 : 900,
+      // max_tokens is a ceiling shared by the model's thinking tokens AND the
+      // visible answer, so a low budget truncates the reply mid-sentence.
+      // Keep it generous — you're only billed for tokens actually produced.
+      max_tokens: isExec ? 3000 : 2000,
       system: system + instruction,
       messages
     });
