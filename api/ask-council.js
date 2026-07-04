@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
     const instruction = isExec ? execInstruction : (isTechAgent ? techInstruction : expertInstruction);
  
     const payload = JSON.stringify({
-      model: 'claude-sonnet-4-6',
+      model: 'claude-sonnet-5',
       max_tokens: isExec ? 1500 : 900,
       system: system + instruction,
       messages
