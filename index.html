@@ -1090,7 +1090,12 @@ async function loadIncidents(){
   }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger);font-size:.8rem">Error loading registry: '+e.message+'</div>';}
 }
 window.AlWaseelFarmDashboard={state:S,refreshData:fetchLive};
-document.addEventListener('DOMContentLoaded',function(){
+document.addEventListener('DOMContentLoaded',async function(){
+  // Require a valid session before showing the dashboard; otherwise go to login.
+  try{
+    const authRes=await fetch('/api/auth/check',{credentials:'same-origin'});
+    if(!authRes.ok){window.location.href='/login';return;}
+  }catch(e){window.location.href='/login';return;}
   buildChart();setActiveMetric('all');fetchLive();loadHistory(1);
   fetchOutsideTemp();
   setInterval(fetchLive,60000);

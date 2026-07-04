@@ -2,10 +2,12 @@ import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 import { createRequire } from 'node:module';
 import nock from 'nock';
 import { makeReq, makeRes, invokeStreaming, waitUntilEnded } from './helpers/http.js';
+import { authedHeaders, TEST_SESSION_SECRET } from './helpers/auth.js';
 
 const SUPA = 'https://test.supabase.co';
 process.env.SUPABASE_URL = SUPA;
 process.env.SUPABASE_KEY = 'test-key';
+process.env.SESSION_SECRET = TEST_SESSION_SECRET;
 
 const require = createRequire(import.meta.url);
 const saveReading = require('../api/save-reading.js');
@@ -31,6 +33,7 @@ describe('api/save-reading', () => {
     const res = makeRes();
     await invokeStreaming(saveReading, makeReq({
       method: 'POST',
+      headers: authedHeaders(),
       body: { co2: 800, temperature: 24.5, humidity: 60, vpd: 1.1 },
     }), res);
     await waitUntilEnded(res);
@@ -48,6 +51,7 @@ describe('api/save-reading', () => {
     const res = makeRes();
     await invokeStreaming(saveReading, makeReq({
       method: 'POST',
+      headers: authedHeaders(),
       body: { temperature: 22 },
     }), res);
     await waitUntilEnded(res);
@@ -63,6 +67,7 @@ describe('api/save-reading', () => {
     const res = makeRes();
     await invokeStreaming(saveReading, makeReq({
       method: 'POST',
+      headers: authedHeaders(),
       body: { temperature: 22, water_leak_1: true, water_leak_2: false },
     }), res);
     await waitUntilEnded(res);
@@ -72,10 +77,16 @@ describe('api/save-reading', () => {
 
   it('returns 500 on a malformed JSON body', async () => {
     const res = makeRes();
-    await invokeStreaming(saveReading, makeReq({ method: 'POST', body: '{bad json' }), res);
+    await invokeStreaming(saveReading, makeReq({ method: 'POST', headers: authedHeaders(), body: '{bad json' }), res);
     await waitUntilEnded(res);
 
     expect(res.statusCode).toBe(500);
     expect(res.body).toHaveProperty('error');
+  });
+
+  it('rejects an unauthenticated request (401)', async () => {
+    const res = makeRes();
+    await invokeStreaming(saveReading, makeReq({ method: 'POST', headers: {}, body: { temperature: 22 } }), res);
+    expect(res.statusCode).toBe(401);
   });
 });

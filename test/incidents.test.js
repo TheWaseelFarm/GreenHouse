@@ -31,6 +31,12 @@ describe('api/incidents', () => {
     expect(res.statusCode).toBe(405);
   });
 
+  it('rejects an unauthenticated request (401)', async () => {
+    const res = makeRes();
+    await incidents(makeReq({ method: 'GET', query: {}, headers: {} }), res);
+    expect(res.statusCode).toBe(401);
+  });
+
   describe('GET', () => {
     it('returns the incident list with the default limit of 50', async () => {
       const rows = [{ id: 1, type: 'heat' }, { id: 2, type: 'leak' }];
