@@ -63,9 +63,13 @@ module.exports = async (req, res) => {
  
     const data = await new Promise((resolve, reject) => {
       const apiReq = https.request(options, (apiRes) => {
-        let body = '';
-        apiRes.on('data', chunk => body += chunk);
+        const chunks = [];
+        apiRes.on('data', chunk => chunks.push(chunk));
         apiRes.on('end', () => {
+          // Decode the full buffer once as UTF-8. Concatenating string
+          // conversions of individual chunks corrupts multi-byte (e.g. Arabic)
+          // characters that straddle a chunk boundary.
+          const body = Buffer.concat(chunks).toString('utf8');
           try { resolve(JSON.parse(body)); }
           catch(e) { reject(new Error('Parse error: ' + body.substring(0, 200))); }
         });

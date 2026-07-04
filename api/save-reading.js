@@ -9,9 +9,10 @@ module.exports = async (req, res) => {
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
-  let body = '';
-  req.on('data', chunk => body += chunk);
+  const bodyChunks = [];
+  req.on('data', chunk => bodyChunks.push(chunk));
   req.on('end', async () => {
+    const body = Buffer.concat(bodyChunks).toString('utf8');
     try {
       const data = JSON.parse(body);
       const payload = JSON.stringify({
@@ -47,9 +48,9 @@ module.exports = async (req, res) => {
 
       const result = await new Promise((resolve, reject) => {
         const r = https.request(options, resp => {
-          let d = '';
-          resp.on('data', chunk => d += chunk);
-          resp.on('end', () => resolve({ status: resp.statusCode, body: d }));
+          const chunks = [];
+          resp.on('data', chunk => chunks.push(chunk));
+          resp.on('end', () => resolve({ status: resp.statusCode, body: Buffer.concat(chunks).toString('utf8') }));
         });
         r.on('error', reject);
         r.write(payload);

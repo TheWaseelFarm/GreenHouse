@@ -18,9 +18,10 @@ module.exports = async (req, res) => {
       headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
     };
     const supaReq = https.request(options, supaRes => {
-      let data = '';
-      supaRes.on('data', c => data += c);
+      const chunks = [];
+      supaRes.on('data', c => chunks.push(c));
       supaRes.on('end', () => {
+        const data = Buffer.concat(chunks).toString('utf8');
         try { res.status(200).json(JSON.parse(data)); }
         catch(e) { res.status(500).json({ error: 'parse error' }); }
       });
