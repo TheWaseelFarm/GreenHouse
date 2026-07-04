@@ -1116,7 +1116,15 @@ async function loadCouncilDecisions(){
       const ds=dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
       const q=(d.question||'').replace(/</g,'&lt;');
       const s=(d.summary||'').replace(/</g,'&lt;');
-      return '<div style="padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,253,247,.9);margin-bottom:8px"><div style="font-size:.62rem;color:var(--muted);margin-bottom:4px">'+ds+' · '+(d.agents_count||7)+' experts consulted</div><div style="font-weight:800;font-size:.82rem;color:var(--deep);margin-bottom:6px">'+q+'</div><div style="font-size:.76rem;color:var(--deep);line-height:1.6;background:var(--soft-sage);padding:8px 10px;border-radius:8px;white-space:pre-wrap">'+(s.length>300?s.substring(0,300)+'...':s)+'</div></div>';
+      // Collapsed by default: click the question to reveal the full executive
+      // conclusion. Native <details> keeps it clean and needs no extra JS.
+      return '<details style="border:1px solid var(--border);border-radius:10px;background:rgba(255,253,247,.9);margin-bottom:8px;padding:10px 14px">'
+        +'<summary style="cursor:pointer">'
+        +'<span style="font-size:.62rem;color:var(--muted)">'+ds+' · '+(d.agents_count||7)+' experts consulted</span>'
+        +'<div style="font-weight:800;font-size:.82rem;color:var(--deep);margin-top:4px">'+q+'</div>'
+        +'</summary>'
+        +'<div style="font-size:.76rem;color:var(--deep);line-height:1.6;background:var(--soft-sage);padding:8px 10px;border-radius:8px;white-space:pre-wrap;margin-top:8px">'+s+'</div>'
+        +'</details>';
     }).join('');
   }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger)">Error: '+e.message+'</div>';}
 }
