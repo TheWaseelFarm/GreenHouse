@@ -124,9 +124,9 @@ async function fetchDevice(TOKEN, SECRET, deviceId) {
 function httpGet(hostname, path, headers) {
   return new Promise((resolve, reject) => {
     const req = https.get({ hostname, path, headers }, resp => {
-      let data = '';
-      resp.on('data', chunk => data += chunk);
-      resp.on('end', () => resolve(data));
+      const chunks = [];
+      resp.on('data', chunk => chunks.push(chunk));
+      resp.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     });
     req.on('error', reject);
   });
@@ -139,9 +139,9 @@ function httpPost(hostname, path, body, headers) {
       headers: { ...headers, 'Content-Length': Buffer.byteLength(body) }
     };
     const req = https.request(options, resp => {
-      let data = '';
-      resp.on('data', chunk => data += chunk);
-      resp.on('end', () => resolve(data));
+      const chunks = [];
+      resp.on('data', chunk => chunks.push(chunk));
+      resp.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     });
     req.on('error', reject);
     req.write(body);

@@ -20,9 +20,10 @@ function supabaseRequest(method, path, body) {
     };
     if (data) options.headers['Content-Length'] = Buffer.byteLength(data);
     const req = https.request(options, res => {
-      let raw = '';
-      res.on('data', c => raw += c);
+      const chunks = [];
+      res.on('data', c => chunks.push(c));
       res.on('end', () => {
+        const raw = Buffer.concat(chunks).toString('utf8');
         try { resolve({ status: res.statusCode, data: JSON.parse(raw) }); }
         catch(e) { resolve({ status: res.statusCode, data: raw }); }
       });

@@ -69,6 +69,4 @@ place for when a proper login flow is built.
 
 - Re-introduce auth once a login page is wired to `/api/auth/login` (gate the
   browser endpoints again, plus a device-token scheme for `api/save-reading.js`).
-- `api/ask-council.js` targets model `claude-sonnet-4-6`, which is not a valid
-  model id.
-- Delete `api/gen-hash.js`.
+  This needs the sensor's auth approach decided first, so it is deferred.

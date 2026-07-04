@@ -28,9 +28,9 @@ module.exports = async (req, res) => {
 
   const data = await new Promise((resolve, reject) => {
     const r = https.get(options, resp => {
-      let d = '';
-      resp.on('data', chunk => d += chunk);
-      resp.on('end', () => resolve(d));
+      const chunks = [];
+      resp.on('data', chunk => chunks.push(chunk));
+      resp.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     });
     r.on('error', reject);
   });
