@@ -50,6 +50,24 @@ describe('api/ask-council', () => {
     expect(sent.messages).toEqual(baseBody.messages);
   });
 
+  it('strips a leading thinking block, keeping only the text', async () => {
+    const reply = {
+      model: 'claude-sonnet-5',
+      content: [
+        { type: 'thinking', thinking: 'reasoning...', signature: 'AKXsig==' },
+        { type: 'text', text: '• اقتراح تقني' },
+      ],
+    };
+    nock(ANTHROPIC).post('/v1/messages').reply(200, reply);
+
+    const res = makeRes();
+    await askCouncil(makeReq({ method: 'POST', headers: authedHeaders(), body: baseBody }), res);
+
+    expect(res.statusCode).toBe(200);
+    // The thinking block (and its signature) is gone; content[0] is the answer.
+    expect(res.body.content).toEqual([{ type: 'text', text: '• اقتراح تقني' }]);
+  });
+
   it('uses the executive format and a larger token budget when isExec', async () => {
     let sent;
     nock(ANTHROPIC).post('/v1/messages', (b) => { sent = b; return true; }).reply(200, {});

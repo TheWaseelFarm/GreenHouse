@@ -79,8 +79,17 @@ module.exports = async (req, res) => {
       apiReq.end();
     });
  
+    // Normalize the reply: keep only text blocks in `content`. Newer models
+    // can prepend a thinking block (with a base64 signature), which would push
+    // the answer text out of content[0] and leak the thinking payload to the
+    // client. Stripping it here keeps content[0].text the answer for any client.
+    if (data && Array.isArray(data.content)) {
+      const textOnly = data.content.filter(b => b && b.type === 'text');
+      if (textOnly.length) data.content = textOnly;
+    }
+
     res.status(200).json(data);
- 
+
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
