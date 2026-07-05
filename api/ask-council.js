@@ -44,7 +44,10 @@ module.exports = async (req, res) => {
  
     const payload = JSON.stringify({
       model: 'claude-sonnet-5',
-      max_tokens: isExec ? 1500 : 900,
+      // max_tokens is a ceiling shared by the model's thinking tokens AND the
+      // visible answer, so a low budget truncates the reply mid-sentence.
+      // Keep it generous — you're only billed for tokens actually produced.
+      max_tokens: isExec ? 3000 : 2000,
       system: system + instruction,
       messages
     });
@@ -79,8 +82,17 @@ module.exports = async (req, res) => {
       apiReq.end();
     });
  
+    // Normalize the reply: keep only text blocks in `content`. Newer models
+    // can prepend a thinking block (with a base64 signature), which would push
+    // the answer text out of content[0] and leak the thinking payload to the
+    // client. Stripping it here keeps content[0].text the answer for any client.
+    if (data && Array.isArray(data.content)) {
+      const textOnly = data.content.filter(b => b && b.type === 'text');
+      if (textOnly.length) data.content = textOnly;
+    }
+
     res.status(200).json(data);
- 
+
   } catch(e) {
     res.status(500).json({ error: e.message });
   }

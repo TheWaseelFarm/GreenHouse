@@ -50,6 +50,24 @@ describe('api/ask-council', () => {
     expect(sent.messages).toEqual(baseBody.messages);
   });
 
+  it('strips a leading thinking block, keeping only the text', async () => {
+    const reply = {
+      model: 'claude-sonnet-5',
+      content: [
+        { type: 'thinking', thinking: 'reasoning...', signature: 'AKXsig==' },
+        { type: 'text', text: '• اقتراح تقني' },
+      ],
+    };
+    nock(ANTHROPIC).post('/v1/messages').reply(200, reply);
+
+    const res = makeRes();
+    await askCouncil(makeReq({ method: 'POST', headers: authedHeaders(), body: baseBody }), res);
+
+    expect(res.statusCode).toBe(200);
+    // The thinking block (and its signature) is gone; content[0] is the answer.
+    expect(res.body.content).toEqual([{ type: 'text', text: '• اقتراح تقني' }]);
+  });
+
   it('uses the executive format and a larger token budget when isExec', async () => {
     let sent;
     nock(ANTHROPIC).post('/v1/messages', (b) => { sent = b; return true; }).reply(200, {});
@@ -57,7 +75,7 @@ describe('api/ask-council', () => {
     const res = makeRes();
     await askCouncil(makeReq({ method: 'POST', headers: authedHeaders(), body: { ...baseBody, isExec: true } }), res);
 
-    expect(sent.max_tokens).toBe(1500);
+    expect(sent.max_tokens).toBe(3000);
     expect(sent.system).toContain('مهام محمد'); // exec-only heading
   });
 
@@ -68,18 +86,18 @@ describe('api/ask-council', () => {
     const res = makeRes();
     await askCouncil(makeReq({ method: 'POST', headers: authedHeaders(), body: { ...baseBody, isTech: true } }), res);
 
-    expect(sent.max_tokens).toBe(900);
+    expect(sent.max_tokens).toBe(2000);
     expect(sent.system).toContain('اقتراح تقني'); // tech-only marker
   });
 
-  it('defaults to the expert instruction and 900 tokens', async () => {
+  it('defaults to the expert instruction and 2000 tokens', async () => {
     let sent;
     nock(ANTHROPIC).post('/v1/messages', (b) => { sent = b; return true; }).reply(200, {});
 
     const res = makeRes();
     await askCouncil(makeReq({ method: 'POST', headers: authedHeaders(), body: baseBody }), res);
 
-    expect(sent.max_tokens).toBe(900);
+    expect(sent.max_tokens).toBe(2000);
     expect(sent.system).not.toContain('مهام محمد');
     expect(sent.system).not.toContain('اقتراح تقني');
   });
