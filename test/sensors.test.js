@@ -13,9 +13,9 @@ process.env.SUPABASE_KEY = 'test-key';
 process.env.SESSION_SECRET = TEST_SESSION_SECRET;
 
 const require = createRequire(import.meta.url);
-const devices = require('../api/devices.js');
-const status = require('../api/status.js');
-const history = require('../api/history.js');
+const devices = require('../_lib/handlers/devices.js');
+const status = require('../_lib/handlers/status.js');
+const history = require('../_lib/handlers/history.js');
 
 const SWITCHBOT = 'https://api.switch-bot.com';
 

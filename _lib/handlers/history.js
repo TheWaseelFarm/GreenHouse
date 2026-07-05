@@ -1,5 +1,5 @@
 const https = require('https');
-const { requireAuth } = require('../_lib/auth');
+const { requireAuth } = require('../auth');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');

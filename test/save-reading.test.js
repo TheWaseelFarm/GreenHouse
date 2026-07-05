@@ -10,7 +10,7 @@ process.env.SUPABASE_KEY = 'test-key';
 process.env.SESSION_SECRET = TEST_SESSION_SECRET;
 
 const require = createRequire(import.meta.url);
-const saveReading = require('../api/save-reading.js');
+const saveReading = require('../_lib/handlers/save-reading.js');
 
 beforeAll(() => nock.disableNetConnect());
 afterAll(() => nock.enableNetConnect());
