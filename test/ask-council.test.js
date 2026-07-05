@@ -31,6 +31,12 @@ describe('api/ask-council', () => {
     expect(res.statusCode).toBe(405);
   });
 
+  it('rejects an unauthenticated POST (401)', async () => {
+    const res = makeRes();
+    await askCouncil(makeReq({ method: 'POST', headers: {}, body: baseBody }), res);
+    expect(res.statusCode).toBe(401);
+  });
+
   it('forwards the Anthropic response on success', async () => {
     const reply = { content: [{ type: 'text', text: 'مرحبا' }] };
     let sent;

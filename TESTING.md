@@ -54,19 +54,24 @@ Outbound HTTP (Supabase, SwitchBot, Anthropic) is intercepted with
 - `api/page.js` dashboard-serve branch — depends on an `_index.html` file that
   isn't in the repo; only the auth-gate redirect paths are exercised.
 
-## Authentication (currently disabled)
+## Authentication
 
-The browser-facing endpoints (`devices`, `status`, `history`, `incidents`,
-`council`, `ask-council`) were briefly gated by `requireAuth` (session-cookie
-JWT), but that gating has been **removed for now**: the dashboard has no login
-UI wired up yet, so gating blocked all live data. The endpoints are public
-again, matching their original behavior. `_lib/auth.js` and its tests remain in
-place for when a proper login flow is built.
+The dashboard is behind a login. Flow:
 
-`api/cron-save.js` still authenticates with its own `CRON_SECRET` bearer token.
+1. `login.html` (served at `/login`) posts credentials to `/api/auth/login`,
+   which validates them against the `DASHBOARD_USER` / `DASHBOARD_PASSWORD_HASH`
+   env vars and sets an httpOnly `wf_session` JWT cookie (`SESSION_SECRET`).
+2. On load, `index.html` calls `/api/auth/check`; a 401 redirects to `/login`.
+3. All browser data endpoints — `devices`, `status`, `history`, `incidents`,
+   `council`, `ask-council`, `save-reading` — are gated by `requireAuth`, so
+   the sensor data itself is protected (each has a 401 test).
+4. Sign Out hits `/api/auth/logout`, which clears the cookie and returns to
+   `/login`.
 
-## Open follow-ups (not test work)
+`api/cron-save.js` authenticates separately with its own `CRON_SECRET` bearer
+token (it writes to Supabase directly, not through `save-reading`).
 
-- Re-introduce auth once a login page is wired to `/api/auth/login` (gate the
-  browser endpoints again, plus a device-token scheme for `api/save-reading.js`).
-  This needs the sensor's auth approach decided first, so it is deferred.
+Note: this is client-side gating — the dashboard HTML is still served to
+unauthenticated visitors before the redirect. The data is protected; the HTML
+is not. Server-side gating (routing `/` through `api/page.js`) would close that
+gap but requires Vercel routing changes and is left as optional hardening.
