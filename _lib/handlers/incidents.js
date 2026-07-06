@@ -1,5 +1,5 @@
 const https = require('https');
-const { requireAuth } = require('../_lib/auth');
+const { requireAuth } = require('../auth');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;

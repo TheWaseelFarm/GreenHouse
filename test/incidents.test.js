@@ -11,7 +11,7 @@ process.env.SUPABASE_KEY = 'test-key';
 process.env.SESSION_SECRET = TEST_SESSION_SECRET;
 
 const require = createRequire(import.meta.url);
-const incidents = require('../api/incidents.js');
+const incidents = require('../_lib/handlers/incidents.js');
 
 beforeAll(() => nock.disableNetConnect());
 afterAll(() => nock.enableNetConnect());

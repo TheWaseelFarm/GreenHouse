@@ -10,9 +10,9 @@ import { makeReq, makeRes, invokeStreaming } from './helpers/http.js';
 const require = createRequire(import.meta.url);
 
 const { requireAuth } = require('../_lib/auth.js');
-const loginHandler = require('../api/auth/login');
-const logoutHandler = require('../api/auth/logout');
-const checkHandler = require('../api/auth/check.js');
+const loginHandler = require('../_lib/handlers/login');
+const logoutHandler = require('../_lib/handlers/logout');
+const checkHandler = require('../_lib/handlers/check.js');
 
 const SECRET = 'test-session-secret-xyz';
 const USER = 'khaled';

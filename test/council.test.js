@@ -10,7 +10,7 @@ process.env.SUPABASE_KEY = 'test-key';
 process.env.SESSION_SECRET = TEST_SESSION_SECRET;
 
 const require = createRequire(import.meta.url);
-const council = require('../api/council.js');
+const council = require('../_lib/handlers/council.js');
 
 beforeAll(() => nock.disableNetConnect());
 afterAll(() => nock.enableNetConnect());
