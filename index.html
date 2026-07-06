@@ -1090,12 +1090,52 @@ async function loadIncidents(){
   }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger);font-size:.8rem">Error loading registry: '+e.message+'</div>';}
 }
 window.AlWaseelFarmDashboard={state:S,refreshData:fetchLive};
+function showLoginGate(){
+  if(document.getElementById('loginGate'))return;
+  const g=document.createElement('div');
+  g.id='loginGate';
+  g.setAttribute('dir','rtl');
+  g.style.cssText='position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:24px;background:linear-gradient(160deg,#032D21,#06442E);font-family:Tahoma,"Segoe UI",Arial,sans-serif';
+  g.innerHTML=
+    '<main style="width:100%;max-width:380px;background:#FFFDF7;border-radius:20px;padding:32px 28px;box-shadow:0 24px 60px rgba(0,0,0,.35);border:1px solid rgba(196,154,58,.35)">'
+    +'<div style="text-align:center;margin-bottom:20px">'
+    +'<div style="font-size:26px;font-weight:800;color:#06442E">مزرعة الوصيل</div>'
+    +'<div style="font-size:12px;letter-spacing:4px;color:#C49A3A;font-weight:700;margin-top:4px">AL-WASEEL FARM</div>'
+    +'<div style="height:4px;width:64px;margin:14px auto 0;background:linear-gradient(90deg,#C49A3A,#E6D3A3);border-radius:3px"></div>'
+    +'</div>'
+    +'<h1 style="font-size:17px;text-align:center;margin:18px 0;color:#032D21">تسجيل الدخول — Sign In</h1>'
+    +'<form id="gateForm" autocomplete="on">'
+    +'<label style="display:block;font-size:13px;font-weight:600;margin:12px 0 6px;color:#6F765F">اسم المستخدم — Username</label>'
+    +'<input id="gateUser" type="text" required autocomplete="username" autofocus dir="ltr" style="width:100%;box-sizing:border-box;padding:12px 14px;font-size:15px;border-radius:12px;border:1px solid #d8dccf;background:#fff;color:#1E2D1A;outline:none">'
+    +'<label style="display:block;font-size:13px;font-weight:600;margin:12px 0 6px;color:#6F765F">كلمة المرور — Password</label>'
+    +'<input id="gatePass" type="password" required autocomplete="current-password" dir="ltr" style="width:100%;box-sizing:border-box;padding:12px 14px;font-size:15px;border-radius:12px;border:1px solid #d8dccf;background:#fff;color:#1E2D1A;outline:none">'
+    +'<button id="gateBtn" type="submit" style="width:100%;margin-top:20px;padding:13px;font-size:15px;font-weight:700;color:#fff;background:#06442E;border:none;border-radius:12px;cursor:pointer">دخول — Enter</button>'
+    +'<div id="gateErr" style="display:none;margin-top:14px;padding:11px 14px;font-size:13px;color:#C0392B;background:#FDECEA;border:1px solid rgba(192,57,43,.3);border-radius:10px;text-align:center"></div>'
+    +'</form></main>';
+  document.body.appendChild(g);
+  const form=g.querySelector('#gateForm'), btn=g.querySelector('#gateBtn'), err=g.querySelector('#gateErr');
+  form.addEventListener('submit',async(e)=>{
+    e.preventDefault();
+    err.style.display='none'; btn.disabled=true; btn.textContent='...';
+    try{
+      const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({username:g.querySelector('#gateUser').value.trim(),password:g.querySelector('#gatePass').value})});
+      if(res.ok){ window.location.reload(); return; }
+      let m='تعذر تسجيل الدخول — Sign in failed';
+      try{const d=await res.json(); if(d&&d.error)m=d.error;}catch(_){}
+      if(res.status===429)m='محاولات كثيرة، حاول لاحقاً — Too many attempts, try later';
+      err.textContent=m; err.style.display='block';
+    }catch(_){ err.textContent='تعذر الاتصال بالخادم — Could not reach the server'; err.style.display='block'; }
+    finally{ btn.disabled=false; btn.textContent='دخول — Enter'; }
+  });
+}
+
 document.addEventListener('DOMContentLoaded',async function(){
-  // Require a valid session before showing the dashboard; otherwise go to login.
-  try{
-    const authRes=await fetch('/api/auth/check',{credentials:'same-origin'});
-    if(!authRes.ok){window.location.href='/login';return;}
-  }catch(e){window.location.href='/login';return;}
+  // Require a valid session. Instead of redirecting to /login (which Vercel's
+  // catch-all serves as this same page → redirect loop), show the login form
+  // INLINE. Routing-proof: the page decides authed→dashboard, else→login form.
+  let authOk=false;
+  try{ authOk=(await fetch('/api/auth/check',{credentials:'same-origin',cache:'no-store'})).ok; }catch(e){ authOk=false; }
+  if(!authOk){ showLoginGate(); return; }
   buildChart();setActiveMetric('all');fetchLive();loadHistory(1);
   fetchOutsideTemp();
   setInterval(fetchLive,60000);
