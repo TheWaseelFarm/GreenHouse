@@ -51,18 +51,27 @@ module.exports = async (req, res) => {
   }
 
   // Validate credentials from env
-  const DASHBOARD_USER          = process.env.DASHBOARD_USER;
-  const DASHBOARD_PASSWORD_HASH = process.env.DASHBOARD_PASSWORD_HASH;
+  const DASHBOARD_USER          = (process.env.DASHBOARD_USER || '').trim();
+  // Trim the hash: pasting into the Vercel dashboard often appends a stray
+  // newline/space, which silently breaks bcrypt.compare (→ "Invalid credentials"
+  // with a perfectly correct password).
+  const DASHBOARD_PASSWORD_HASH = (process.env.DASHBOARD_PASSWORD_HASH || '').trim();
+  // Optional plaintext fallback so setup can't be broken by a mis-pasted hash.
+  // The hash is preferred whenever it is present; this is only used when no hash
+  // is configured.
+  const DASHBOARD_PASSWORD       = process.env.DASHBOARD_PASSWORD;
   const SESSION_SECRET          = process.env.SESSION_SECRET;
 
-  if (!DASHBOARD_USER || !DASHBOARD_PASSWORD_HASH || !SESSION_SECRET) {
+  if (!DASHBOARD_USER || !SESSION_SECRET || (!DASHBOARD_PASSWORD_HASH && !DASHBOARD_PASSWORD)) {
     console.error('Auth env vars not configured');
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
   // Constant-time username compare to prevent timing attacks
   const userMatch = timingSafeEqual(username, DASHBOARD_USER);
-  const passMatch = await bcrypt.compare(password, DASHBOARD_PASSWORD_HASH);
+  const passMatch = DASHBOARD_PASSWORD_HASH
+    ? await bcrypt.compare(password, DASHBOARD_PASSWORD_HASH)
+    : timingSafeEqual(password, DASHBOARD_PASSWORD);
 
   if (!userMatch || !passMatch) {
     attempts[ip].push(now);

@@ -165,6 +165,42 @@ describe('api/auth/login', () => {
     expect(decoded.user).toBe(USER);
   });
 
+  it('tolerates a stored hash with stray surrounding whitespace/newline', async () => {
+    const saved = process.env.DASHBOARD_PASSWORD_HASH;
+    process.env.DASHBOARD_PASSWORD_HASH = '  ' + bcrypt.hashSync(PASSWORD, 10) + '\n';
+    try {
+      const res = await invokeStreaming(
+        loginHandler,
+        reqFrom({ method: 'POST', body: JSON.stringify({ username: USER, password: PASSWORD }) }),
+        makeRes());
+      expect(res.statusCode).toBe(200);
+    } finally {
+      process.env.DASHBOARD_PASSWORD_HASH = saved;
+    }
+  });
+
+  it('accepts a plaintext DASHBOARD_PASSWORD when no hash is configured', async () => {
+    const savedHash = process.env.DASHBOARD_PASSWORD_HASH;
+    delete process.env.DASHBOARD_PASSWORD_HASH;
+    process.env.DASHBOARD_PASSWORD = PASSWORD;
+    try {
+      const ok = await invokeStreaming(
+        loginHandler,
+        reqFrom({ method: 'POST', body: JSON.stringify({ username: USER, password: PASSWORD }) }),
+        makeRes());
+      expect(ok.statusCode).toBe(200);
+
+      const bad = await invokeStreaming(
+        loginHandler,
+        reqFrom({ method: 'POST', body: JSON.stringify({ username: USER, password: 'nope' }) }),
+        makeRes());
+      expect(bad.statusCode).toBe(401);
+    } finally {
+      delete process.env.DASHBOARD_PASSWORD;
+      process.env.DASHBOARD_PASSWORD_HASH = savedHash;
+    }
+  });
+
   it('rate-limits after 5 failed attempts from the same IP (429)', async () => {
     const ip = { remoteAddress: '203.0.113.99' };
     const attempt = () => invokeStreaming(
