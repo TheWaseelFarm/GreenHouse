@@ -1092,10 +1092,20 @@ async function loadIncidents(){
 window.AlWaseelFarmDashboard={state:S,refreshData:fetchLive};
 document.addEventListener('DOMContentLoaded',async function(){
   // Require a valid session before showing the dashboard; otherwise go to login.
-  try{
-    const authRes=await fetch('/api/auth/check',{credentials:'same-origin'});
-    if(!authRes.ok){window.location.href='/login';return;}
-  }catch(e){window.location.href='/login';return;}
+  // Loop-breaker: only redirect to /login if we haven't just done so (a stale
+  // cache serving this page at /login could otherwise thrash). Use replace()
+  // so it doesn't stack in history, and no-store so the check isn't cached.
+  let authOk=false;
+  try{ authOk=(await fetch('/api/auth/check',{credentials:'same-origin',cache:'no-store'})).ok; }catch(e){ authOk=false; }
+  if(!authOk){
+    const last=+(sessionStorage.getItem('gh_authbounce')||0);
+    if(Date.now()-last>3000){
+      sessionStorage.setItem('gh_authbounce',String(Date.now()));
+      window.location.replace('/login');
+    }
+    return;
+  }
+  sessionStorage.removeItem('gh_authbounce');
   buildChart();setActiveMetric('all');fetchLive();loadHistory(1);
   fetchOutsideTemp();
   setInterval(fetchLive,60000);
