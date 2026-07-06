@@ -50,6 +50,24 @@
     }
     .error.show{display:block}
     .foot{text-align:center; font-size:11px; color:var(--muted); margin-top:20px}
+    .or{display:flex; align-items:center; gap:10px; margin:20px 0 4px}
+    .or .line{flex:1; height:1px; background:#e6e2d3}
+    .or span{font-size:11px; color:#9aa088}
+    .ghost{
+      width:100%; margin-top:0; padding:11px; font-size:14px; font-weight:700;
+      color:var(--deep); background:transparent; border:1px solid var(--gold); border-radius:12px;
+    }
+    .ghost:hover{background:#faf4e4}
+    #reqForm{display:none; margin-top:16px}
+    #reqForm textarea{
+      width:100%; padding:12px 14px; font-size:15px; border-radius:12px;
+      border:1px solid #d8dccf; background:#fff; color:#1E2D1A; outline:none; resize:vertical;
+      font-family:inherit;
+    }
+    #reqForm textarea:focus{border-color:var(--sage); box-shadow:0 0 0 3px rgba(143,175,122,.25)}
+    #reqBtn{background:var(--gold); color:var(--deep)}
+    #reqBtn:hover{background:#b98f34}
+    .msg{display:none; margin-top:14px; padding:11px 14px; font-size:13px; border-radius:10px; text-align:center}
   </style>
 </head>
 <body>
@@ -72,6 +90,23 @@
 
       <button id="submitBtn" type="submit">دخول — Enter</button>
       <div class="error" id="error"></div>
+    </form>
+
+    <div class="or"><div class="line"></div><span>أو — OR</span><div class="line"></div></div>
+    <button id="reqOpenBtn" type="button" class="ghost">طلب صلاحية الدخول — Request Access</button>
+
+    <form id="reqForm" autocomplete="on">
+      <label for="reqName">الاسم — Name</label>
+      <input id="reqName" name="name" type="text" required>
+
+      <label for="reqEmail">البريد الإلكتروني — Email</label>
+      <input id="reqEmail" name="email" type="email" required autocomplete="email" dir="ltr">
+
+      <label for="reqNote">ملاحظة (اختياري) — Note (optional)</label>
+      <textarea id="reqNote" name="note" rows="2"></textarea>
+
+      <button id="reqBtn" type="submit">إرسال الطلب — Send Request</button>
+      <div class="msg" id="reqMsg"></div>
     </form>
 
     <div class="foot">لوحة مراقبة البيئة المحمية — Greenhouse Monitor</div>
@@ -118,6 +153,58 @@
       } finally {
         btn.disabled = false;
         btn.textContent = 'دخول — Enter';
+      }
+    });
+
+    // ── Request access ──────────────────────────────────────────────────────
+    const reqOpen = document.getElementById('reqOpenBtn');
+    const reqForm = document.getElementById('reqForm');
+    const reqBtn  = document.getElementById('reqBtn');
+    const reqMsg  = document.getElementById('reqMsg');
+
+    reqOpen.addEventListener('click', () => {
+      const open = reqForm.style.display === 'none' || !reqForm.style.display;
+      reqForm.style.display = open ? 'block' : 'none';
+      reqOpen.textContent = open ? 'إخفاء — Hide' : 'طلب صلاحية الدخول — Request Access';
+      if (open) document.getElementById('reqName').focus();
+    });
+
+    reqForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      reqMsg.style.display = 'none';
+      reqBtn.disabled = true;
+      reqBtn.textContent = '...';
+      const show = (text, ok) => {
+        reqMsg.textContent = text;
+        reqMsg.style.color = ok ? '#1E5631' : 'var(--danger)';
+        reqMsg.style.background = ok ? '#EAF6EE' : 'var(--soft-danger)';
+        reqMsg.style.border = '1px solid ' + (ok ? 'rgba(30,86,49,.3)' : 'rgba(192,57,43,.3)');
+        reqMsg.style.display = 'block';
+      };
+      try {
+        const res = await fetch('/api/auth/request-access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: document.getElementById('reqName').value.trim(),
+            email: document.getElementById('reqEmail').value.trim(),
+            note: document.getElementById('reqNote').value.trim(),
+          }),
+        });
+        if (res.ok) {
+          reqForm.reset();
+          show('تم إرسال طلبك، سيتم مراجعته — Request sent, it will be reviewed', true);
+        } else {
+          let msg = 'تعذّر إرسال الطلب — Could not send request';
+          try { const d = await res.json(); if (d && d.error) msg = d.error; } catch (_) {}
+          if (res.status === 429) msg = 'طلبات كثيرة، حاول لاحقاً — Too many requests, try later';
+          show(msg, false);
+        }
+      } catch (_) {
+        show('تعذر الاتصال بالخادم — Could not reach the server', false);
+      } finally {
+        reqBtn.disabled = false;
+        reqBtn.textContent = 'إرسال الطلب — Send Request';
       }
     });
   </script>
