@@ -5,6 +5,7 @@ const handlers = {
   login: require('../_lib/handlers/login'),
   logout: require('../_lib/handlers/logout'),
   check: require('../_lib/handlers/check'),
+  'request-access': require('../_lib/handlers/request-access'),
 };
 
 module.exports = (req, res) => {

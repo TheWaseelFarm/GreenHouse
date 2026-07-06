@@ -1111,7 +1111,20 @@ function showLoginGate(){
     +'<input id="gatePass" type="password" required autocomplete="current-password" dir="ltr" style="width:100%;box-sizing:border-box;padding:12px 14px;font-size:15px;border-radius:12px;border:1px solid #d8dccf;background:#fff;color:#1E2D1A;outline:none">'
     +'<button id="gateBtn" type="submit" style="width:100%;margin-top:20px;padding:13px;font-size:15px;font-weight:700;color:#fff;background:#06442E;border:none;border-radius:12px;cursor:pointer">دخول — Enter</button>'
     +'<div id="gateErr" style="display:none;margin-top:14px;padding:11px 14px;font-size:13px;color:#C0392B;background:#FDECEA;border:1px solid rgba(192,57,43,.3);border-radius:10px;text-align:center"></div>'
-    +'</form></main>';
+    +'</form>'
+    +'<div style="display:flex;align-items:center;gap:10px;margin:20px 0 4px"><div style="flex:1;height:1px;background:#e6e2d3"></div><span style="font-size:11px;color:#9aa088">أو — OR</span><div style="flex:1;height:1px;background:#e6e2d3"></div></div>'
+    +'<button id="reqOpenBtn" type="button" style="width:100%;padding:11px;font-size:14px;font-weight:700;color:#06442E;background:transparent;border:1px solid #C49A3A;border-radius:12px;cursor:pointer">طلب صلاحية الدخول — Request Access</button>'
+    +'<form id="reqForm" autocomplete="on" style="display:none;margin-top:16px">'
+    +'<label style="display:block;font-size:13px;font-weight:600;margin:12px 0 6px;color:#6F765F">الاسم — Name</label>'
+    +'<input id="reqName" type="text" required style="width:100%;box-sizing:border-box;padding:12px 14px;font-size:15px;border-radius:12px;border:1px solid #d8dccf;background:#fff;color:#1E2D1A;outline:none">'
+    +'<label style="display:block;font-size:13px;font-weight:600;margin:12px 0 6px;color:#6F765F">البريد الإلكتروني — Email</label>'
+    +'<input id="reqEmail" type="email" required autocomplete="email" dir="ltr" style="width:100%;box-sizing:border-box;padding:12px 14px;font-size:15px;border-radius:12px;border:1px solid #d8dccf;background:#fff;color:#1E2D1A;outline:none">'
+    +'<label style="display:block;font-size:13px;font-weight:600;margin:12px 0 6px;color:#6F765F">ملاحظة (اختياري) — Note (optional)</label>'
+    +'<textarea id="reqNote" rows="2" style="width:100%;box-sizing:border-box;padding:12px 14px;font-size:15px;border-radius:12px;border:1px solid #d8dccf;background:#fff;color:#1E2D1A;outline:none;resize:vertical"></textarea>'
+    +'<button id="reqBtn" type="submit" style="width:100%;margin-top:18px;padding:13px;font-size:15px;font-weight:700;color:#06442E;background:#C49A3A;border:none;border-radius:12px;cursor:pointer">إرسال الطلب — Send Request</button>'
+    +'<div id="reqMsg" style="display:none;margin-top:14px;padding:11px 14px;font-size:13px;border-radius:10px;text-align:center"></div>'
+    +'</form>'
+    +'</main>';
   document.body.appendChild(g);
   const form=g.querySelector('#gateForm'), btn=g.querySelector('#gateBtn'), err=g.querySelector('#gateErr');
   form.addEventListener('submit',async(e)=>{
@@ -1126,6 +1139,28 @@ function showLoginGate(){
       err.textContent=m; err.style.display='block';
     }catch(_){ err.textContent='تعذر الاتصال بالخادم — Could not reach the server'; err.style.display='block'; }
     finally{ btn.disabled=false; btn.textContent='دخول — Enter'; }
+  });
+
+  // ── Request access ──────────────────────────────────────────────────────
+  const reqOpen=g.querySelector('#reqOpenBtn'), reqForm=g.querySelector('#reqForm');
+  const reqBtn=g.querySelector('#reqBtn'), reqMsg=g.querySelector('#reqMsg');
+  reqOpen.addEventListener('click',()=>{
+    const open=reqForm.style.display==='none';
+    reqForm.style.display=open?'block':'none';
+    reqOpen.textContent=open?'إخفاء — Hide':'طلب صلاحية الدخول — Request Access';
+    if(open)g.querySelector('#reqName').focus();
+  });
+  reqForm.addEventListener('submit',async(e)=>{
+    e.preventDefault();
+    reqMsg.style.display='none'; reqBtn.disabled=true; reqBtn.textContent='...';
+    const show=(text,ok)=>{ reqMsg.textContent=text; reqMsg.style.color=ok?'#1E5631':'#C0392B'; reqMsg.style.background=ok?'#EAF6EE':'#FDECEA'; reqMsg.style.border='1px solid '+(ok?'rgba(30,86,49,.3)':'rgba(192,57,43,.3)'); reqMsg.style.display='block'; };
+    try{
+      const res=await fetch('/api/auth/request-access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:g.querySelector('#reqName').value.trim(),email:g.querySelector('#reqEmail').value.trim(),note:g.querySelector('#reqNote').value.trim()})});
+      if(res.ok){ reqForm.reset(); show('تم إرسال طلبك، سيتم مراجعته — Request sent, it will be reviewed',true); }
+      else{ let m='تعذّر إرسال الطلب — Could not send request'; try{const d=await res.json(); if(d&&d.error)m=d.error;}catch(_){}
+        if(res.status===429)m='طلبات كثيرة، حاول لاحقاً — Too many requests, try later'; show(m,false); }
+    }catch(_){ show('تعذر الاتصال بالخادم — Could not reach the server',false); }
+    finally{ reqBtn.disabled=false; reqBtn.textContent='إرسال الطلب — Send Request'; }
   });
 }
 
