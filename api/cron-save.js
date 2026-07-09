@@ -19,16 +19,20 @@ module.exports = async (req, res) => {
   const METER_PRO_ID = 'B0E9FED4881C';
   const HUB_ID       = 'FDD0AE072D7C';
   const WATER1_ID    = 'E7760186472B';
- 
+  const OUTDOOR_ID   = 'E7764046575F';   // Meter — outdoor (ambient)
+  const FAR_END_ID   = 'E77646060A5C';   // Meter — far end of the house
+
   const W_CANOPY  = 0.70;
   const W_WETWALL = 0.30;
- 
+
   try {
     // Fetch all devices in parallel
-    const [meterData, hubData, leak1Data] = await Promise.all([
+    const [meterData, hubData, leak1Data, outdoorData, farEndData] = await Promise.all([
       fetchDevice(TOKEN, SECRET, METER_PRO_ID),
       fetchDevice(TOKEN, SECRET, HUB_ID),
-      fetchDevice(TOKEN, SECRET, WATER1_ID)
+      fetchDevice(TOKEN, SECRET, WATER1_ID),
+      fetchDevice(TOKEN, SECRET, OUTDOOR_ID),
+      fetchDevice(TOKEN, SECRET, FAR_END_ID)
     ]);
  
     // Meter Pro — canopy zone
@@ -40,7 +44,15 @@ module.exports = async (req, res) => {
     // Hub 2 — wet wall zone
     const hub_temp     = parseFloat(hubData.temperature ?? 0);
     const hub_humidity = parseFloat(hubData.humidity ?? 0);
- 
+
+    // Outdoor (ambient) and far-end sensors. Use null (not 0) when a reading is
+    // missing so a dropped sensor doesn't record a fake 0°C.
+    const num = (v) => (v === undefined || v === null || v === '') ? null : parseFloat(v);
+    const outdoor_temp     = num(outdoorData.temperature);
+    const outdoor_humidity = num(outdoorData.humidity);
+    const far_end_temp     = num(farEndData.temperature);
+    const far_end_humidity = num(farEndData.humidity);
+
     // Weighted averages — 70% canopy + 30% wet wall
     const temp_weighted = parseFloat((temp * W_CANOPY + hub_temp * W_WETWALL).toFixed(1));
     const hum_weighted  = parseFloat((humidity * W_CANOPY + hub_humidity * W_WETWALL).toFixed(1));
@@ -72,7 +84,11 @@ module.exports = async (req, res) => {
       heat_index,
       dew_point,
       abs_humidity,
-      plant_stress_index
+      plant_stress_index,
+      outdoor_temp,
+      outdoor_humidity,
+      far_end_temp,
+      far_end_humidity
     });
  
     await httpPost(
@@ -94,6 +110,8 @@ module.exports = async (req, res) => {
       temp_weighted, hum_weighted,
       cooling_delta,
       water_leak_1,
+      outdoor_temp, outdoor_humidity,
+      far_end_temp, far_end_humidity,
       saved: new Date().toISOString()
     });
  
