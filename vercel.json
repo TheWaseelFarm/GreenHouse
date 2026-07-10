@@ -4,6 +4,7 @@
     { "src": "/api/auth/(login|logout|check|request-access)", "dest": "/api/auth.js?_a=$1" },
     { "src": "/api/(devices|status)",                     "dest": "/api/sensors.js?_a=$1" },
     { "src": "/api/(history|save-reading|incidents|council)", "dest": "/api/data.js?_a=$1" },
+    { "src": "/api/tuya/(devices|status|command)",       "dest": "/api/tuya.js?_a=$1" },
     { "src": "/api/ask-council",                          "dest": "/api/ask-council.js" },
     { "src": "/api/cron-save",                            "dest": "/api/cron-save.js" },
     { "src": "/login",                                    "dest": "/login.html" },
