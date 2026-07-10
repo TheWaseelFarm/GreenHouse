@@ -403,6 +403,14 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
         </div>
         <div class="z-src">Meter Pro CO&#x2082; &middot; Canopy sensor</div>
       </div>
+      <div class="zone-card" style="border-left:3px solid var(--gold)">
+        <div class="zn">&#x1F300; Far End Zone</div><div class="zn-ar">&#x627;&#x644;&#x645;&#x646;&#x637;&#x642;&#x629; &#x627;&#x644;&#x637;&#x631;&#x641;&#x64A;&#x629; &middot; &#x642;&#x631;&#x628; &#x627;&#x644;&#x645;&#x631;&#x648;&#x62D;&#x629;</div>
+        <div class="z-readings">
+          <div class="z-val"><div class="z-num" id="farTemp">&mdash;</div><div class="z-lbl">&deg;C</div></div>
+          <div class="z-val"><div class="z-num" id="farHum">&mdash;</div><div class="z-lbl">%</div></div>
+        </div>
+        <div class="z-src">Meter &middot; Far end (opposite wet wall)</div>
+      </div>
     </div>
     <div class="cooling-row">
       <div><div class="cl-desc">Cooling Gradient</div><div class="cl-desc-ar" id="clDesc">&#x62A;&#x62F;&#x631;&#x62C; &#x627;&#x644;&#x62A;&#x628;&#x631;&#x64A;&#x62F;</div></div>
@@ -871,7 +879,13 @@ async function fetchOutsideTemp(){
     S.live.farEndTemp=num(farEnd.temperature);
     S.live.farEndHumidity=num(farEnd.humidity);
     renderCoolingScore();
+    renderFarEnd();
   }catch(e){console.warn('Outdoor sensor:',e.message);}
+}
+function renderFarEnd(){
+  const t=$('farTemp'), h=$('farHum');
+  if(t)t.textContent=S.live.farEndTemp!=null?Number(S.live.farEndTemp).toFixed(1):'—';
+  if(h)h.textContent=S.live.farEndHumidity!=null?Number(S.live.farEndHumidity).toFixed(0):'—';
 }
 // Tuya qxj sensors: the external probe (temp_current_external, ×10) is a water
 // temperature — greenhouse probe = irrigation water, outside probe = outdoor water.
