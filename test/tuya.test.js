@@ -56,6 +56,32 @@ describe('_lib/tuya signing', () => {
   });
 });
 
+describe('_lib/tuya parseSensor', () => {
+  it('scales temperature by 10 and passes humidity/battery through', () => {
+    const parsed = tuyaClient.parseSensor([
+      { code: 'temp_current', value: 308 },
+      { code: 'humidity_value', value: 44 },
+      { code: 'battery_state', value: 'high' },
+      { code: 'temp_current_external', value: 267 },
+    ]);
+    expect(parsed).toEqual({ temp: 30.8, humidity: 44, battery: 'high', temp_external: 26.7 });
+  });
+
+  it('returns nulls for missing data points', () => {
+    const parsed = tuyaClient.parseSensor([{ code: 'humidity_value', value: 50 }]);
+    expect(parsed).toEqual({ temp: null, temp_external: null, humidity: 50, battery: null });
+  });
+
+  it('accepts a battery percentage when battery_state is absent', () => {
+    const parsed = tuyaClient.parseSensor([{ code: 'battery_percentage', value: 88 }]);
+    expect(parsed.battery).toBe(88);
+  });
+
+  it('tolerates an empty/undefined status', () => {
+    expect(tuyaClient.parseSensor(undefined).temp).toBeNull();
+  });
+});
+
 describe('api/tuya dispatcher', () => {
   it('rejects an unauthenticated request (401)', async () => {
     const res = makeRes();
