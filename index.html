@@ -373,6 +373,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
     <div class="rec-header"><i class="ti ti-clipboard-list"></i>
       <div><div class="rec-title-en">Operational Directives</div><div class="rec-title-ar">&#x627;&#x644;&#x62A;&#x648;&#x62C;&#x64A;&#x647;&#x627;&#x62A; &#x627;&#x644;&#x62A;&#x634;&#x63A;&#x64A;&#x644;&#x64A;&#x629; &mdash; &#x625;&#x62C;&#x631;&#x627;&#x621;&#x627;&#x62A; &#x627;&#x644;&#x645;&#x64A;&#x62F;&#x627;&#x646;</div></div>
     </div>
+    <div id="waterTempStrip" style="display:flex;gap:10px;margin-bottom:10px"></div>
+    <div id="waterAlerts"></div>
     <div id="decisionsBody"></div>
   </div>
   <div class="panel zones-panel">
@@ -585,7 +587,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
 const HUB_ID='FDD0AE072D7C',WATER1_ID='E7760186472B';
 const W_CANOPY=0.70,W_WETWALL=0.30,ALERT_TEMP=26,ALERT_VPD=1.3;
 const T={co2:{ok:[350,500],warn:[300,800]},temp:{ok:[16,22],warn:[14,26]},hum:{ok:[60,75],warn:[50,85]},vpd:{ok:[0.5,1.0],warn:[0,1.3]}};
-const S={live:{co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,tempW:null,humW:null,outsideTemp:null},metric:'all',subView:{temp:'weighted',hum:'weighted'},range:1,lastAlert:0,localHist:[],chart:null,lastWeatherFetch:0};
+const S={live:{co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,tempW:null,humW:null,outsideTemp:null},water:{irrigation:null,outside:null},tuya:{gh:{},out:{}},metric:'all',subView:{temp:'weighted',hum:'weighted'},range:1,lastAlert:0,localHist:[],chart:null,lastWeatherFetch:0};
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function calcVPD(t,rh){return parseFloat((0.6108*Math.exp((17.27*t)/(t+237.3))*(1-rh/100)).toFixed(2));}
@@ -870,6 +872,47 @@ async function fetchOutsideTemp(){
     S.live.farEndHumidity=num(farEnd.humidity);
     renderCoolingScore();
   }catch(e){console.warn('Outdoor sensor:',e.message);}
+}
+// Tuya qxj sensors: the external probe (temp_current_external, ×10) is a water
+// temperature — greenhouse probe = irrigation water, outside probe = outdoor water.
+async function fetchTuyaWater(){
+  try{
+    const [ghRes,outRes]=await Promise.all([
+      fetch('/api/tuya/status?id=bf18b89766f79e361d9trl',{credentials:'same-origin'}).then(r=>r.json()),
+      fetch('/api/tuya/status?id=bfe44012303d94cf4efxp1',{credentials:'same-origin'}).then(r=>r.json())
+    ]);
+    const dp=res=>{const m={};for(const d of (res&&res.status||[]))m[d.code]=d.value;return m;};
+    const gh=dp(ghRes), out=dp(outRes);
+    const t=v=>(v===undefined||v===null)?null:v/10;
+    S.water.irrigation=t(gh.temp_current_external);
+    S.water.outside=t(out.temp_current_external);
+    S.tuya.gh={temp:t(gh.temp_current),hum:gh.humidity_value??null,batt:gh.battery_state??null};
+    S.tuya.out={temp:t(out.temp_current),hum:out.humidity_value??null,batt:out.battery_state??null};
+    renderWaterAlerts();
+  }catch(e){console.warn('Tuya water:',e.message);}
+}
+function renderWaterAlerts(){
+  const strip=$('waterTempStrip'), box=$('waterAlerts');
+  if(!strip||!box)return;
+  const items=[
+    {label:'Irrigation Water',ar:'ماء الري',temp:S.water.irrigation},
+    {label:'Outside Water',ar:'الماء الخارجي',temp:S.water.outside}
+  ];
+  strip.innerHTML=items.map(it=>{
+    const v=it.temp;
+    const color=v===null?'var(--muted)':v>26?'var(--danger)':v>22?'var(--gold)':'#16894E';
+    return `<div style="flex:1;background:rgba(6,68,46,.05);border:1px solid rgba(6,68,46,.1);border-radius:10px;padding:8px 10px">`
+      +`<div style="font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)">${it.label} &middot; ${it.ar}</div>`
+      +`<div style="font-size:1.15rem;font-weight:800;color:${color};font-family:var(--mono)">${v===null?'&mdash;':v.toFixed(1)+'&deg;C'}</div>`
+      +`</div>`;
+  }).join('');
+  const alerts=[];
+  for(const it of items){
+    const v=it.temp; if(v===null)continue;
+    if(v>26)alerts.push({tag:'CRITICAL',en:`${it.label} ${v.toFixed(1)}°C — CRITICAL: root damage risk. Cool or exchange the water immediately.`,ar:`حرارة ${it.ar} ${v.toFixed(1)}°م — حرج: خطر تلف الجذور. برّد أو استبدل الماء فوراً.`});
+    else if(v>22)alerts.push({tag:'URGENT',en:`${it.label} ${v.toFixed(1)}°C — URGENT: above 22°C. Increase cooling or shade the supply.`,ar:`حرارة ${it.ar} ${v.toFixed(1)}°م — عاجل: فوق 22°م. زد التبريد أو ظلّل المصدر.`});
+  }
+  box.innerHTML=alerts.map(a=>`<div class="dec-item"><span class="ptag ph">${a.tag}</span><div><div class="dec-en">${a.en}</div><div class="dec-ar">${a.ar}</div></div></div>`).join('');
 }
 function calcCoolingScore(ot,it,g){
   if(ot===null||it===null)return null;
@@ -1181,8 +1224,10 @@ document.addEventListener('DOMContentLoaded',async function(){
   if(!authOk){ showLoginGate(); return; }
   buildChart();setActiveMetric('all');fetchLive();loadHistory(1);
   fetchOutsideTemp();
+  fetchTuyaWater();
   setInterval(fetchLive,60000);
   setInterval(fetchOutsideTemp,600000);
+  setInterval(fetchTuyaWater,120000);
   setInterval(()=>{
     const n=new Date();
     const ts=$('timestamp');if(ts)ts.textContent=n.toLocaleTimeString('en-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});

@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const {
   calcVPD, calcDewPoint, calcHeatIndex, calcAbsHumidity, calcPSI
 } = require('../_lib/metrics');
+const { api: tuyaApi, parseSensor } = require('../_lib/tuya');
 
 module.exports = async (req, res) => {
   const authHeader = req.headers['authorization'];
@@ -53,6 +54,30 @@ module.exports = async (req, res) => {
     const far_end_temp     = num(farEndData.temperature);
     const far_end_humidity = num(farEndData.humidity);
 
+    // Tuya sensors (qxj temp/humidity). Non-fatal: if Tuya is unreachable we
+    // still persist the SwitchBot reading rather than failing the whole cron.
+    const TUYA_GH_ID  = 'bf18b89766f79e361d9trl';   // "The green house sensor"
+    const TUYA_OUT_ID = 'bfe44012303d94cf4efxp1';   // "Outside water sensor"
+    let tuyaGh = {}, tuyaOut = {};
+    try {
+      const [ghRes, outRes] = await Promise.all([
+        tuyaApi('GET', `/v1.0/devices/${TUYA_GH_ID}/status`),
+        tuyaApi('GET', `/v1.0/devices/${TUYA_OUT_ID}/status`)
+      ]);
+      if (ghRes && ghRes.success)  tuyaGh  = parseSensor(ghRes.result);
+      if (outRes && outRes.success) tuyaOut = parseSensor(outRes.result);
+    } catch (e) {
+      console.warn('Tuya fetch failed (non-fatal):', e.message);
+    }
+    const tuya_gh_temp          = tuyaGh.temp ?? null;
+    const tuya_gh_humidity      = tuyaGh.humidity ?? null;
+    const tuya_out_temp         = tuyaOut.temp ?? null;
+    const tuya_out_humidity     = tuyaOut.humidity ?? null;
+    // External probes are water-temperature sensors: greenhouse probe = the
+    // irrigation water feeding the plants; outside probe = the outdoor water tank.
+    const water_temp_irrigation = tuyaGh.temp_external ?? null;
+    const water_temp_outside    = tuyaOut.temp_external ?? null;
+
     // Weighted averages — 70% canopy + 30% wet wall
     const temp_weighted = parseFloat((temp * W_CANOPY + hub_temp * W_WETWALL).toFixed(1));
     const hum_weighted  = parseFloat((humidity * W_CANOPY + hub_humidity * W_WETWALL).toFixed(1));
@@ -88,7 +113,13 @@ module.exports = async (req, res) => {
       outdoor_temp,
       outdoor_humidity,
       far_end_temp,
-      far_end_humidity
+      far_end_humidity,
+      tuya_gh_temp,
+      tuya_gh_humidity,
+      tuya_out_temp,
+      tuya_out_humidity,
+      water_temp_irrigation,
+      water_temp_outside
     });
  
     await httpPost(
@@ -112,6 +143,9 @@ module.exports = async (req, res) => {
       water_leak_1,
       outdoor_temp, outdoor_humidity,
       far_end_temp, far_end_humidity,
+      tuya_gh_temp, tuya_gh_humidity,
+      tuya_out_temp, tuya_out_humidity,
+      water_temp_irrigation, water_temp_outside,
       saved: new Date().toISOString()
     });
  
