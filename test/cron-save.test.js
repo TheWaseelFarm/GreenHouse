@@ -20,6 +20,8 @@ const SUPA = 'https://test.supabase.co';
 const METER = 'B0E9FED4881C';
 const HUB = 'FDD0AE072D7C';
 const WATER = 'E7760186472B';
+const OUTDOOR = 'E7764046575F';
+const FAR_END = 'E77646060A5C';
 
 const authHeaders = { authorization: 'Bearer cron-secret' };
 
@@ -46,10 +48,12 @@ describe('api/cron-save', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('collects the three devices, derives metrics, and saves a reading', async () => {
+  it('collects all devices, derives metrics, and saves a reading', async () => {
     mockDevice(METER, { temperature: 25, humidity: 60, CO2: 800 });
     mockDevice(HUB, { temperature: 22, humidity: 75 });
     mockDevice(WATER, { status: 'leak_detected' });
+    mockDevice(OUTDOOR, { temperature: 41.3, humidity: 12 });
+    mockDevice(FAR_END, { temperature: 27.8, humidity: 63 });
 
     let saved;
     const supa = nock(SUPA)
@@ -69,16 +73,47 @@ describe('api/cron-save', () => {
     expect(res.body.cooling_delta).toBe(3);    // 25 - 22
     expect(res.body.water_leak_1).toBe(true);
 
-    // The persisted payload carries the derived metrics too.
+    // Outdoor + far-end sensors.
+    expect(res.body.outdoor_temp).toBe(41.3);
+    expect(res.body.outdoor_humidity).toBe(12);
+    expect(res.body.far_end_temp).toBe(27.8);
+    expect(res.body.far_end_humidity).toBe(63);
+
+    // The persisted payload carries the derived metrics and new columns too.
     expect(saved.plant_stress_index).toBeGreaterThanOrEqual(0);
     expect(saved).toHaveProperty('dew_point');
+    expect(saved.outdoor_temp).toBe(41.3);
+    expect(saved.outdoor_humidity).toBe(12);
+    expect(saved.far_end_temp).toBe(27.8);
+    expect(saved.far_end_humidity).toBe(63);
     expect(supa.isDone()).toBe(true);
+  });
+
+  it('stores null (not 0) when an outdoor/far-end reading is missing', async () => {
+    mockDevice(METER, { temperature: 24, humidity: 55, CO2: 700 });
+    mockDevice(HUB, { temperature: 23, humidity: 70 });
+    mockDevice(WATER, {});
+    mockDevice(OUTDOOR, {});   // sensor offline — no temperature/humidity
+    mockDevice(FAR_END, { temperature: 26 });
+
+    let saved;
+    nock(SUPA).post('/rest/v1/readings', (b) => { saved = b; return true; }).reply(201, '');
+
+    const res = makeRes();
+    await cronSave(makeReq({ headers: authHeaders }), res);
+
+    expect(saved.outdoor_temp).toBeNull();
+    expect(saved.outdoor_humidity).toBeNull();
+    expect(saved.far_end_temp).toBe(26);
+    expect(saved.far_end_humidity).toBeNull();
   });
 
   it('detects a leak via the detectionState field as well', async () => {
     mockDevice(METER, { temperature: 24, humidity: 55, CO2: 700 });
     mockDevice(HUB, { temperature: 23, humidity: 70 });
     mockDevice(WATER, { detectionState: 'detected' });
+    mockDevice(OUTDOOR, { temperature: 40, humidity: 15 });
+    mockDevice(FAR_END, { temperature: 27, humidity: 60 });
     nock(SUPA).post('/rest/v1/readings').reply(201, '');
 
     const res = makeRes();
@@ -91,6 +126,8 @@ describe('api/cron-save', () => {
     nock(SWITCHBOT).get(`/v1.1/devices/${METER}/status`).replyWithError('network down');
     nock(SWITCHBOT).get(`/v1.1/devices/${HUB}/status`).reply(200, JSON.stringify({ body: {} }));
     nock(SWITCHBOT).get(`/v1.1/devices/${WATER}/status`).reply(200, JSON.stringify({ body: {} }));
+    nock(SWITCHBOT).get(`/v1.1/devices/${OUTDOOR}/status`).reply(200, JSON.stringify({ body: {} }));
+    nock(SWITCHBOT).get(`/v1.1/devices/${FAR_END}/status`).reply(200, JSON.stringify({ body: {} }));
 
     const res = makeRes();
     await cronSave(makeReq({ headers: authHeaders }), res);

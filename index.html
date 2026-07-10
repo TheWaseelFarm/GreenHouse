@@ -418,7 +418,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
       <div>
         <div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Ambient Temperature</div>
         <div style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">&#x62D;&#x631;&#x627;&#x631;&#x629; &#x627;&#x644;&#x645;&#x62D;&#x64A;&#x637; &#x627;&#x644;&#x62E;&#x627;&#x631;&#x62C;&#x64A; &middot; &#x627;&#x644;&#x62F;&#x631;&#x639;&#x64A;&#x629;</div>
-        <div style="font-size:.56rem;color:var(--muted);margin-top:2px;font-family:var(--mono)">Source: Open-Meteo API &middot; Diriyah station &middot; 10-min interval</div>
+        <div style="font-size:.56rem;color:var(--muted);margin-top:2px;font-family:var(--mono)">Source: SwitchBot outdoor sensor &middot; live</div>
       </div>
       <div id="outsideBadge" class="badge" style="background:rgba(6,68,46,.08);color:var(--muted)">&mdash;</div>
     </div>
@@ -857,11 +857,19 @@ async function fetchLive(){
 async function fetchOutsideTemp(){
   try{
     const now=Date.now();if(now-S.lastWeatherFetch<5*60*1000)return;S.lastWeatherFetch=now;
-    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=24.734&longitude=46.5753&current=temperature_2m&timezone=Asia/Riyadh');
-    const d=await r.json();
-    S.live.outsideTemp=parseFloat(d.current?.temperature_2m??null);
+    // Outdoor + far-end come from SwitchBot meters via the signed /api/status proxy.
+    const [outdoorRes,farEndRes]=await Promise.all([
+      fetch('/api/status?id=E7764046575F',{credentials:'same-origin'}).then(r=>r.json()),
+      fetch('/api/status?id=E77646060A5C',{credentials:'same-origin'}).then(r=>r.json())
+    ]);
+    const outdoor=outdoorRes.body??{}, farEnd=farEndRes.body??{};
+    const num=v=>(v===undefined||v===null||v==='')?null:parseFloat(v);
+    S.live.outsideTemp=num(outdoor.temperature);
+    S.live.outsideHumidity=num(outdoor.humidity);
+    S.live.farEndTemp=num(farEnd.temperature);
+    S.live.farEndHumidity=num(farEnd.humidity);
     renderCoolingScore();
-  }catch(e){console.warn('Weather:',e.message);}
+  }catch(e){console.warn('Outdoor sensor:',e.message);}
 }
 function calcCoolingScore(ot,it,g){
   if(ot===null||it===null)return null;
