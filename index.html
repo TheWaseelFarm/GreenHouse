@@ -103,6 +103,9 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
 .panel-title{margin:0;font-size:.86rem;color:var(--deep);font-weight:950;text-transform:uppercase;letter-spacing:-.02em}
 .panel-ar{font-family:var(--ar);direction:rtl;text-align:left;margin-top:3px;color:var(--muted);font-weight:800;font-size:.78rem}
 .action-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.env-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px}
+.panel{min-width:0}
+img,svg,canvas{max-width:100%}
 .rec-panel{padding:22px;border:2px solid rgba(196,154,58,.28);background:linear-gradient(135deg,rgba(248,244,234,.98),rgba(255,253,247,.98));display:flex;flex-direction:column}
 .rec-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid rgba(196,154,58,.2)}
 .rec-header i{font-size:1.5rem;color:var(--gold)}
@@ -188,21 +191,26 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
   .app{grid-template-columns:1fr}
   .sidebar{position:relative;min-height:auto;flex-direction:row;align-items:center;flex-wrap:wrap;padding:14px 16px;gap:14px}
   .side-logo{justify-items:start;text-align:left;padding:0}
-  .nav{flex-direction:row;flex-wrap:wrap;gap:4px}
+  .nav{display:flex;flex-flow:row wrap;gap:4px}
   .nav a{padding:8px 12px;font-size:.78rem}
   .side-art{display:none}
   .metrics{grid-template-columns:repeat(2,1fr)}
   .action-row,.climate-row{grid-template-columns:1fr}
+  .env-trio{grid-template-columns:1fr 1fr}
   .footer-info{grid-template-columns:repeat(2,1fr)}
   .foot-item:nth-child(2){border-right:none}
 }
 @media(max-width:768px){
   .main{padding:14px}
+  .sidebar{flex-direction:column;align-items:stretch}
+  .nav{width:100%}
+  .nav a{flex:1 1 42%;justify-content:flex-start}
   .topbar{grid-template-columns:1fr;padding:14px}
   .status-row{justify-content:flex-start;gap:10px}
   .tb-divider{display:none}
   .metrics,.footer-info{grid-template-columns:1fr}
   .action-row,.climate-row{grid-template-columns:1fr}
+  .env-trio{grid-template-columns:1fr}
   .footer-bar{flex-direction:column;text-align:center;gap:7px}
   .refresh-btn{width:100%;justify-content:center}
   .foot-item{border-right:none;border-bottom:1px solid var(--border);min-height:74px}
@@ -422,7 +430,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
     </div>
   </div>
 </div>
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px">
+<div class="env-trio">
   <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:10px">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <div>
