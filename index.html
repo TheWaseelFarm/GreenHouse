@@ -388,6 +388,7 @@ img,svg,canvas{max-width:100%}
     </div>
     <div id="waterTempStrip" style="display:flex;gap:10px;margin-bottom:10px"></div>
     <div id="tuyaAirStrip" style="display:flex;gap:10px;margin-bottom:10px"></div>
+    <div id="waterCooling" style="margin-bottom:10px"></div>
     <div id="waterAlerts"></div>
     <div id="decisionsBody"></div>
   </div>
@@ -918,7 +919,34 @@ async function fetchTuyaWater(){
     S.tuya.out={temp:t(out.temp_current),hum:out.humidity_value??null,batt:out.battery_state??null};
     renderWaterAlerts();
     renderTuyaAir();
+    renderWaterCooling();
   }catch(e){console.warn('Tuya water:',e.message);}
+}
+// Reference captured on 11 Jul: raw supply 41.5°C cooled to 26.2°C at the roots.
+const WATER_BASELINE={date:'Jul 11',supply:41.5,irrigation:26.2};
+function renderWaterCooling(){
+  const box=$('waterCooling'); if(!box)return;
+  const supply=S.water.outside, irr=S.water.irrigation;
+  const fmt=v=>(v==null)?'&mdash;':v.toFixed(1)+'&deg;C';
+  const delta=(supply!=null&&irr!=null)?parseFloat((supply-irr).toFixed(1)):null;
+  const baseDelta=parseFloat((WATER_BASELINE.supply-WATER_BASELINE.irrigation).toFixed(1));
+  const deltaColor=delta==null?'var(--muted)':delta>=12?'#16894E':delta>=8?'var(--gold)':'var(--danger)';
+  const cell=(en,ar,val,color)=>`<div style="flex:1;text-align:center;padding:9px 6px">`
+    +`<div style="font-size:.52rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)">${en}</div>`
+    +`<div style="font-family:var(--mono);font-size:1.2rem;font-weight:900;color:${color};margin-top:2px">${val}</div>`
+    +`<div style="font-family:var(--ar);font-size:.56rem;color:var(--muted);direction:rtl">${ar}</div></div>`;
+  const div='<div style="width:1px;background:rgba(6,68,46,.1);margin:9px 0"></div>';
+  let cmp='';
+  if(delta!=null){const d=parseFloat((delta-baseDelta).toFixed(1));cmp=d>=0?` &middot; today <strong style="color:#16894E">Δ${delta}°C</strong> (+${d} vs baseline)`:` &middot; today <strong style="color:var(--gold)">Δ${delta}°C</strong> (${d} vs baseline)`;}
+  box.innerHTML=`<div style="border:1px solid rgba(6,68,46,.12);border-radius:10px;background:rgba(6,68,46,.03);overflow:hidden">`
+    +`<div style="padding:8px 10px 0;font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)">💧 Water Cooling Effectiveness &middot; فعالية تبريد الماء</div>`
+    +`<div style="display:flex;align-items:stretch">`
+    +cell('Supply Tank','خزان التغذية',fmt(supply),'var(--deep)')+div
+    +cell('Irrigation','ماء الري',fmt(irr),'var(--deep)')+div
+    +cell('Cooling Δ','فرق التبريد',delta==null?'&mdash;':delta.toFixed(1)+'&deg;C',deltaColor)
+    +`</div>`
+    +`<div style="padding:6px 10px;border-top:1px solid rgba(6,68,46,.08);font-size:.6rem;color:var(--muted);line-height:1.5">vs ${WATER_BASELINE.date} baseline: ${WATER_BASELINE.supply}°C → ${WATER_BASELINE.irrigation}°C (Δ ${baseDelta}°C)${cmp}</div>`
+    +`</div>`;
 }
 function renderTuyaAir(){
   const strip=$('tuyaAirStrip');
