@@ -1059,13 +1059,44 @@ async function loadReport(){
   }catch(e){$('repContent').innerHTML='<div style="text-align:center;padding:40px;color:var(--danger)">Data retrieval error: '+e.message+'</div>';}
 }
 var _repDays={};
+// Combined agronomic impact score — indicators are judged together, not in
+// isolation, and temperature is weighted by the ambient (outside) context.
+function calcDayScore(t, h, v, outsideTemp){
+  let score = 100;
+  // Temperature — weighted by ambient context. In Saudi summer (outside >38°C),
+  // holding the house below 24°C is an achievement, not a failure.
+  const ambientContext = outsideTemp && outsideTemp > 38;
+  if (t > 26) score -= 30;
+  else if (t > 24) score -= ambientContext ? 5 : 20;
+  else if (t > 22) score -= ambientContext ? 0 : 10;
+  // VPD — most critical for strawberry production
+  if (v > 1.5) score -= 30;
+  else if (v > 1.3) score -= 20;
+  else if (v > 1.0) score -= 10;
+  // Humidity — only penalise extremes
+  if (h < 50 || h > 85) score -= 20;
+  else if (h < 55 || h > 80) score -= 10;
+  else if (h < 60 || h > 75) score -= 5;
+  // Compounding penalty — temp AND VPD both bad at once is worse than either alone
+  if (t > 23 && v > 1.3) score -= 10;
+  return Math.max(0, score);
+}
+// 5-tier operational rating from a score.
+function ratingFor(score){
+  if(score>=85)return{label:'Optimal',cls:'rep-badge g'};
+  if(score>=70)return{label:'Good',cls:'rep-badge g'};
+  if(score>=55)return{label:'Suboptimal',cls:'rep-badge w'};
+  if(score>=40)return{label:'Stressed',cls:'rep-badge w'};
+  return{label:'Critical',cls:'rep-badge d'};
+}
 function renderReport(data,days){
   const byDay={};
   data.forEach(r=>{
     const d=new Date(r.recorded_at);
     const key=d.toLocaleDateString('en-GB',{year:'numeric',month:'short',day:'2-digit'});
-    if(!byDay[key])byDay[key]={tempW:[],humW:[],vpds:[],co2s:[],leaks:0,readings:0,date:d};
+    if(!byDay[key])byDay[key]={tempW:[],humW:[],vpds:[],co2s:[],outs:[],leaks:0,readings:0,date:d};
     const day=byDay[key];day.readings++;
+    const ov=parseFloat(r.outdoor_temp);if(!isNaN(ov)&&ov>0&&ov<60)day.outs.push(ov);
     let tw=r.temp_weighted;if(!tw&&r.temperature&&r.hub_temp)tw=parseFloat((r.temperature*0.7+r.hub_temp*0.3).toFixed(1));if(!tw&&r.temperature)tw=parseFloat(r.temperature);
     let hw=r.hum_weighted;if(!hw&&r.humidity&&r.hub_humidity)hw=parseFloat((r.humidity*0.7+r.hub_humidity*0.3).toFixed(1));if(!hw&&r.humidity)hw=parseFloat(r.humidity);
     if(tw&&tw>5&&tw<40)day.tempW.push(tw);if(hw&&hw>0&&hw<100)day.humW.push(hw);
@@ -1081,7 +1112,8 @@ function renderReport(data,days){
   const allH=data.map(r=>{let v=r.hum_weighted;if(!v&&r.humidity&&r.hub_humidity)v=r.humidity*0.7+r.hub_humidity*0.3;if(!v)v=r.humidity;return v?parseFloat(v):null;}).filter(v=>v&&v>0&&v<100);
   const allV=data.map(r=>parseFloat(r.vpd)).filter(v=>!isNaN(v)&&v>0&&v<3);
   const allC=data.map(r=>parseFloat(r.co2)).filter(v=>!isNaN(v)&&v>300&&v<2000);
-  const avgT=avg(allT),avgH=avg(allH),avgV=avg(allV),avgC=avg(allC);
+  const allO=data.map(r=>parseFloat(r.outdoor_temp)).filter(v=>!isNaN(v)&&v>0&&v<60);
+  const avgT=avg(allT),avgH=avg(allH),avgV=avg(allV),avgC=avg(allC),avgO=avg(allO);
   function cls(m,v){if(v===null)return'';if(m==='t')return v<16||v>26?'rep-bad':v>22?'rep-warn':'rep-good';if(m==='h')return v>85||v<50?'rep-bad':v>75||v<60?'rep-warn':'rep-good';if(m==='v')return v>1.3?'rep-bad':v>1.0?'rep-warn':'rep-good';return'';}
   var rt=r=>'<div style="margin-top:5px;font-size:.6rem;font-family:monospace;color:#6F765F;background:rgba(6,68,46,.06);border-radius:6px;padding:2px 7px;display:inline-block">'+r+'</div>';
   $('repSummary').innerHTML=
@@ -1091,11 +1123,12 @@ function renderReport(data,days){
     '<div class="rep-sum-card"><div class="rep-sum-val">'+(avgC!==null?Math.round(avgC):'&mdash;')+'</div><div class="rep-sum-lbl">Avg CO&#x2082; ppm</div><div class="rep-sum-sub">متوسط ثاني أكسيد الكربون</div>'+rt('&#x2713; 350&ndash;500 ppm')+'</div>';
   let rows='';
   ds.forEach(([date,d])=>{
-    const t=avg(d.tempW),h=avg(d.humW),v=avg(d.vpds),co2=avg(d.co2s);
+    const t=avg(d.tempW),h=avg(d.humW),v=avg(d.vpds),co2=avg(d.co2s),ot=avg(d.outs);
     const maxT=mx(d.tempW),minT=mn(d.tempW),maxH=mx(d.humW);
-    let score=100;if(t&&t>22)score-=15;if(t&&t>26)score-=25;if(h&&h>75)score-=10;if(h&&h>85)score-=20;if(v&&v>1.0)score-=10;if(v&&v>1.3)score-=20;if(d.leaks>0)score-=30;score=Math.max(0,score);
-    const sc=score>=80?'rep-badge g':score>=60?'rep-badge w':'rep-badge d';
-    const sl=score>=80?'Optimal':score>=60?'Suboptimal':'Critical';
+    // Combined agronomic score, context-weighted by that day's outside temp.
+    let score=calcDayScore(t||0,h||0,v||0,ot);
+    if(d.leaks>0)score=Math.max(0,score-30); // cooling/leak event is a real production hit
+    const rating=ratingFor(score);const sc=rating.cls,sl=rating.label;
     const conds=[];if(h&&h>85)conds.push('🍄 Botrytis risk');else if(h&&h>75)conds.push('💧 Elevated humidity');if(t&&t>22)conds.push('🌡 Above range');if(t&&t>26)conds.push('🔥 Critical temp');if(v&&v>1.3)conds.push('⚠️ High VPD');if(d.leaks>0)conds.push('🚨 Leak event');if(!conds.length)conds.push('✅ All nominal');
     _repDays[date]=d;
     rows+=`<tr style="cursor:pointer" onclick="drillDay('${date}')">
@@ -1109,12 +1142,13 @@ function renderReport(data,days){
       <td style="font-size:.74rem">${conds.join(', ')}</td>
     </tr>`;
   });
-  $('repContent').innerHTML=`<p style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Select a date to view full operational breakdown for that day</p>
+  const ctxNote=avgO!==null?`<div style="font-size:.7rem;color:var(--muted);margin-bottom:10px;padding:8px 12px;background:rgba(196,154,58,.1);border:1px solid rgba(196,154,58,.28);border-radius:10px;line-height:1.5">🌡 Benchmarks adjusted for Saudi summer conditions — outside ambient avg <strong style="color:var(--deep)">${avgO}°C</strong>. Cooling performance is judged against this ambient load, not a temperate-climate ideal.<div style="font-family:var(--ar);direction:rtl;color:var(--muted);margin-top:3px">معايير معدَّلة لظروف الصيف السعودي — متوسط الحرارة الخارجية ${avgO}°م</div></div>`:'';
+  $('repContent').innerHTML=ctxNote+`<p style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Select a date to view full operational breakdown for that day</p>
     <div class="rep-table-wrap"><table class="rep-table">
       <thead><tr><th>Date</th><th>Operational Rating</th><th>Avg Temp<br><small>✓ 16–22°C</small></th><th>Avg Humidity<br><small>✓ 60–75%</small></th><th>Avg VPD<br><small>✓ 0.5–1.0</small></th><th>Avg CO₂<br><small>✓ 350–500</small></th><th>Readings</th><th>Field Status</th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>`;
-  generateInsights(ds,avgT,avgH,avgV);
+  generateInsights(ds,avgT,avgH,avgV,avgO);
 }
 function drillDay(date){
   var d=_repDays[date]||{};
@@ -1144,16 +1178,52 @@ function drillDay(date){
   content.insertAdjacentHTML('beforeend',html);
   content.lastElementChild.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-function generateInsights(days,avgT,avgH,avgV){
+function generateInsights(days,avgT,avgH,avgV,avgO){
   const insights=[];
   const avg=arr=>arr.length?parseFloat((arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1)):null;
-  const hh=days.filter(([,d])=>(avg(d.humW)||0)>75).length;
-  if(hh>0)insights.push({icon:'🍄',en:`Humidity exceeded operational threshold (>75%) on ${hh} of ${days.length} days. Sustained Botrytis risk — review ventilation protocol.`,ar:`تجاوزت الرطوبة العتبة التشغيلية في ${hh} من ${days.length} يوم. خطر البوتريتيس مستمر — راجع بروتوكول التهوية.`});
-  const ww=days.filter(([,d])=>(avg(d.tempW)||0)>22).length;
-  if(ww>0)insights.push({icon:'🌡',en:`Temperature exceeded operational range (>22°C) on ${ww} days. Assess wet wall pump performance and pad condition.`,ar:`تجاوزت درجة الحرارة النطاق التشغيلي في ${ww} يوم. قيّم أداء مضخة الجدار المبلل وحالة الألواح.`});
-  const best=days.reduce((b,c)=>{const ah=avg(c[1].humW)||100,at=avg(c[1].tempW)||30,sc=Math.abs(ah-67)+Math.abs(at-19);const bh=avg(b[1].humW)||100,bt=avg(b[1].tempW)||30,bs=Math.abs(bh-67)+Math.abs(bt-19);return sc<bs?c:b;},days[0]);
-  if(best)insights.push({icon:'⭐',en:`Peak performance recorded on ${best[0]} — closest to optimal strawberry production climate. Use as reference for system calibration.`,ar:`أفضل أداء تشغيلي سُجّل في ${best[0]} — استخدمه مرجعاً لمعايرة المنظومة.`});
-  if(avgV!==null){if(avgV<0.5)insights.push({icon:'💧',en:`Period average VPD ${avgV} kPa below operational range. Reduce misting frequency to prevent oversaturation.`,ar:`متوسط عجز ضغط البخار ${avgV} أقل من النطاق التشغيلي. قلل تردد الرذاذ لتجنب الإشباع الزائد.`});else if(avgV>1.0)insights.push({icon:'⚠️',en:`Period average VPD ${avgV} kPa above operational range. Plants under sustained transpiration stress — productivity impact likely.`,ar:`متوسط عجز ضغط البخار ${avgV} فوق النطاق التشغيلي. النباتات تحت إجهاد نتح مستمر — تأثير متوقع على الإنتاجية.`});}
+  const summerContext=avgO!==null&&avgO>38;
+
+  // 1) Temperature read in ambient context. If the house is above range but the
+  //    outside is punishing, that's a cooling achievement, not a failure — so
+  //    reframe and redirect the operator's attention to humidity/VPD.
+  if(avgT!==null){
+    if(summerContext&&avgT<=24){
+      const reduction=parseFloat((avgO-avgT).toFixed(1));
+      insights.push({icon:'❄️',en:`Cooling system held a ${avgT}°C weighted average against ${avgO}°C outside ambient — a ${reduction}°C reduction. Temperature is under control; primary focus should be humidity and VPD management, not cooling.`,ar:`نظام التبريد حافظ على متوسط ${avgT}°م مقابل ${avgO}°م خارجياً — خفض ${reduction}°م. الحرارة تحت السيطرة؛ التركيز يجب أن ينصبّ على إدارة الرطوبة وعجز ضغط البخار.`});
+    } else if(avgT>26){
+      insights.push({icon:'🔥',en:`Weighted temperature averaged ${avgT}°C — above the 26°C critical line${summerContext?` even accounting for ${avgO}°C outside ambient`:''}. Sugar development is arrested; inspect wet-wall pump pressure and pad saturation.`,ar:`متوسط الحرارة الموزون ${avgT}°م — فوق الحد الحرج 26°م. تطور السكر متوقف؛ افحص ضغط مضخة الجدار المبلل وتشبع الألواح.`});
+    } else if(avgT>22&&!summerContext){
+      const ww=days.filter(([,d])=>(avg(d.tempW)||0)>22).length;
+      insights.push({icon:'🌡',en:`Temperature exceeded operational range (>22°C) on ${ww} of ${days.length} days. Assess wet-wall pump performance and pad condition.`,ar:`تجاوزت الحرارة النطاق التشغيلي في ${ww} من ${days.length} يوم. قيّم أداء مضخة الجدار المبلل وحالة الألواح.`});
+    }
+  }
+
+  // 2) Compounding stress — low humidity AND high VPD together is worse than
+  //    either alone. This is the single most important combined signal.
+  if(avgV!==null&&avgH!==null&&avgV>1.0&&avgH<60){
+    insights.push({icon:'⚠️',en:`Combined low humidity (${avgH}%) and elevated VPD (${avgV} kPa) are creating compounding transpiration stress — together these are more damaging than either alone. Priority action: raise humidity to pull VPD below 1.0 kPa.`,ar:`الرطوبة المنخفضة (${avgH}%) وعجز ضغط البخار المرتفع (${avgV}) معاً يسببان إجهاد نتح متضاعف — أخطر من كلٍّ على حدة. الأولوية: ارفع الرطوبة لخفض VPD تحت 1.0.`});
+  } else if(avgV!==null&&avgV>1.0){
+    insights.push({icon:'⚠️',en:`Period average VPD ${avgV} kPa above operational range. Plants under sustained transpiration stress — productivity impact likely. Increase misting/humidity.`,ar:`متوسط عجز ضغط البخار ${avgV} فوق النطاق التشغيلي. النباتات تحت إجهاد نتح مستمر — تأثير متوقع على الإنتاجية.`});
+  } else if(avgV!==null&&avgV<0.5){
+    insights.push({icon:'💧',en:`Period average VPD ${avgV} kPa below operational range. Reduce misting frequency to prevent oversaturation and Botrytis pressure.`,ar:`متوسط عجز ضغط البخار ${avgV} أقل من النطاق التشغيلي. قلل تردد الرذاذ لتجنب الإشباع الزائد.`});
+  }
+
+  // 3) Humidity extremes (only if not already covered by the compounding case).
+  const hh=days.filter(([,d])=>(avg(d.humW)||0)>85).length;
+  if(hh>0)insights.push({icon:'🍄',en:`Humidity entered the Botrytis risk zone (>85%) on ${hh} of ${days.length} days. Sustained fungal-establishment risk — review ventilation and night-time dehumidification.`,ar:`دخلت الرطوبة نطاق خطر البوتريتيس (>85%) في ${hh} من ${days.length} يوم. راجع التهوية وإزالة الرطوبة الليلية.`});
+
+  // 4) Best day — never call it "peak performance" unless every critical
+  //    indicator is actually in range; otherwise it's just the closest.
+  if(days.length){
+    const best=days.reduce((b,c)=>{const ah=avg(c[1].humW)||100,at=avg(c[1].tempW)||30,sc=Math.abs(ah-67)+Math.abs(at-19);const bh=avg(b[1].humW)||100,bt=avg(b[1].tempW)||30,bs=Math.abs(bh-67)+Math.abs(bt-19);return sc<bs?c:b;},days[0]);
+    if(best){
+      const bt=avg(best[1].tempW),bh=avg(best[1].humW),bv=avg(best[1].vpds);
+      const allInRange=(bt!==null&&bt<=24)&&(bh!==null&&bh>=55&&bh<=80)&&(bv!==null&&bv<=1.0);
+      if(allInRange)insights.push({icon:'⭐',en:`Peak performance recorded on ${best[0]} — all critical indicators within range. Use its settings as a calibration reference.`,ar:`أفضل أداء سُجّل في ${best[0]} — جميع المؤشرات الحرجة ضمن النطاق. استخدم إعداداته مرجعاً للمعايرة.`});
+      else insights.push({icon:'🎯',en:`Best conditions this period were ${best[0]} — closest to operational targets, though not all indicators were in range. Not a full "optimal" day.`,ar:`أفضل الظروف في هذه الفترة كانت ${best[0]} — الأقرب للأهداف التشغيلية، وإن لم تكن كل المؤشرات ضمن النطاق.`});
+    }
+  }
+
   if(insights.length===0)insights.push({icon:'✅',en:'All performance indicators within operational range for this period. Farm operating at target parameters.',ar:'جميع مؤشرات الأداء ضمن النطاق التشغيلي. المزرعة تعمل وفق المعايير المستهدفة.'});
   $('repInsightBody').innerHTML=insights.map(i=>`<div class="rep-insight-item"><span class="rep-insight-icon">${i.icon}</span><div><div class="rep-insight-text">${i.en}</div><div class="rep-insight-ar">${i.ar}</div></div></div>`).join('');
   $('repInsight').style.display='block';
