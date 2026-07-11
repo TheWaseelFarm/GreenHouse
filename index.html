@@ -387,6 +387,7 @@ img,svg,canvas{max-width:100%}
       <div><div class="rec-title-en">Operational Directives</div><div class="rec-title-ar">&#x627;&#x644;&#x62A;&#x648;&#x62C;&#x64A;&#x647;&#x627;&#x62A; &#x627;&#x644;&#x62A;&#x634;&#x63A;&#x64A;&#x644;&#x64A;&#x629; &mdash; &#x625;&#x62C;&#x631;&#x627;&#x621;&#x627;&#x62A; &#x627;&#x644;&#x645;&#x64A;&#x62F;&#x627;&#x646;</div></div>
     </div>
     <div id="waterTempStrip" style="display:flex;gap:10px;margin-bottom:10px"></div>
+    <div id="tuyaAirStrip" style="display:flex;gap:10px;margin-bottom:10px"></div>
     <div id="waterAlerts"></div>
     <div id="decisionsBody"></div>
   </div>
@@ -916,7 +917,27 @@ async function fetchTuyaWater(){
     S.tuya.gh={temp:t(gh.temp_current),hum:gh.humidity_value??null,batt:gh.battery_state??null};
     S.tuya.out={temp:t(out.temp_current),hum:out.humidity_value??null,batt:out.battery_state??null};
     renderWaterAlerts();
+    renderTuyaAir();
   }catch(e){console.warn('Tuya water:',e.message);}
+}
+function renderTuyaAir(){
+  const strip=$('tuyaAirStrip');
+  if(!strip)return;
+  const items=[
+    {label:'Greenhouse Air',ar:'هواء البيت',d:S.tuya.gh},
+    {label:'Outside Air',ar:'الهواء الخارجي',d:S.tuya.out}
+  ];
+  strip.innerHTML=items.map(it=>{
+    const temp=it.d&&it.d.temp!=null?it.d.temp:null;
+    const hum=it.d&&it.d.hum!=null?it.d.hum:null;
+    const batt=it.d&&it.d.batt!=null?it.d.batt:null;
+    return `<div style="flex:1;background:rgba(6,68,46,.05);border:1px solid rgba(6,68,46,.1);border-radius:10px;padding:8px 10px">`
+      +`<div style="font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)">${it.label} &middot; ${it.ar}</div>`
+      +`<div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:1.15rem;font-weight:800;color:var(--deep);font-family:var(--mono)">${temp===null?'&mdash;':temp.toFixed(1)+'&deg;C'}</span>`
+      +`<span style="font-size:.72rem;font-weight:700;color:var(--muted);font-family:var(--mono)">${hum===null?'':hum+'%'}</span></div>`
+      +(batt?`<div style="font-size:.54rem;color:var(--muted);margin-top:1px">Battery: ${batt}</div>`:'')
+      +`</div>`;
+  }).join('');
 }
 function renderWaterAlerts(){
   const strip=$('waterTempStrip'), box=$('waterAlerts');
