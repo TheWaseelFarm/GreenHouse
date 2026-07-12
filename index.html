@@ -325,7 +325,6 @@ img,svg,canvas{max-width:100%}
   <div class="status-left"><div id="statusDot"></div><div id="statusEn">Initializing sensor network...</div><div id="statusAr">&#x62C;&#x627;&#x631;&#x64A; &#x62A;&#x647;&#x64A;&#x626;&#x629; &#x634;&#x628;&#x643;&#x629; &#x627;&#x644;&#x627;&#x633;&#x62A;&#x634;&#x639;&#x627;&#x631;...</div></div>
   <div id="lastSaved">&mdash;</div>
 </div>
-<section id="tempVerdict" style="margin-bottom:16px"></section>
 <section id="alertBanner" aria-live="polite">
   <div class="alert-main"><i class="ti ti-alert-triangle"></i>
     <div><div class="alert-title">Environment Alert — Action Required</div><div class="alert-ar">&#x62A;&#x646;&#x628;&#x64A;&#x647; &#x628;&#x64A;&#x626;&#x64A; &mdash; &#x64A;&#x633;&#x62A;&#x644;&#x632;&#x645; &#x62A;&#x62F;&#x62E;&#x644;</div></div>
@@ -387,18 +386,18 @@ img,svg,canvas{max-width:100%}
     <div class="rec-header"><i class="ti ti-clipboard-list"></i>
       <div><div class="rec-title-en">Operational Directives</div><div class="rec-title-ar">&#x627;&#x644;&#x62A;&#x648;&#x62C;&#x64A;&#x647;&#x627;&#x62A; &#x627;&#x644;&#x62A;&#x634;&#x63A;&#x64A;&#x644;&#x64A;&#x629; &mdash; &#x625;&#x62C;&#x631;&#x627;&#x621;&#x627;&#x62A; &#x627;&#x644;&#x645;&#x64A;&#x62F;&#x627;&#x646;</div></div>
     </div>
-    <div id="waterTempStrip" style="display:flex;gap:10px;margin-bottom:10px"></div>
-    <div id="tuyaAirStrip" style="display:flex;gap:10px;margin-bottom:10px"></div>
-    <div id="waterCooling" style="margin-bottom:10px"></div>
     <div id="waterAlerts"></div>
     <div id="decisionsBody"></div>
   </div>
   <div class="panel zones-panel">
     <div class="panel-head"><div>
-      <h2 class="panel-title"><i class="ti ti-building-warehouse" style="margin-right:5px"></i>Zone Monitoring</h2>
-      <div class="panel-ar">&#x645;&#x631;&#x627;&#x642;&#x628;&#x629; &#x627;&#x644;&#x645;&#x646;&#x627;&#x637;&#x642; &mdash; &#x62A;&#x628;&#x631;&#x64A;&#x62F; &#x648;&#x645;&#x62D;&#x635;&#x648;&#x644;</div>
+      <h2 class="panel-title"><i class="ti ti-temperature" style="margin-right:5px"></i>Greenhouse Thermal Monitoring</h2>
+      <div class="panel-ar">&#x645;&#x631;&#x627;&#x642;&#x628;&#x629; &#x62D;&#x631;&#x627;&#x631;&#x629; &#x627;&#x644;&#x628;&#x64A;&#x62A; &mdash; &#x643;&#x644; &#x627;&#x644;&#x645;&#x624;&#x634;&#x631;&#x627;&#x62A; &#x641;&#x64A; &#x645;&#x643;&#x627;&#x646; &#x648;&#x627;&#x62D;&#x62F;</div>
     </div></div>
-    <div class="weighted-row">
+    <div id="thermalHealth" style="margin-bottom:12px"></div>
+    <section id="tempVerdict" style="margin-bottom:14px"></section>
+    <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px">🌿 Air Zones · مناطق الهواء</div>
+    <div class="weighted-row" style="margin-bottom:10px">
       <div><div class="wt-label">Weighted Greenhouse Avg</div><div class="wt-label-ar">&#x645;&#x62A;&#x648;&#x633;&#x637; &#x645;&#x648;&#x632;&#x648;&#x646; &middot; 70% &#x645;&#x62D;&#x635;&#x648;&#x644; + 30% &#x62A;&#x628;&#x631;&#x64A;&#x62F;</div></div>
       <div style="text-align:right"><div class="wt-val" id="wtTemp">&mdash;&deg;C</div><div class="wt-sub" id="wtHum">Humidity: &mdash;%</div></div>
     </div>
@@ -428,6 +427,11 @@ img,svg,canvas{max-width:100%}
         <div class="z-src">Meter &middot; Far end (opposite wet wall)</div>
       </div>
     </div>
+    <div id="tuyaAirStrip" style="display:flex;gap:10px;margin:10px 0"></div>
+    <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:12px 2px 6px">💧 Water Temperatures · حرارة المياه</div>
+    <div id="waterTempStrip" style="display:flex;gap:10px;margin-bottom:10px"></div>
+    <div id="waterCooling" style="margin-bottom:12px"></div>
+    <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px">❄️ Cooling · التبريد</div>
     <div class="cooling-row">
       <div><div class="cl-desc">Cooling Gradient</div><div class="cl-desc-ar" id="clDesc">&#x62A;&#x62F;&#x631;&#x62C; &#x627;&#x644;&#x62A;&#x628;&#x631;&#x64A;&#x62F;</div></div>
       <div style="text-align:right"><div class="cl-val" id="clVal">&mdash;</div><div style="font-size:.56rem;color:var(--muted)">&deg;C canopy vs wet wall</div></div>
@@ -705,8 +709,50 @@ function renderTempVerdict(){
     <div style="font-family:var(--ar);font-size:.76rem;color:var(--muted);direction:rtl;margin-top:3px">${V.ar}</div>
   </div>`;
 }
+// PARENT INDICATOR — correlates every thermal signal into one health index.
+// Weights: canopy air 40%, VPD 25%, irrigation water 20%, cooling gradient 15%.
+function thermalHealth(){
+  const tw=S.live.tempW!=null?S.live.tempW:S.live.temp;
+  const vpd=S.live.vpd;
+  const grad=(S.live.temp!=null&&S.live.hubTemp!=null)?parseFloat((S.live.temp-S.live.hubTemp).toFixed(1)):null;
+  const irr=S.water.irrigation;
+  const outside=S.live.outsideTemp;
+  const summer=outside!=null&&outside>38;
+  const comps=[];
+  if(tw!=null){let s;if(tw>26)s=30;else if(tw>24)s=summer?80:55;else if(tw>22)s=summer?90:75;else if(tw>=16)s=100;else s=70;comps.push({k:'Canopy temp',w:0.40,s,v:tw.toFixed(1)+'°C'});}
+  if(vpd!=null){let s;if(vpd>1.5)s=25;else if(vpd>1.3)s=45;else if(vpd>1.0)s=70;else if(vpd<0.4)s=70;else s=100;comps.push({k:'VPD',w:0.25,s,v:Number(vpd).toFixed(2)+' kPa'});}
+  if(irr!=null){let s;if(irr>26)s=30;else if(irr>22)s=60;else s=100;comps.push({k:'Irrigation water',w:0.20,s,v:irr.toFixed(1)+'°C'});}
+  if(grad!=null){let s;if(grad<0)s=20;else if(grad<1)s=55;else if(grad<3)s=85;else s=100;comps.push({k:'Cooling gradient',w:0.15,s,v:(grad>0?'+':'')+grad.toFixed(1)+'°C'});}
+  if(!comps.length)return null;
+  const totW=comps.reduce((a,c)=>a+c.w,0);
+  const index=Math.round(comps.reduce((a,c)=>a+c.s*c.w,0)/totW);
+  const worst=comps.slice().sort((a,b)=>a.s-b.s)[0];
+  let status,color;
+  if(index>=80){status='HEALTHY';color='#16894E';}
+  else if(index>=60){status='MONITOR';color='var(--gold)';}
+  else if(index>=40){status='STRESSED';color='#C4662A';}
+  else{status='CRITICAL';color='var(--danger)';}
+  return{index,status,color,worst,comps,summer,outside};
+}
+function renderThermalHealth(){
+  const box=$('thermalHealth');if(!box)return;
+  const H=thermalHealth();
+  if(!H){box.innerHTML='';return;}
+  const chips=H.comps.map(c=>{const col=c.s>=80?'#16894E':c.s>=55?'var(--gold)':'var(--danger)';
+    return `<div style="flex:1;min-width:118px;background:var(--card);border:1px solid rgba(6,68,46,.1);border-radius:9px;padding:6px 9px">`
+      +`<div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><span style="font-size:.58rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.03em">${c.k}</span><span style="font-family:var(--mono);font-size:.72rem;font-weight:900;color:${col}">${c.v}</span></div>`
+      +`<div style="height:3px;border-radius:2px;background:rgba(6,68,46,.1);margin-top:4px;overflow:hidden"><div style="height:100%;width:${c.s}%;background:${col}"></div></div></div>`;}).join('');
+  box.innerHTML=`<div style="background:linear-gradient(135deg,var(--soft-sage),rgba(230,211,163,.35));border:1px solid ${H.color};border-radius:14px;padding:14px 16px">`
+    +`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">`
+    +`<div style="display:flex;align-items:baseline;gap:10px"><span style="font-family:var(--mono);font-size:2.4rem;font-weight:950;letter-spacing:-.05em;color:${H.color};line-height:1">${H.index}</span><span style="font-weight:900;color:var(--muted);font-size:.8rem">/100</span>`
+    +`<div><div style="font-size:.6rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Thermal Health Index</div><div style="font-family:var(--ar);font-size:.72rem;color:var(--muted);direction:rtl">مؤشر الصحة الحرارية</div></div></div>`
+    +`<span style="font-family:var(--mono);font-weight:900;font-size:.72rem;letter-spacing:.06em;color:#fff;background:${H.color};padding:5px 12px;border-radius:999px">${H.status}</span></div>`
+    +`<div style="font-size:.72rem;color:var(--deep);margin-top:8px">Limiting factor: <strong>${H.worst.k}</strong> (${H.worst.v}).${H.summer?` Judged against ${H.outside}°C outside.`:''}</div>`
+    +`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${chips}</div></div>`;
+}
 function renderZones(){
   renderTempVerdict();
+  renderThermalHealth();
   const{hubTemp,hubHum,temp,hum,tempW,humW,w1}=S.live;
   if(hubTemp===null)return;
   $('hubTemp').textContent=Number(hubTemp).toFixed(1);$('hubHum').textContent=hubHum;
