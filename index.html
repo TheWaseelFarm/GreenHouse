@@ -325,6 +325,7 @@ img,svg,canvas{max-width:100%}
   <div class="status-left"><div id="statusDot"></div><div id="statusEn">Initializing sensor network...</div><div id="statusAr">&#x62C;&#x627;&#x631;&#x64A; &#x62A;&#x647;&#x64A;&#x626;&#x629; &#x634;&#x628;&#x643;&#x629; &#x627;&#x644;&#x627;&#x633;&#x62A;&#x634;&#x639;&#x627;&#x631;...</div></div>
   <div id="lastSaved">&mdash;</div>
 </div>
+<section id="tempVerdict" style="margin-bottom:16px"></section>
 <section id="alertBanner" aria-live="polite">
   <div class="alert-main"><i class="ti ti-alert-triangle"></i>
     <div><div class="alert-title">Environment Alert — Action Required</div><div class="alert-ar">&#x62A;&#x646;&#x628;&#x64A;&#x647; &#x628;&#x64A;&#x626;&#x64A; &mdash; &#x64A;&#x633;&#x62A;&#x644;&#x632;&#x645; &#x62A;&#x62F;&#x62E;&#x644;</div></div>
@@ -656,7 +657,56 @@ function updateCard(m,v){
   const badgeEl=$(badgeMap[m]);if(badgeEl)badgeEl.textContent=bd.t||bd.s;
   const barEl=$('bar-'+m);if(barEl)barEl.style.width=rangeBar(m,parseFloat(v))+'%';
 }
+// The single source of truth for "is the greenhouse temperature OK right now?"
+// Judges the weighted greenhouse temperature against the strawberry target
+// band, weighted by the outside (ambient) context, and returns a clear verdict.
+function tempVerdict(tw, outside){
+  const summer = outside!=null && outside>38;
+  if(tw==null) return {status:'—', color:'var(--muted)', band:'', en:'Awaiting sensor data.', ar:'بانتظار بيانات المستشعر.'};
+  const redu = outside!=null ? parseFloat((outside-tw).toFixed(1)) : null;
+  const coolCtx = (redu!=null) ? ` Holding ${redu}°C below the ${outside}°C outside — cooling is working` : '';
+  const coolCtxAr = (redu!=null) ? ` (أقل بـ${redu}°م من ${outside}°م خارجياً — التبريد فعّال)` : '';
+  if(tw>26) return {status:'TOO HOT', color:'var(--danger)',
+    en:`${(tw-26).toFixed(1)}°C above the 26°C critical line — sugar development slows.${coolCtx}, but needs more. Priority: raise cooling + humidity.`,
+    ar:`${(tw-26).toFixed(1)}°م فوق الحد الحرج 26°م — تباطؤ تطور السكر.${coolCtxAr} الأولوية: زيادة التبريد والرطوبة.`};
+  if(tw>24) return {status:'MONITOR', color:'var(--gold)',
+    en:`Warm — ${(tw-22).toFixed(1)}°C above the 22°C ideal. Acceptable but watch closely and keep cooling up.${coolCtx}.`,
+    ar:`دافئ — ${(tw-22).toFixed(1)}°م فوق المثالي 22°م. مقبول لكن راقب عن كثب وأبقِ التبريد مرتفعاً.`};
+  if(tw>22) return summer
+    ? {status:'GOOD', color:'#16894E', en:`${tw.toFixed(1)}°C — just above the 22°C ideal, but excellent against a ${outside}°C outside (${redu}°C reduction). Cooling performing well.`, ar:`${tw.toFixed(1)}°م — أعلى قليلاً من المثالي، لكنه ممتاز مقابل ${outside}°م خارجياً. التبريد يعمل جيداً.`}
+    : {status:'MONITOR', color:'var(--gold)', en:`${tw.toFixed(1)}°C — slightly above the 16–22°C ideal band. Nudge cooling up.`, ar:`${tw.toFixed(1)}°م — أعلى قليلاً من النطاق المثالي 16–22°م. ارفع التبريد قليلاً.`};
+  if(tw>=16) return {status:'OPTIMAL', color:'#16894E', en:`Within the ideal 16–22°C band for strawberry fruit development. Conditions on target.`, ar:`ضمن النطاق المثالي 16–22°م لتطور ثمار الفراولة. الظروف مطابقة للهدف.`};
+  return {status:'COOL', color:'#2f6f9e', en:`${tw.toFixed(1)}°C — below the 16°C ideal minimum. Growth may slow; reduce cooling.`, ar:`${tw.toFixed(1)}°م — تحت الحد الأدنى المثالي 16°م. قد ينمو ببطء؛ قلّل التبريد.`};
+}
+function renderTempVerdict(){
+  const box=$('tempVerdict'); if(!box)return;
+  const tw=S.live.tempW!=null?S.live.tempW:S.live.temp;
+  const outside=S.live.outsideTemp;
+  const V=tempVerdict(tw,outside);
+  // Target-band gauge spanning 14–34°C: cool | optimal(16-22) | monitor(22-26) | critical(>26)
+  const lo=14,hi=34,pct=x=>Math.max(0,Math.min(100,((x-lo)/(hi-lo))*100));
+  const grad=`linear-gradient(90deg,#7fb0d6 0%,#7fb0d6 ${pct(16)}%,#16894E ${pct(16)}%,#16894E ${pct(22)}%,#C49A3A ${pct(22)}%,#C49A3A ${pct(26)}%,#C0392B ${pct(26)}%,#C0392B 100%)`;
+  const markPct=tw!=null?pct(tw):null;
+  box.innerHTML=`<div style="background:var(--card);border:1px solid ${V.color};border-left:5px solid ${V.color};border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+      <div><div style="font-size:.62rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Greenhouse Temperature Status</div>
+      <div style="font-family:var(--ar);font-size:.78rem;color:var(--muted);direction:rtl">حالة حرارة البيت المحمي</div></div>
+      <span style="font-family:var(--mono);font-weight:900;font-size:.74rem;letter-spacing:.06em;color:#fff;background:${V.color};padding:5px 12px;border-radius:999px">${V.status}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+      <div style="flex-shrink:0"><div style="font-family:var(--mono);font-size:2.6rem;font-weight:950;letter-spacing:-.06em;color:${V.color};line-height:1">${tw!=null?tw.toFixed(1)+'°C':'—'}</div>
+      <div style="font-size:.6rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Weighted greenhouse avg</div></div>
+      <div style="flex:1;min-width:220px">
+        <div style="position:relative;height:12px;border-radius:6px;background:${grad}">${markPct!=null?`<div style="position:absolute;top:-4px;bottom:-4px;left:${markPct}%;width:3px;background:#0d1b12;border-radius:2px;box-shadow:0 0 0 2px #fff"></div>`:''}</div>
+        <div style="display:flex;justify-content:space-between;font-size:.56rem;color:var(--muted);font-family:var(--mono);margin-top:4px"><span>14°</span><span>16 ideal 22</span><span>26 crit</span><span>34°</span></div>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:.82rem;color:var(--deep);line-height:1.55">${V.en}</div>
+    <div style="font-family:var(--ar);font-size:.76rem;color:var(--muted);direction:rtl;margin-top:3px">${V.ar}</div>
+  </div>`;
+}
 function renderZones(){
+  renderTempVerdict();
   const{hubTemp,hubHum,temp,hum,tempW,humW,w1}=S.live;
   if(hubTemp===null)return;
   $('hubTemp').textContent=Number(hubTemp).toFixed(1);$('hubHum').textContent=hubHum;
@@ -1020,6 +1070,7 @@ function renderCoolingScore(){
       else{badgeEl.textContent='Insufficient';badgeEl.style.background='rgba(192,57,43,.1)';badgeEl.style.color='var(--danger)';}
     }
   }
+  renderTempVerdict();
 }
 const STRESS={date:null,t:0,h:0,v:0};
 function updateStressTracker(){
