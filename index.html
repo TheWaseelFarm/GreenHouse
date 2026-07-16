@@ -1374,13 +1374,39 @@ async function openAccessRequests(){
     const badge=s=>{const c=s==='approved'?'#16894E':s==='denied'?'var(--danger)':'var(--gold)';return `<span style="font-family:var(--mono);font-size:.6rem;font-weight:900;text-transform:uppercase;color:#fff;background:${c};padding:3px 9px;border-radius:999px">${esc(s||'pending')}</span>`;};
     body.innerHTML='<div style="font-size:.7rem;color:var(--muted);margin-bottom:12px;padding:9px 12px;background:rgba(196,154,58,.1);border:1px solid rgba(196,154,58,.28);border-radius:9px;line-height:1.5">Requests filed from the login screen. Approval + credential delivery is the next step to wire up.</div>'
       +rows.map(r=>{const d=new Date(r.created_at);const ds=isNaN(d.getTime())?'':d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' · '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+        const act=r.status==='pending'?`<div class="ar-actions" style="display:flex;gap:8px;margin-top:10px">
+            <button onclick="reviewRequest('${esc(r.id)}','approve',this)" style="flex:1;padding:8px;font-size:.74rem;font-weight:800;color:#fff;background:#16894E;border:none;border-radius:9px;cursor:pointer">✓ Approve &middot; موافقة</button>
+            <button onclick="reviewRequest('${esc(r.id)}','deny',this)" style="flex:1;padding:8px;font-size:.74rem;font-weight:800;color:var(--danger);background:#fff;border:1px solid rgba(192,57,43,.4);border-radius:9px;cursor:pointer">✕ Deny &middot; رفض</button>
+          </div><div class="ar-result" style="display:none;margin-top:8px"></div>`:'';
         return `<div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;background:var(--card)">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><div style="font-weight:800;color:var(--deep)">${esc(r.name||'—')}</div>${badge(r.status)}</div>
           <div style="font-size:.78rem;color:var(--muted);font-family:var(--mono);margin-top:3px">${esc(r.email||'')}</div>
           ${r.note?`<div style="font-size:.76rem;color:var(--deep);margin-top:6px;line-height:1.5">${esc(r.note)}</div>`:''}
           <div style="font-size:.64rem;color:var(--muted);margin-top:6px">${esc(ds)}</div>
+          ${act}
         </div>`;}).join('');
   }catch(e){body.innerHTML='<div style="text-align:center;color:var(--danger);padding:20px">Error: '+esc(e.message)+'</div>';}
+}
+async function reviewRequest(id,action,btn){
+  if(action==='deny'&&!confirm('Deny this access request? / رفض هذا الطلب؟'))return;
+  const actions=btn.parentElement;              // .ar-actions
+  const card=actions.parentElement;             // the request card
+  const result=card&&card.querySelector('.ar-result');
+  actions.querySelectorAll('button').forEach(b=>b.disabled=true); btn.textContent='...';
+  try{
+    const res=await fetch('/api/auth/review-request',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({id,action})});
+    const d=await res.json().catch(()=>({}));
+    if(!res.ok){ alert(d.error||('Failed (HTTP '+res.status+')')); actions.querySelectorAll('button').forEach(b=>b.disabled=false); btn.textContent=action==='approve'?'✓ Approve · موافقة':'✕ Deny · رفض'; return; }
+    if(action==='deny'){ openAccessRequests(); return; }
+    actions.style.display='none';
+    if(result){ result.style.display='block';
+      result.innerHTML='<div style="background:#EAF6EE;border:1px solid rgba(30,86,49,.35);border-radius:10px;padding:12px">'
+        +'<div style="font-size:.72rem;font-weight:800;color:#1E5631">✓ Approved — share this temporary password with '+esc(d.email)+':</div>'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap"><code style="font-family:var(--mono);font-size:1rem;font-weight:900;color:#06442E;background:#fff;border:1px dashed var(--gold);border-radius:8px;padding:6px 12px">'+esc(d.tempPassword)+'</code>'
+        +'<button onclick="(navigator.clipboard&&navigator.clipboard.writeText(this.getAttribute(\'data-p\')));this.textContent=\'Copied ✓\'" data-p="'+esc(d.tempPassword)+'" style="border:1px solid var(--border);border-radius:8px;padding:6px 11px;background:var(--card);cursor:pointer;font-size:.7rem;font-weight:700">Copy</button></div>'
+        +'<div style="font-size:.64rem;color:var(--muted);margin-top:7px;line-height:1.5">They sign in with their <strong>email + this password</strong>, then must set their own. Expires in 48h if unused.</div></div>';
+    }
+  }catch(e){ alert('Error: '+e.message); actions.querySelectorAll('button').forEach(b=>b.disabled=false); btn.textContent=action==='approve'?'✓ Approve · موافقة':'✕ Deny · رفض'; }
 }
 async function loadIncidents(){
   const el=$('incidentLog');if(!el)return;
@@ -1454,8 +1480,11 @@ function showLoginGate(){
     e.preventDefault();
     err.style.display='none'; btn.disabled=true; btn.textContent='...';
     try{
-      const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({username:g.querySelector('#gateUser').value.trim(),password:g.querySelector('#gatePass').value})});
-      if(res.ok){ window.location.reload(); return; }
+      const pass=g.querySelector('#gatePass').value;
+      const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({username:g.querySelector('#gateUser').value.trim(),password:pass})});
+      if(res.ok){ let d={}; try{d=await res.json();}catch(_){}
+        if(d&&d.mustChange){ showPasswordChangeGate(pass); return; }
+        window.location.reload(); return; }
       let m='تعذر تسجيل الدخول — Sign in failed';
       try{const d=await res.json(); if(d&&d.error)m=d.error;}catch(_){}
       if(res.status===429)m='محاولات كثيرة، حاول لاحقاً — Too many attempts, try later';
@@ -1486,14 +1515,48 @@ function showLoginGate(){
     finally{ reqBtn.disabled=false; reqBtn.textContent='إرسال الطلب — Send Request'; }
   });
 }
+// Forced "set a new password" gate — shown after a temp-password login.
+function showPasswordChangeGate(prefillCurrent){
+  let g=document.getElementById('pwGate');
+  if(!g){g=document.createElement('div');g.id='pwGate';g.setAttribute('dir','rtl');g.style.cssText='position:fixed;inset:0;z-index:100000;display:grid;place-items:center;padding:24px;background:linear-gradient(160deg,#032D21,#06442E);font-family:Tahoma,"Segoe UI",Arial,sans-serif';document.body.appendChild(g);}
+  const inp='width:100%;box-sizing:border-box;padding:12px 14px;font-size:15px;border-radius:12px;border:1px solid #d8dccf;background:#fff;color:#1E2D1A;outline:none';
+  const lbl='display:block;font-size:13px;font-weight:600;margin:12px 0 6px;color:#6F765F';
+  g.innerHTML='<main style="width:100%;max-width:400px;background:#FFFDF7;border-radius:20px;padding:30px 28px;box-shadow:0 24px 60px rgba(0,0,0,.35);border:1px solid rgba(196,154,58,.35)">'
+    +'<div style="text-align:center;margin-bottom:14px"><div style="font-size:21px;font-weight:800;color:#06442E">تعيين كلمة مرور جديدة</div><div style="font-size:12px;letter-spacing:3px;color:#C49A3A;font-weight:700;margin-top:4px">SET A NEW PASSWORD</div></div>'
+    +'<p style="font-size:12.5px;color:#6F765F;text-align:center;margin:0 0 8px;line-height:1.5">First sign-in — please replace your temporary password.<br>تسجيل الدخول الأول — استبدل كلمة المرور المؤقتة.</p>'
+    +'<form id="pwForm" autocomplete="on">'
+    +'<label style="'+lbl+'">كلمة المرور المؤقتة — Temporary password</label><input id="pwCur" type="password" required autocomplete="current-password" dir="ltr" style="'+inp+'">'
+    +'<label style="'+lbl+'">كلمة المرور الجديدة — New password (min 8)</label><input id="pwNew" type="password" required minlength="8" autocomplete="new-password" dir="ltr" style="'+inp+'">'
+    +'<label style="'+lbl+'">تأكيد — Confirm new password</label><input id="pwNew2" type="password" required autocomplete="new-password" dir="ltr" style="'+inp+'">'
+    +'<button id="pwBtn" type="submit" style="width:100%;margin-top:18px;padding:13px;font-size:15px;font-weight:700;color:#fff;background:#06442E;border:none;border-radius:12px;cursor:pointer">حفظ — Save</button>'
+    +'<div id="pwErr" style="display:none;margin-top:14px;padding:11px 14px;font-size:13px;color:#C0392B;background:#FDECEA;border:1px solid rgba(192,57,43,.3);border-radius:10px;text-align:center"></div>'
+    +'</form></main>';
+  const cur=g.querySelector('#pwCur'); if(prefillCurrent)cur.value=prefillCurrent;
+  const form=g.querySelector('#pwForm'),btn=g.querySelector('#pwBtn'),err=g.querySelector('#pwErr');
+  form.addEventListener('submit',async(e)=>{
+    e.preventDefault(); err.style.display='none';
+    const nw=g.querySelector('#pwNew').value, nw2=g.querySelector('#pwNew2').value;
+    if(nw!==nw2){ err.textContent='كلمتا المرور غير متطابقتين — Passwords do not match'; err.style.display='block'; return; }
+    if(nw.length<8){ err.textContent='8 أحرف على الأقل — At least 8 characters'; err.style.display='block'; return; }
+    btn.disabled=true; btn.textContent='...';
+    try{
+      const res=await fetch('/api/auth/change-password',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({currentPassword:cur.value,newPassword:nw})});
+      if(res.ok){ window.location.reload(); return; }
+      let m='تعذّر تغيير كلمة المرور — Could not change password'; try{const d=await res.json(); if(d&&d.error)m=d.error;}catch(_){}
+      err.textContent=m; err.style.display='block';
+    }catch(_){ err.textContent='تعذر الاتصال بالخادم — Could not reach the server'; err.style.display='block'; }
+    finally{ btn.disabled=false; btn.textContent='حفظ — Save'; }
+  });
+}
 
 document.addEventListener('DOMContentLoaded',async function(){
   // Require a valid session. Instead of redirecting to /login (which Vercel's
   // catch-all serves as this same page → redirect loop), show the login form
   // INLINE. Routing-proof: the page decides authed→dashboard, else→login form.
-  let authOk=false;
-  try{ authOk=(await fetch('/api/auth/check',{credentials:'same-origin',cache:'no-store'})).ok; }catch(e){ authOk=false; }
+  let authOk=false,mustChange=false;
+  try{ const r=await fetch('/api/auth/check',{credentials:'same-origin',cache:'no-store'}); authOk=r.ok; if(r.ok){const d=await r.json().catch(()=>({}));mustChange=!!d.mustChange;} }catch(e){ authOk=false; }
   if(!authOk){ showLoginGate(); return; }
+  if(mustChange){ showPasswordChangeGate(); return; }
   buildChart();setActiveMetric('all');fetchLive();loadHistory(1);
   fetchOutsideTemp();
   fetchTuyaWater();

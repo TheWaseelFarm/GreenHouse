@@ -50,53 +50,62 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Invalid credentials' });
   }
 
-  // Validate credentials from env
-  const DASHBOARD_USER          = (process.env.DASHBOARD_USER || '').trim();
-  // Trim the hash: pasting into the Vercel dashboard often appends a stray
-  // newline/space, which silently breaks bcrypt.compare (→ "Invalid credentials"
-  // with a perfectly correct password).
-  const DASHBOARD_PASSWORD_HASH = (process.env.DASHBOARD_PASSWORD_HASH || '').trim();
-  // Optional plaintext fallback so setup can't be broken by a mis-pasted hash.
-  // The hash is preferred whenever it is present; this is only used when no hash
-  // is configured.
-  const DASHBOARD_PASSWORD       = process.env.DASHBOARD_PASSWORD;
-  const SESSION_SECRET          = process.env.SESSION_SECRET;
-
-  if (!DASHBOARD_USER || !SESSION_SECRET || (!DASHBOARD_PASSWORD_HASH && !DASHBOARD_PASSWORD)) {
-    console.error('Auth env vars not configured');
+  const SESSION_SECRET = process.env.SESSION_SECRET;
+  if (!SESSION_SECRET) {
+    console.error('SESSION_SECRET not configured');
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
-  // Constant-time username compare to prevent timing attacks
-  const userMatch = timingSafeEqual(username, DASHBOARD_USER);
-  const passMatch = DASHBOARD_PASSWORD_HASH
-    ? await bcrypt.compare(password, DASHBOARD_PASSWORD_HASH)
-    : timingSafeEqual(password, DASHBOARD_PASSWORD);
+  const issueSession = (payload) => {
+    const token = jwt.sign({ ...payload, iat: Math.floor(Date.now() / 1000) }, SESSION_SECRET, { expiresIn: '8h' });
+    res.setHeader('Set-Cookie', cookie.serialize('wf_session', token, {
+      httpOnly: true, secure: true, sameSite: 'strict', maxAge: 8 * 60 * 60, path: '/'
+    }));
+  };
 
-  if (!userMatch || !passMatch) {
+  // ── 1) The owner/admin account, from env vars ──────────────────────────────
+  const DASHBOARD_USER          = (process.env.DASHBOARD_USER || '').trim();
+  // Trim the hash: pasting into the Vercel dashboard often appends a stray
+  // newline/space, which silently breaks bcrypt.compare.
+  const DASHBOARD_PASSWORD_HASH = (process.env.DASHBOARD_PASSWORD_HASH || '').trim();
+  // Optional plaintext fallback so setup can't be broken by a mis-pasted hash.
+  const DASHBOARD_PASSWORD      = process.env.DASHBOARD_PASSWORD;
+
+  if (DASHBOARD_USER && (DASHBOARD_PASSWORD_HASH || DASHBOARD_PASSWORD) &&
+      timingSafeEqual(username, DASHBOARD_USER)) {
+    const passMatch = DASHBOARD_PASSWORD_HASH
+      ? await bcrypt.compare(password, DASHBOARD_PASSWORD_HASH)
+      : timingSafeEqual(password, DASHBOARD_PASSWORD);
+    if (passMatch) {
+      issueSession({ user: username, role: 'admin', mustChange: false });
+      return res.status(200).json({ success: true, role: 'admin' });
+    }
+    // Username matched admin but password didn't — fail (don't fall through).
     attempts[ip].push(now);
-    // Generic message — don't reveal which field was wrong
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  // Issue JWT — 8 hour session
-  const token = jwt.sign(
-    { user: username, iat: Math.floor(Date.now() / 1000) },
-    SESSION_SECRET,
-    { expiresIn: '8h' }
-  );
+  // ── 2) Approved accounts, from the users table ─────────────────────────────
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) try {
+    const { supaGet } = require('../supa');
+    const v = encodeURIComponent(username);
+    const r = await supaGet(`/rest/v1/users?or=(email.eq.${v},username.eq.${v})&select=*&limit=1`);
+    const u = Array.isArray(r.json) && r.json[0];
+    if (u && u.password_hash && await bcrypt.compare(password, u.password_hash)) {
+      // Expired temporary password — must be re-issued by the admin.
+      if (u.must_change_password && u.temp_expires_at && new Date(u.temp_expires_at) < new Date()) {
+        attempts[ip].push(now);
+        return res.status(401).json({ error: 'Temporary password expired. Ask the admin to re-issue access.' });
+      }
+      issueSession({ user: u.username || u.email, email: u.email, role: u.role || 'viewer', mustChange: !!u.must_change_password });
+      return res.status(200).json({ success: true, role: u.role || 'viewer', mustChange: !!u.must_change_password });
+    }
+  } catch (e) {
+    console.error('User lookup failed:', e.message);
+  }
 
-  // Set httpOnly cookie — not accessible from JS
-  const sessionCookie = cookie.serialize('wf_session', token, {
-    httpOnly: true,
-    secure:   true,
-    sameSite: 'strict',
-    maxAge:   8 * 60 * 60, // 8 hours in seconds
-    path:     '/'
-  });
-
-  res.setHeader('Set-Cookie', sessionCookie);
-  return res.status(200).json({ success: true });
+  attempts[ip].push(now);
+  return res.status(401).json({ error: 'Invalid credentials' });
 };
 
 // Constant-time string comparison

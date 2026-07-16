@@ -114,9 +114,9 @@ describe('api/auth/login', () => {
     expect(res.body).toEqual({ error: 'Invalid credentials' });
   });
 
-  it('returns 500 when auth env vars are not configured', async () => {
-    const saved = process.env.DASHBOARD_USER;
-    delete process.env.DASHBOARD_USER;
+  it('returns 500 when the session secret is not configured', async () => {
+    const saved = process.env.SESSION_SECRET;
+    delete process.env.SESSION_SECRET;
     try {
       const res = await invokeStreaming(
         loginHandler,
@@ -125,7 +125,7 @@ describe('api/auth/login', () => {
       expect(res.statusCode).toBe(500);
       expect(res.body).toEqual({ error: 'Server configuration error' });
     } finally {
-      process.env.DASHBOARD_USER = saved;
+      process.env.SESSION_SECRET = saved;
     }
   });
 
@@ -152,7 +152,7 @@ describe('api/auth/login', () => {
       reqFrom({ method: 'POST', body: JSON.stringify({ username: USER, password: PASSWORD }) }),
       makeRes());
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ success: true });
+    expect(res.body).toEqual({ success: true, role: 'admin' });
 
     const setCookie = res.getHeader('set-cookie');
     const parsed = cookie.parse(setCookie);
@@ -252,7 +252,7 @@ describe('api/auth/check', () => {
     const res = makeRes();
     await checkHandler(makeReq({ headers: { cookie: `wf_session=${validToken()}` } }), res);
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ ok: true });
+    expect(res.body).toEqual({ ok: true, role: 'admin', mustChange: false, email: null });
   });
 
   it('returns 401 and clears the cookie for an invalid session', async () => {

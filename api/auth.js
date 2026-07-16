@@ -7,6 +7,8 @@ const handlers = {
   check: require('../_lib/handlers/check'),
   'request-access': require('../_lib/handlers/request-access'),
   'access-requests': require('../_lib/handlers/access-requests'),
+  'review-request': require('../_lib/handlers/review-request'),
+  'change-password': require('../_lib/handlers/change-password'),
 };
 
 module.exports = (req, res) => {
