@@ -299,6 +299,7 @@ img,svg,canvas{max-width:100%}
     <a onclick="navClick(this,'alerts')"><i class="ti ti-bell"></i>Alerts</a>
     <a onclick="navClick(this,null);openReports()"><i class="ti ti-file-analytics"></i>Operations Report</a>
     <a onclick="navClick(this,null);openCouncil()"><i class="ti ti-brain"></i>Expert Council</a>
+    <a onclick="navClick(this,null);openAccessRequests()"><i class="ti ti-user-plus"></i>Access Requests</a>
     <a onclick="navClick(this,'settings')"><i class="ti ti-settings"></i>Settings</a>
     <a href="/api/auth/logout" class="logout-link"><i class="ti ti-logout"></i>Sign Out &mdash; &#x62E;&#x631;&#x648;&#x62C;</a>
   </nav>
@@ -617,6 +618,7 @@ const W_CANOPY=0.70,W_WETWALL=0.30,ALERT_TEMP=26,ALERT_VPD=1.3;
 const T={co2:{ok:[350,500],warn:[300,800]},temp:{ok:[16,22],warn:[14,26]},hum:{ok:[60,75],warn:[50,85]},vpd:{ok:[0.5,1.0],warn:[0,1.3]}};
 const S={live:{co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,tempW:null,humW:null,outsideTemp:null},water:{irrigation:null,outside:null},tuya:{gh:{},out:{}},metric:'all',subView:{temp:'weighted',hum:'weighted'},range:1,lastAlert:0,localHist:[],chart:null,lastWeatherFetch:0};
 const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function calcVPD(t,rh){return parseFloat((0.6108*Math.exp((17.27*t)/(t+237.3))*(1-rh/100)).toFixed(2));}
 function weighted(c,w){return parseFloat((c*W_CANOPY+w*W_WETWALL).toFixed(1));}
@@ -1352,6 +1354,33 @@ function generateInsights(days,avgT,avgH,avgV,avgO){
   if(insights.length===0)insights.push({icon:'✅',en:'All performance indicators within operational range for this period. Farm operating at target parameters.',ar:'جميع مؤشرات الأداء ضمن النطاق التشغيلي. المزرعة تعمل وفق المعايير المستهدفة.'});
   $('repInsightBody').innerHTML=insights.map(i=>`<div class="rep-insight-item"><span class="rep-insight-icon">${i.icon}</span><div><div class="rep-insight-text">${i.en}</div><div class="rep-insight-ar">${i.ar}</div></div></div>`).join('');
   $('repInsight').style.display='block';
+}
+async function openAccessRequests(){
+  let ov=document.getElementById('arOverlay');
+  if(!ov){ov=document.createElement('div');ov.id='arOverlay';ov.style.cssText='position:fixed;inset:0;z-index:600;background:rgba(3,45,33,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto';document.body.appendChild(ov);ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});}
+  ov.innerHTML=`<div style="background:var(--cream);border-radius:20px;width:min(640px,100%);box-shadow:0 24px 64px rgba(3,45,33,.3);border:1px solid var(--border);overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);background:var(--card)">
+      <div><div style="font-weight:950;color:var(--deep);font-size:1rem">Access Requests</div><div style="font-family:var(--ar);font-size:.76rem;color:var(--muted);direction:rtl">طلبات صلاحية الدخول</div></div>
+      <button onclick="document.getElementById('arOverlay').remove()" style="border:1px solid var(--border);border-radius:8px;padding:5px 11px;background:var(--card);cursor:pointer;font-size:.74rem;color:var(--muted)">✕ Close</button>
+    </div>
+    <div id="arBody" style="padding:18px 22px"><div style="text-align:center;color:var(--muted);padding:24px">Loading…</div></div>
+  </div>`;
+  const body=document.getElementById('arBody');
+  try{
+    const res=await fetch('/api/auth/access-requests',{credentials:'same-origin',cache:'no-store'});
+    if(!res.ok){body.innerHTML='<div style="text-align:center;color:var(--danger);padding:20px">Could not load requests (HTTP '+res.status+').</div>';return;}
+    const rows=await res.json();
+    if(!Array.isArray(rows)||rows.length===0){body.innerHTML='<div style="text-align:center;color:var(--muted);padding:24px">✅ No access requests on record yet.</div>';return;}
+    const badge=s=>{const c=s==='approved'?'#16894E':s==='denied'?'var(--danger)':'var(--gold)';return `<span style="font-family:var(--mono);font-size:.6rem;font-weight:900;text-transform:uppercase;color:#fff;background:${c};padding:3px 9px;border-radius:999px">${esc(s||'pending')}</span>`;};
+    body.innerHTML='<div style="font-size:.7rem;color:var(--muted);margin-bottom:12px;padding:9px 12px;background:rgba(196,154,58,.1);border:1px solid rgba(196,154,58,.28);border-radius:9px;line-height:1.5">Requests filed from the login screen. Approval + credential delivery is the next step to wire up.</div>'
+      +rows.map(r=>{const d=new Date(r.created_at);const ds=isNaN(d.getTime())?'':d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' · '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+        return `<div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;background:var(--card)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><div style="font-weight:800;color:var(--deep)">${esc(r.name||'—')}</div>${badge(r.status)}</div>
+          <div style="font-size:.78rem;color:var(--muted);font-family:var(--mono);margin-top:3px">${esc(r.email||'')}</div>
+          ${r.note?`<div style="font-size:.76rem;color:var(--deep);margin-top:6px;line-height:1.5">${esc(r.note)}</div>`:''}
+          <div style="font-size:.64rem;color:var(--muted);margin-top:6px">${esc(ds)}</div>
+        </div>`;}).join('');
+  }catch(e){body.innerHTML='<div style="text-align:center;color:var(--danger);padding:20px">Error: '+esc(e.message)+'</div>';}
 }
 async function loadIncidents(){
   const el=$('incidentLog');if(!el)return;

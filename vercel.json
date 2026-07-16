@@ -1,7 +1,7 @@
 {
   "version": 2,
   "routes": [
-    { "src": "/api/auth/(login|logout|check|request-access)", "dest": "/api/auth.js?_a=$1" },
+    { "src": "/api/auth/(login|logout|check|request-access|access-requests)", "dest": "/api/auth.js?_a=$1" },
     { "src": "/api/(devices|status)",                     "dest": "/api/sensors.js?_a=$1" },
     { "src": "/api/(history|save-reading|incidents|council)", "dest": "/api/data.js?_a=$1" },
     { "src": "/api/tuya/(devices|status|command)",       "dest": "/api/tuya.js?_a=$1" },
