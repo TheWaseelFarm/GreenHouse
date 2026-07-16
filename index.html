@@ -1374,7 +1374,7 @@ async function openAccessRequests(){
     const badge=s=>{const c=s==='approved'?'#16894E':s==='denied'?'var(--danger)':'var(--gold)';return `<span style="font-family:var(--mono);font-size:.6rem;font-weight:900;text-transform:uppercase;color:#fff;background:${c};padding:3px 9px;border-radius:999px">${esc(s||'pending')}</span>`;};
     body.innerHTML='<div style="font-size:.7rem;color:var(--muted);margin-bottom:12px;padding:9px 12px;background:rgba(196,154,58,.1);border:1px solid rgba(196,154,58,.28);border-radius:9px;line-height:1.5">Requests filed from the login screen. Approval + credential delivery is the next step to wire up.</div>'
       +rows.map(r=>{const d=new Date(r.created_at);const ds=isNaN(d.getTime())?'':d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' · '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-        const act=r.status==='pending'?`<div class="ar-actions" style="display:flex;gap:8px;margin-top:10px">
+        const act=(r.status!=='approved'&&r.status!=='denied')?`<div class="ar-actions" style="display:flex;gap:8px;margin-top:10px">
             <button onclick="reviewRequest('${esc(r.id)}','approve',this)" style="flex:1;padding:8px;font-size:.74rem;font-weight:800;color:#fff;background:#16894E;border:none;border-radius:9px;cursor:pointer">✓ Approve &middot; موافقة</button>
             <button onclick="reviewRequest('${esc(r.id)}','deny',this)" style="flex:1;padding:8px;font-size:.74rem;font-weight:800;color:var(--danger);background:#fff;border:1px solid rgba(192,57,43,.4);border-radius:9px;cursor:pointer">✕ Deny &middot; رفض</button>
           </div><div class="ar-result" style="display:none;margin-top:8px"></div>`:'';
