@@ -300,6 +300,7 @@ img,svg,canvas{max-width:100%}
     <a onclick="navClick(this,null);openReports()"><i class="ti ti-file-analytics"></i>Operations Report</a>
     <a onclick="navClick(this,null);openCouncil()"><i class="ti ti-brain"></i>Expert Council</a>
     <a onclick="navClick(this,null);openAccessRequests()"><i class="ti ti-user-plus"></i>Access Requests</a>
+    <a onclick="navClick(this,null);openChangePassword()"><i class="ti ti-key"></i>Change Password</a>
     <a onclick="navClick(this,'settings')"><i class="ti ti-settings"></i>Settings</a>
     <a href="/api/auth/logout" class="logout-link"><i class="ti ti-logout"></i>Sign Out &mdash; &#x62E;&#x631;&#x648;&#x62C;</a>
   </nav>
@@ -1386,6 +1387,39 @@ async function openAccessRequests(){
           ${act}
         </div>`;}).join('');
   }catch(e){body.innerHTML='<div style="text-align:center;color:var(--danger);padding:20px">Error: '+esc(e.message)+'</div>';}
+}
+// Voluntary password change (any time) for approved accounts. The env-var
+// owner gets a friendly note since their password lives in server config.
+function openChangePassword(){
+  let ov=document.getElementById('cpOverlay');
+  if(!ov){ov=document.createElement('div');ov.id='cpOverlay';ov.style.cssText='position:fixed;inset:0;z-index:600;background:rgba(3,45,33,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto';document.body.appendChild(ov);ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});}
+  const inp='width:100%;box-sizing:border-box;padding:12px 14px;font-size:15px;border-radius:12px;border:1px solid #d8dccf;background:#fff;color:#1E2D1A;outline:none';
+  const lbl='display:block;font-size:13px;font-weight:600;margin:12px 0 6px;color:#6F765F';
+  ov.innerHTML='<main style="width:100%;max-width:400px;background:#FFFDF7;border-radius:20px;padding:24px 26px;box-shadow:0 24px 60px rgba(0,0,0,.35);border:1px solid rgba(196,154,58,.35)">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:900;color:#06442E;font-size:1rem">Change Password &middot; تغيير كلمة المرور</div><button onclick="document.getElementById(\'cpOverlay\').remove()" style="border:1px solid var(--border);border-radius:8px;padding:4px 10px;background:#fff;cursor:pointer;font-size:.72rem;color:var(--muted)">✕</button></div>'
+    +'<form id="cpForm" autocomplete="on">'
+    +'<label style="'+lbl+'">كلمة المرور الحالية — Current password</label><input id="cpCur" type="password" required autocomplete="current-password" dir="ltr" style="'+inp+'">'
+    +'<label style="'+lbl+'">كلمة المرور الجديدة — New password (min 8)</label><input id="cpNew" type="password" required minlength="8" autocomplete="new-password" dir="ltr" style="'+inp+'">'
+    +'<label style="'+lbl+'">تأكيد — Confirm new password</label><input id="cpNew2" type="password" required autocomplete="new-password" dir="ltr" style="'+inp+'">'
+    +'<button id="cpBtn" type="submit" style="width:100%;margin-top:16px;padding:12px;font-size:15px;font-weight:700;color:#fff;background:#06442E;border:none;border-radius:12px;cursor:pointer">حفظ — Save</button>'
+    +'<div id="cpMsg" style="display:none;margin-top:12px;padding:10px 13px;font-size:13px;border-radius:10px;text-align:center"></div>'
+    +'</form></main>';
+  const form=ov.querySelector('#cpForm'),btn=ov.querySelector('#cpBtn'),msg=ov.querySelector('#cpMsg');
+  const show=(t,ok)=>{msg.textContent=t;msg.style.color=ok?'#1E5631':'#C0392B';msg.style.background=ok?'#EAF6EE':'#FDECEA';msg.style.border='1px solid '+(ok?'rgba(30,86,49,.3)':'rgba(192,57,43,.3)');msg.style.display='block';};
+  form.addEventListener('submit',async(e)=>{
+    e.preventDefault(); msg.style.display='none';
+    const nw=ov.querySelector('#cpNew').value, nw2=ov.querySelector('#cpNew2').value;
+    if(nw!==nw2){ show('كلمتا المرور غير متطابقتين — Passwords do not match',false); return; }
+    if(nw.length<8){ show('8 أحرف على الأقل — At least 8 characters',false); return; }
+    btn.disabled=true; btn.textContent='...';
+    try{
+      const res=await fetch('/api/auth/change-password',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({currentPassword:ov.querySelector('#cpCur').value,newPassword:nw})});
+      if(res.ok){ show('تم تغيير كلمة المرور ✓ — Password changed',true); form.reset(); setTimeout(()=>{const o=document.getElementById('cpOverlay');if(o)o.remove();},1400); return; }
+      let m='تعذّر التغيير — Could not change password'; try{const d=await res.json(); if(d&&d.error)m=d.error;}catch(_){}
+      show(m,false);
+    }catch(_){ show('تعذر الاتصال بالخادم — Could not reach the server',false); }
+    finally{ btn.disabled=false; btn.textContent='حفظ — Save'; }
+  });
 }
 async function reviewRequest(id,action,btn){
   if(action==='deny'&&!confirm('Deny this access request? / رفض هذا الطلب؟'))return;
