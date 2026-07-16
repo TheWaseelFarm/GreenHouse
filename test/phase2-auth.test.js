@@ -61,6 +61,16 @@ describe('review-request (admin approve/deny)', () => {
     expect(res.statusCode).toBe(403);
   });
 
+  it('accepts a legacy role-less session as admin (not 403)', async () => {
+    const legacy = 'wf_session=' + jwt.sign({ user: 'owner' }, TEST_SESSION_SECRET, { expiresIn: '8h' });
+    nock(SUPA).get('/rest/v1/access_requests').query(true).reply(200, [{ id: 'R9', email: 'q@y.com' }]);
+    nock(SUPA).patch('/rest/v1/access_requests').query(true).reply(200, [{}]);
+    const res = await invokeStreaming(review,
+      makeReq({ method: 'POST', headers: { cookie: legacy }, body: JSON.stringify({ id: 'R9', action: 'deny' }) }), makeRes());
+    await waitUntilEnded(res);
+    expect(res.statusCode).toBe(200);
+  });
+
   it('approves: creates the account and returns a temp password once', async () => {
     nock(SUPA).get('/rest/v1/access_requests').query(true).reply(200, [{ id: 'R1', email: 'x@y.com', name: 'X' }]);
     nock(SUPA).get('/rest/v1/users').query(true).reply(200, []); // no existing user
