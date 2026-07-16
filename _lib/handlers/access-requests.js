@@ -11,6 +11,9 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (!requireAuth(req, res)) return;
+  // Admin-only (owner). Legacy role-less sessions count as admin; an explicit
+  // non-admin role (approved viewer) is rejected.
+  if ((req.user.role || 'admin') !== 'admin') return res.status(403).json({ error: 'Admin only' });
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   const host = (process.env.SUPABASE_URL || '').replace('https://', '');

@@ -22,7 +22,10 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (!requireAuth(req, res)) return;
-  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  // The owner is admin. Legacy sessions issued before roles existed carry no
+  // role — treat those as admin too (only the owner could hold one); an
+  // explicit non-admin role (e.g. an approved 'viewer') is rejected.
+  if ((req.user.role || 'admin') !== 'admin') return res.status(403).json({ error: 'Admin only' });
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const body = await readJson(req);
