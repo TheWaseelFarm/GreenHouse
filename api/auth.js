@@ -6,6 +6,7 @@ const handlers = {
   logout: require('../_lib/handlers/logout'),
   check: require('../_lib/handlers/check'),
   'request-access': require('../_lib/handlers/request-access'),
+  'access-requests': require('../_lib/handlers/access-requests'),
 };
 
 module.exports = (req, res) => {
