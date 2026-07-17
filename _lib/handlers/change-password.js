@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
 
   const hash = await bcrypt.hash(newPassword, 12);
   const up = await supaPatch(`/rest/v1/users?id=eq.${u.id}`, {
-    password_hash: hash, must_change_password: false, temp_expires_at: null, updated_at: new Date().toISOString(),
+    password_hash: hash, temp_password: null, must_change_password: false, temp_expires_at: null, updated_at: new Date().toISOString(),
   });
   if (up.status >= 300) return res.status(502).json({ error: 'Could not save the new password' });
 

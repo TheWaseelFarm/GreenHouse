@@ -1454,18 +1454,32 @@ async function openAccessRequests(){
     const rows=await res.json();
     if(!Array.isArray(rows)||rows.length===0){body.innerHTML='<div style="text-align:center;color:var(--muted);padding:24px">✅ No access requests on record yet.</div>';return;}
     const badge=s=>{const c=s==='approved'?'#16894E':s==='denied'?'var(--danger)':'var(--gold)';return `<span style="font-family:var(--mono);font-size:.6rem;font-weight:900;text-transform:uppercase;color:#fff;background:${c};padding:3px 9px;border-radius:999px">${esc(s||'pending')}</span>`;};
-    body.innerHTML='<div style="font-size:.7rem;color:var(--muted);margin-bottom:12px;padding:9px 12px;background:rgba(196,154,58,.1);border:1px solid rgba(196,154,58,.28);border-radius:9px;line-height:1.5">Requests filed from the login screen. Approval + credential delivery is the next step to wire up.</div>'
+    const pwBox=(pw,note)=>`<div class="ar-result" style="display:block;margin-top:8px"><div style="background:#EAF6EE;border:1px solid rgba(30,86,49,.35);border-radius:10px;padding:12px">`
+      +`<div style="font-size:.7rem;font-weight:800;color:#1E5631">🔑 Temporary password (kept until they set their own):</div>`
+      +`<div style="display:flex;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap"><code style="font-family:var(--mono);font-size:1rem;font-weight:900;color:#06442E;background:#fff;border:1px dashed var(--gold);border-radius:8px;padding:6px 12px">${esc(pw)}</code>`
+      +`<button onclick="(navigator.clipboard&&navigator.clipboard.writeText(this.getAttribute('data-p')));this.textContent='Copied ✓'" data-p="${esc(pw)}" style="border:1px solid var(--border);border-radius:8px;padding:6px 11px;background:var(--card);cursor:pointer;font-size:.7rem;font-weight:700">Copy</button></div>`
+      +`<div style="font-size:.64rem;color:var(--muted);margin-top:7px;line-height:1.5">${note}</div></div></div>`;
+    body.innerHTML='<div style="font-size:.7rem;color:var(--muted);margin-bottom:12px;padding:9px 12px;background:rgba(196,154,58,.1);border:1px solid rgba(196,154,58,.28);border-radius:9px;line-height:1.5">Approve a request to issue a temporary password. It stays visible here until the person signs in and sets their own, then it clears automatically.</div>'
       +rows.map(r=>{const d=new Date(r.created_at);const ds=isNaN(d.getTime())?'':d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' · '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-        const act=(r.status!=='approved'&&r.status!=='denied')?`<div class="ar-actions" style="display:flex;gap:8px;margin-top:10px">
+        let info='';
+        if(r.temp_password){
+          info=pwBox(r.temp_password,'They sign in with their <strong>email + this password</strong>, then must set their own. Expires 48h after approval.');
+        } else if(r.account==='active'){
+          info='<div style="margin-top:8px;font-size:.72rem;color:#1E5631;font-weight:700">✓ Signed in — password set by the user</div>';
+        } else if(r.account==='expired'){
+          info=`<div class="ar-actions" style="display:flex;gap:8px;margin-top:10px;align-items:center"><div style="flex:1;font-size:.72rem;color:var(--danger)">⏱ Temporary password expired</div><button onclick="reviewRequest('${esc(r.id)}','approve',this)" style="padding:8px 12px;font-size:.74rem;font-weight:800;color:#06442E;background:var(--gold);border:none;border-radius:9px;cursor:pointer">↻ Re-issue</button></div><div class="ar-result" style="display:none;margin-top:8px"></div>`;
+        } else if(r.status!=='approved'&&r.status!=='denied'){
+          info=`<div class="ar-actions" style="display:flex;gap:8px;margin-top:10px">
             <button onclick="reviewRequest('${esc(r.id)}','approve',this)" style="flex:1;padding:8px;font-size:.74rem;font-weight:800;color:#fff;background:#16894E;border:none;border-radius:9px;cursor:pointer">✓ Approve &middot; موافقة</button>
             <button onclick="reviewRequest('${esc(r.id)}','deny',this)" style="flex:1;padding:8px;font-size:.74rem;font-weight:800;color:var(--danger);background:#fff;border:1px solid rgba(192,57,43,.4);border-radius:9px;cursor:pointer">✕ Deny &middot; رفض</button>
-          </div><div class="ar-result" style="display:none;margin-top:8px"></div>`:'';
+          </div><div class="ar-result" style="display:none;margin-top:8px"></div>`;
+        }
         return `<div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;background:var(--card)">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><div style="font-weight:800;color:var(--deep)">${esc(r.name||'—')}</div>${badge(r.status)}</div>
           <div style="font-size:.78rem;color:var(--muted);font-family:var(--mono);margin-top:3px">${esc(r.email||'')}</div>
           ${r.note?`<div style="font-size:.76rem;color:var(--deep);margin-top:6px;line-height:1.5">${esc(r.note)}</div>`:''}
           <div style="font-size:.64rem;color:var(--muted);margin-top:6px">${esc(ds)}</div>
-          ${act}
+          ${info}
         </div>`;}).join('');
   }catch(e){body.innerHTML='<div style="text-align:center;color:var(--danger);padding:20px">Error: '+esc(e.message)+'</div>';}
 }

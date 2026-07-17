@@ -55,12 +55,12 @@ module.exports = async (req, res) => {
   const existing = Array.isArray(ex.json) && ex.json[0];
   if (existing) {
     const up = await supaPatch(`/rest/v1/users?id=eq.${existing.id}`, {
-      password_hash: hash, must_change_password: true, temp_expires_at: expiresAt, updated_at: nowIso,
+      password_hash: hash, temp_password: tempPassword, must_change_password: true, temp_expires_at: expiresAt, updated_at: nowIso,
     });
     if (up.status >= 300) return res.status(502).json({ error: 'Could not update the account' });
   } else {
     const ins = await supaPost('/rest/v1/users', {
-      email: ar.email, username: ar.email, password_hash: hash,
+      email: ar.email, username: ar.email, password_hash: hash, temp_password: tempPassword,
       role: 'viewer', must_change_password: true, temp_expires_at: expiresAt,
     });
     if (ins.status >= 300) return res.status(502).json({ error: 'Could not create the account' });
