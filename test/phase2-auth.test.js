@@ -91,6 +91,8 @@ describe('review-request (admin approve/deny)', () => {
     expect(created.password_hash).toMatch(/^\$2[aby]\$/);
     expect(created.must_change_password).toBe(true);
     expect(created.password_hash).not.toContain(res.body.tempPassword);
+    // Temp password is retained (plaintext) so the admin can re-copy it.
+    expect(created.temp_password).toBe(res.body.tempPassword);
   });
 
   it('denies a request', async () => {
@@ -120,6 +122,8 @@ describe('change-password', () => {
     expect(res.statusCode).toBe(200);
     expect(patched.must_change_password).toBe(false);
     expect(patched.password_hash).toMatch(/^\$2[aby]\$/);
+    // The retained temp password is cleared once the user sets their own.
+    expect(patched.temp_password).toBeNull();
   });
 
   it('rejects an incorrect current password (401)', async () => {
