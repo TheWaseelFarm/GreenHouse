@@ -453,7 +453,7 @@ img,svg,canvas{max-width:100%}
       <div>
         <div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Ambient Temperature</div>
         <div style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">&#x62D;&#x631;&#x627;&#x631;&#x629; &#x627;&#x644;&#x645;&#x62D;&#x64A;&#x637; &#x627;&#x644;&#x62E;&#x627;&#x631;&#x62C;&#x64A; &middot; &#x627;&#x644;&#x62F;&#x631;&#x639;&#x64A;&#x629;</div>
-        <div style="font-size:.56rem;color:var(--muted);margin-top:2px;font-family:var(--mono)">Source: Tuya outdoor sensor &middot; live</div>
+        <div style="font-size:.56rem;color:var(--muted);margin-top:2px;font-family:var(--mono)">Source: SwitchBot outdoor sensor &middot; live</div>
       </div>
       <div id="outsideBadge" class="badge" style="background:rgba(6,68,46,.08);color:var(--muted)">&mdash;</div>
     </div>
@@ -1062,14 +1062,19 @@ async function fetchLive(){
 async function fetchOutsideTemp(){
   try{
     const now=Date.now();if(now-S.lastWeatherFetch<5*60*1000)return;S.lastWeatherFetch=now;
-    // Far-end zone from the SwitchBot meter. The outdoor/ambient temperature now
-    // comes from the Tuya outdoor sensor (see fetchTuyaWater) — it matches the
-    // Tuya app and reality, unlike the old SwitchBot outdoor reading.
-    const farEndRes=await fetch('/api/status?id=E77646060A5C',{credentials:'same-origin'}).then(r=>r.json());
-    const farEnd=farEndRes.body??{};
+    // Outdoor/ambient + far-end come from the SwitchBot meters via the signed
+    // /api/status proxy. (Tuya sensors are for water temperature, not air.)
+    const [outdoorRes,farEndRes]=await Promise.all([
+      fetch('/api/status?id=E7764046575F',{credentials:'same-origin'}).then(r=>r.json()),
+      fetch('/api/status?id=E77646060A5C',{credentials:'same-origin'}).then(r=>r.json())
+    ]);
+    const outdoor=outdoorRes.body??{}, farEnd=farEndRes.body??{};
     const num=v=>(v===undefined||v===null||v==='')?null:parseFloat(v);
+    S.live.outsideTemp=num(outdoor.temperature);
+    S.live.outsideHumidity=num(outdoor.humidity);
     S.live.farEndTemp=num(farEnd.temperature);
     S.live.farEndHumidity=num(farEnd.humidity);
+    renderCoolingScore();
     renderFarEnd();
   }catch(e){console.warn('Outdoor sensor:',e.message);}
 }
@@ -1093,12 +1098,9 @@ async function fetchTuyaWater(){
     S.water.outside=t(out.temp_current_external);
     S.tuya.gh={temp:t(gh.temp_current),hum:gh.humidity_value??null,batt:gh.battery_state??null};
     S.tuya.out={temp:t(out.temp_current),hum:out.humidity_value??null,batt:out.battery_state??null};
-    // The Tuya outdoor sensor is the ambient/outdoor source for the dashboard.
-    if(S.tuya.out.temp!=null){ S.live.outsideTemp=S.tuya.out.temp; S.live.outsideHumidity=S.tuya.out.hum; }
     renderWaterAlerts();
     renderTuyaAir();
     renderWaterCooling();
-    renderCoolingScore();
   }catch(e){console.warn('Tuya water:',e.message);}
 }
 // Reference captured on 11 Jul: raw supply 41.5°C cooled to 26.2°C at the roots.
@@ -1754,6 +1756,9 @@ async function askCouncil(){
       minT=temps.length?Math.min(...temps).toFixed(1)+'C':'unknown';
     }
     const live=S.live;
+    const H=(typeof thermalHealth==='function')?thermalHealth():null;
+    const irr=S.water&&S.water.irrigation!=null?S.water.irrigation+'C':'unknown';
+    const outW=S.water&&S.water.outside!=null?S.water.outside+'C':'unknown';
     farmContext='Al-Waseel Farm, Diriyah Riyadh. SEEDLINGS: 1000 Albion Frigo, arrived June 7 2026, currently week '
       +Math.floor((Date.now()-new Date('2026-06-07'))/604800000)
       +' of establishment in peat moss small pots before tower transfer. '
@@ -1761,8 +1766,10 @@ async function askCouncil(){
       +', Humidity='+(live.humW?live.humW.toFixed(0)+'%':'unknown')
       +', VPD='+(live.vpd?live.vpd.toFixed(2)+' kPa':'unknown')
       +', CO2='+(live.co2?live.co2+' ppm':'unknown')
-      +', Outside='+(live.outsideTemp?live.outsideTemp+'C':'unknown')
+      +', Outside air='+(live.outsideTemp?live.outsideTemp+'C':'unknown')
       +', Cooling gradient='+(live.temp&&live.hubTemp?(live.temp-live.hubTemp).toFixed(1)+'C':'unknown')
+      +', Irrigation water temp='+irr+', Outside/supply water temp='+outW
+      +', Thermal Health Index='+(H?H.index+'/100 '+H.status+' (limiting factor: '+H.worst.k+')':'unknown')
       +', Water leak: '+(live.w1?'LEAK DETECTED':'dry')+'.'
       +' LAST 24H: Avg temp='+avgT+'C, Max='+maxT+', Min='+minT
       +', Avg humidity='+avgH+'%, Avg VPD='+avgV+' kPa, Avg CO2='+avgC+' ppm.'
