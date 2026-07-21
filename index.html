@@ -453,7 +453,7 @@ img,svg,canvas{max-width:100%}
       <div>
         <div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Ambient Temperature</div>
         <div style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">&#x62D;&#x631;&#x627;&#x631;&#x629; &#x627;&#x644;&#x645;&#x62D;&#x64A;&#x637; &#x627;&#x644;&#x62E;&#x627;&#x631;&#x62C;&#x64A; &middot; &#x627;&#x644;&#x62F;&#x631;&#x639;&#x64A;&#x629;</div>
-        <div style="font-size:.56rem;color:var(--muted);margin-top:2px;font-family:var(--mono)">Source: SwitchBot outdoor sensor &middot; live</div>
+        <div style="font-size:.56rem;color:var(--muted);margin-top:2px;font-family:var(--mono)">Source: Tuya outdoor sensor &middot; live</div>
       </div>
       <div id="outsideBadge" class="badge" style="background:rgba(6,68,46,.08);color:var(--muted)">&mdash;</div>
     </div>
@@ -526,7 +526,7 @@ img,svg,canvas{max-width:100%}
         </div>
       </div>
     </div>
-    <div class="chart-box"><canvas id="trendChart"></canvas></div>
+    <div class="chart-box" dir="ltr" style="direction:ltr"><canvas id="trendChart" dir="ltr"></canvas></div>
     <div id="sstemp" class="zone-strip">
       <span class="zone-strip-label">&#x1F321; Temp Zone:</span>
       <button class="zbtn zactive" onclick="zoneClick(this,'temp','weighted')">Weighted 70/30</button>
@@ -1062,18 +1062,14 @@ async function fetchLive(){
 async function fetchOutsideTemp(){
   try{
     const now=Date.now();if(now-S.lastWeatherFetch<5*60*1000)return;S.lastWeatherFetch=now;
-    // Outdoor + far-end come from SwitchBot meters via the signed /api/status proxy.
-    const [outdoorRes,farEndRes]=await Promise.all([
-      fetch('/api/status?id=E7764046575F',{credentials:'same-origin'}).then(r=>r.json()),
-      fetch('/api/status?id=E77646060A5C',{credentials:'same-origin'}).then(r=>r.json())
-    ]);
-    const outdoor=outdoorRes.body??{}, farEnd=farEndRes.body??{};
+    // Far-end zone from the SwitchBot meter. The outdoor/ambient temperature now
+    // comes from the Tuya outdoor sensor (see fetchTuyaWater) — it matches the
+    // Tuya app and reality, unlike the old SwitchBot outdoor reading.
+    const farEndRes=await fetch('/api/status?id=E77646060A5C',{credentials:'same-origin'}).then(r=>r.json());
+    const farEnd=farEndRes.body??{};
     const num=v=>(v===undefined||v===null||v==='')?null:parseFloat(v);
-    S.live.outsideTemp=num(outdoor.temperature);
-    S.live.outsideHumidity=num(outdoor.humidity);
     S.live.farEndTemp=num(farEnd.temperature);
     S.live.farEndHumidity=num(farEnd.humidity);
-    renderCoolingScore();
     renderFarEnd();
   }catch(e){console.warn('Outdoor sensor:',e.message);}
 }
@@ -1097,9 +1093,12 @@ async function fetchTuyaWater(){
     S.water.outside=t(out.temp_current_external);
     S.tuya.gh={temp:t(gh.temp_current),hum:gh.humidity_value??null,batt:gh.battery_state??null};
     S.tuya.out={temp:t(out.temp_current),hum:out.humidity_value??null,batt:out.battery_state??null};
+    // The Tuya outdoor sensor is the ambient/outdoor source for the dashboard.
+    if(S.tuya.out.temp!=null){ S.live.outsideTemp=S.tuya.out.temp; S.live.outsideHumidity=S.tuya.out.hum; }
     renderWaterAlerts();
     renderTuyaAir();
     renderWaterCooling();
+    renderCoolingScore();
   }catch(e){console.warn('Tuya water:',e.message);}
 }
 // Reference captured on 11 Jul: raw supply 41.5°C cooled to 26.2°C at the roots.
