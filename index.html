@@ -1304,9 +1304,12 @@ function renderReport(data,days){
   data.forEach(r=>{
     const d=new Date(r.recorded_at);
     const key=d.toLocaleDateString('en-GB',{year:'numeric',month:'short',day:'2-digit'});
-    if(!byDay[key])byDay[key]={tempW:[],humW:[],vpds:[],co2s:[],outs:[],leaks:0,readings:0,date:d};
+    if(!byDay[key])byDay[key]={tempW:[],humW:[],vpds:[],co2s:[],outs:[],irrW:[],outW:[],farE:[],leaks:0,readings:0,date:d};
     const day=byDay[key];day.readings++;
     const ov=parseFloat(r.outdoor_temp);if(!isNaN(ov)&&ov>0&&ov<60)day.outs.push(ov);
+    const iw=parseFloat(r.water_temp_irrigation);if(!isNaN(iw)&&iw>0&&iw<60)day.irrW.push(iw);
+    const owv=parseFloat(r.water_temp_outside);if(!isNaN(owv)&&owv>0&&owv<60)day.outW.push(owv);
+    const fe=parseFloat(r.far_end_temp);if(!isNaN(fe)&&fe>5&&fe<50)day.farE.push(fe);
     let tw=r.temp_weighted;if(!tw&&r.temperature&&r.hub_temp)tw=parseFloat((r.temperature*0.7+r.hub_temp*0.3).toFixed(1));if(!tw&&r.temperature)tw=parseFloat(r.temperature);
     let hw=r.hum_weighted;if(!hw&&r.humidity&&r.hub_humidity)hw=parseFloat((r.humidity*0.7+r.hub_humidity*0.3).toFixed(1));if(!hw&&r.humidity)hw=parseFloat(r.humidity);
     if(tw&&tw>5&&tw<40)day.tempW.push(tw);if(hw&&hw>0&&hw<100)day.humW.push(hw);
@@ -1334,12 +1337,14 @@ function renderReport(data,days){
   let rows='';
   ds.forEach(([date,d])=>{
     const t=avg(d.tempW),h=avg(d.humW),v=avg(d.vpds),co2=avg(d.co2s),ot=avg(d.outs);
-    const maxT=mx(d.tempW),minT=mn(d.tempW),maxH=mx(d.humW);
+    const iw=avg(d.irrW),ow=avg(d.outW),fe=avg(d.farE);
+    const maxT=mx(d.tempW),minT=mn(d.tempW),maxH=mx(d.humW),maxIw=mx(d.irrW);
     // Combined agronomic score, context-weighted by that day's outside temp.
     let score=calcDayScore(t||0,h||0,v||0,ot);
     if(d.leaks>0)score=Math.max(0,score-30); // cooling/leak event is a real production hit
     const rating=ratingFor(score);const sc=rating.cls,sl=rating.label;
-    const conds=[];if(h&&h>85)conds.push('🍄 Botrytis risk');else if(h&&h>75)conds.push('💧 Elevated humidity');if(t&&t>22)conds.push('🌡 Above range');if(t&&t>26)conds.push('🔥 Critical temp');if(v&&v>1.3)conds.push('⚠️ High VPD');if(d.leaks>0)conds.push('🚨 Leak event');if(!conds.length)conds.push('✅ All nominal');
+    const wcls=x=>x===null?'':x>26?'rep-bad':x>22?'rep-warn':'rep-good';
+    const conds=[];if(h&&h>85)conds.push('🍄 Botrytis risk');else if(h&&h>75)conds.push('💧 Elevated humidity');if(t&&t>22)conds.push('🌡 Above range');if(t&&t>26)conds.push('🔥 Critical temp');if(v&&v>1.3)conds.push('⚠️ High VPD');if(iw&&iw>26)conds.push('🌊 Irrigation water critical');else if(iw&&iw>22)conds.push('💧 Warm irrigation water');if(d.leaks>0)conds.push('🚨 Leak event');if(!conds.length)conds.push('✅ All nominal');
     _repDays[date]=d;
     rows+=`<tr style="cursor:pointer" onclick="drillDay('${date}')">
       <td style="font-weight:800">${date}</td>
@@ -1348,6 +1353,9 @@ function renderReport(data,days){
       <td class="${cls('h',h)}">${h!==null?h+'%':'—'}<small style="color:var(--muted);display:block;font-size:.65rem">${maxH!==null?'peak '+maxH+'%':''}</small></td>
       <td class="${cls('v',v)}">${v!==null?v:'—'}</td>
       <td>${co2!==null?Math.round(co2):'—'}</td>
+      <td class="${wcls(iw)}">${iw!==null?iw+'°C':'—'}<small style="color:var(--muted);display:block;font-size:.65rem">${maxIw!==null?'peak '+maxIw+'°C':''}</small></td>
+      <td>${ow!==null?ow+'°C':'—'}</td>
+      <td>${fe!==null?fe+'°C':'—'}</td>
       <td style="color:var(--muted);font-size:.72rem">${d.readings}</td>
       <td style="font-size:.74rem">${conds.join(', ')}</td>
     </tr>`;
@@ -1355,7 +1363,7 @@ function renderReport(data,days){
   const ctxNote=avgO!==null?`<div style="font-size:.7rem;color:var(--muted);margin-bottom:10px;padding:8px 12px;background:rgba(196,154,58,.1);border:1px solid rgba(196,154,58,.28);border-radius:10px;line-height:1.5">🌡 Benchmarks adjusted for Saudi summer conditions — outside ambient avg <strong style="color:var(--deep)">${avgO}°C</strong>. Cooling performance is judged against this ambient load, not a temperate-climate ideal.<div style="font-family:var(--ar);direction:rtl;color:var(--muted);margin-top:3px">معايير معدَّلة لظروف الصيف السعودي — متوسط الحرارة الخارجية ${avgO}°م</div></div>`:'';
   $('repContent').innerHTML=ctxNote+`<p style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Select a date to view full operational breakdown for that day</p>
     <div class="rep-table-wrap"><table class="rep-table">
-      <thead><tr><th>Date</th><th>Operational Rating</th><th>Avg Temp<br><small>✓ 16–22°C</small></th><th>Avg Humidity<br><small>✓ 60–75%</small></th><th>Avg VPD<br><small>✓ 0.5–1.0</small></th><th>Avg CO₂<br><small>✓ 350–500</small></th><th>Readings</th><th>Field Status</th></tr></thead>
+      <thead><tr><th>Date</th><th>Operational Rating</th><th>Avg Temp<br><small>✓ 16–22°C</small></th><th>Avg Humidity<br><small>✓ 60–75%</small></th><th>Avg VPD<br><small>✓ 0.5–1.0</small></th><th>Avg CO₂<br><small>✓ 350–500</small></th><th>Irrigation Water<br><small>✓ ≤22°C</small></th><th>Outside Water<br><small>supply</small></th><th>Far End<br><small>zone °C</small></th><th>Readings</th><th>Field Status</th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>`;
   generateInsights(ds,avgT,avgH,avgV,avgO);
@@ -1364,21 +1372,28 @@ function drillDay(date){
   var d=_repDays[date]||{};
   const avg=arr=>arr.length?parseFloat((arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1)):null;
   const t=avg(d.tempW||[]),h=avg(d.humW||[]),v=avg(d.vpds||[]),co2=avg(d.co2s||[]);
-  function cls(m,v){if(v===null)return'color:var(--muted)';if(m==='t')return v>26?'color:var(--danger)':v>22?'color:var(--gold)':'color:#16894E';if(m==='h')return v>85||v<50?'color:var(--danger)':v>75||v<60?'color:var(--gold)':'color:#16894E';if(m==='v')return v>1.3?'color:var(--danger)':v>1.0?'color:var(--gold)':'color:#16894E';return'color:var(--deep)';}
+  const iw=avg(d.irrW||[]),ow=avg(d.outW||[]),fe=avg(d.farE||[]),ot=avg(d.outs||[]);
+  function cls(m,v){if(v===null)return'color:var(--muted)';if(m==='t')return v>26?'color:var(--danger)':v>22?'color:var(--gold)':'color:#16894E';if(m==='h')return v>85||v<50?'color:var(--danger)':v>75||v<60?'color:var(--gold)':'color:#16894E';if(m==='v')return v>1.3?'color:var(--danger)':v>1.0?'color:var(--gold)':'color:#16894E';if(m==='w')return v>26?'color:var(--danger)':v>22?'color:var(--gold)':'color:#16894E';return'color:var(--deep)';}
   const an=[];
   if(t!==null){if(t>26)an.push({i:'🔥',en:`Temperature averaged ${t}°C — critical threshold exceeded. Sugar development arrested above 26°C.`,ar:`درجة الحرارة ${t}°م — تجاوزت الحد الحرج. تطور السكر يتوقف فوق 26°م.`});else if(t>22)an.push({i:'🌡',en:`Temperature averaged ${t}°C — above operational range (16–22°C). Mild production stress.`,ar:`درجة الحرارة ${t}°م — فوق النطاق التشغيلي. إجهاد خفيف على الإنتاج.`});else an.push({i:'✅',en:`Temperature averaged ${t}°C — within operational range.`,ar:`درجة الحرارة ${t}°م — ضمن النطاق التشغيلي.`});}
   if(h!==null){if(h>85)an.push({i:'🍄',en:`Humidity averaged ${h}% — Botrytis risk zone. Extended exposure increases fungal establishment probability.`,ar:`الرطوبة ${h}% — نطاق خطر البوتريتيس. التعرض المطول يزيد احتمالية تكون الفطريات.`});else if(h<60)an.push({i:'🏜',en:`Humidity averaged ${h}% — below operational range. Risk of flower and fruit desiccation.`,ar:`الرطوبة ${h}% — أقل من النطاق التشغيلي. خطر جفاف الأزهار والثمار.`});else an.push({i:'✅',en:`Humidity averaged ${h}% — within operational range.`,ar:`الرطوبة ${h}% — ضمن النطاق التشغيلي.`});}
   if(v!==null){if(v>1.3)an.push({i:'⚠️',en:`VPD averaged ${v} kPa — above critical threshold. Stomata closure reduces photosynthesis and fruit sugar accumulation.`,ar:`عجز ضغط البخار ${v} — فوق الحد الحرج. إغلاق الثغور يقلل التمثيل الضوئي وتراكم سكر الثمار.`});else an.push({i:'✅',en:`VPD averaged ${v} kPa — within operational range. Transpiration proceeding normally.`,ar:`عجز ضغط البخار ${v} — ضمن النطاق التشغيلي.`});}
+  if(iw!==null){if(iw>26)an.push({i:'🌊',en:`Irrigation water averaged ${iw}°C — CRITICAL: root damage risk above 26°C. Cool or exchange the supply.`,ar:`متوسط ماء الري ${iw}°م — حرج: خطر تلف الجذور فوق 26°م. برّد أو استبدل المصدر.`});else if(iw>22)an.push({i:'💧',en:`Irrigation water averaged ${iw}°C — above the 22°C target. Increase cooling of the supply.`,ar:`متوسط ماء الري ${iw}°م — فوق الهدف 22°م. زد تبريد المصدر.`});else an.push({i:'✅',en:`Irrigation water averaged ${iw}°C — within the safe range for roots.`,ar:`متوسط ماء الري ${iw}°م — ضمن النطاق الآمن للجذور.`});}
+  const wcard=(en,ar,val,mode)=>`<div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px"><div style="font-family:var(--mono);font-size:1.4rem;font-weight:950;${cls(mode,val)}">${val!==null?val+'°C':'—'}</div><div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-top:3px">${en}</div><div style="font-family:var(--ar);font-size:.56rem;color:var(--muted);direction:rtl;margin-top:2px">${ar}</div></div>`;
   const html=`<div style="background:var(--card);border:1px solid rgba(196,154,58,.3);border-radius:16px;padding:18px;margin-top:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div><div style="font-size:.62rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Daily Operational Breakdown</div><div style="font-weight:950;color:var(--deep);font-size:1rem">${date}</div></div>
       <button onclick="this.closest('div[style]').remove()" style="border:1px solid var(--border);border-radius:8px;padding:4px 10px;background:var(--card);cursor:pointer;font-size:.72rem;color:var(--muted)">✕ Close</button>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px">
       <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px"><div style="font-family:var(--mono);font-size:1.4rem;font-weight:950;${cls('t',t)}">${t!==null?t+'°C':'—'}</div><div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-top:3px">AVG TEMP</div><div style="font-size:.58rem;color:var(--muted);background:rgba(6,68,46,.07);border-radius:5px;padding:2px 6px;display:inline-block;margin-top:5px">✓ 16–22°C</div></div>
       <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px"><div style="font-family:var(--mono);font-size:1.4rem;font-weight:950;${cls('h',h)}">${h!==null?h+'%':'—'}</div><div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-top:3px">AVG HUMIDITY</div><div style="font-size:.58rem;color:var(--muted);background:rgba(6,68,46,.07);border-radius:5px;padding:2px 6px;display:inline-block;margin-top:5px">✓ 60–75%</div></div>
       <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px"><div style="font-family:var(--mono);font-size:1.4rem;font-weight:950;${cls('v',v)}">${v!==null?v:'—'}</div><div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-top:3px">AVG VPD kPa</div><div style="font-size:.58rem;color:var(--muted);background:rgba(6,68,46,.07);border-radius:5px;padding:2px 6px;display:inline-block;margin-top:5px">✓ 0.5–1.0</div></div>
       <div style="text-align:center;padding:10px;background:var(--soft-sage);border-radius:10px"><div style="font-family:var(--mono);font-size:1.4rem;font-weight:950;color:var(--deep)">${co2!==null?Math.round(co2):'—'}</div><div style="font-size:.62rem;color:var(--muted);font-weight:700;margin-top:3px">AVG CO₂</div><div style="font-size:.58rem;color:var(--muted);background:rgba(6,68,46,.07);border-radius:5px;padding:2px 6px;display:inline-block;margin-top:5px">✓ 350–500</div></div>
+      ${wcard('IRRIGATION WATER','ماء الري',iw,'w')}
+      ${wcard('OUTSIDE WATER','الماء الخارجي',ow,'x')}
+      ${wcard('FAR END','المنطقة الطرفية',fe,'t')}
+      ${ot!==null?wcard('OUTDOOR','الخارجي',ot,'x'):''}
     </div>
     <div style="display:flex;flex-direction:column;gap:8px">${an.map(a=>`<div style="display:flex;gap:10px;padding:10px;border-radius:10px;background:rgba(248,244,234,0.8);border:1px solid var(--border)"><span style="font-size:1.1rem;flex-shrink:0">${a.i}</span><div><div style="font-size:.82rem;color:var(--deep);line-height:1.5">${a.en}</div><div style="font-family:var(--ar);font-size:.76rem;color:var(--muted);direction:rtl;margin-top:4px">${a.ar}</div></div></div>`).join('')}</div>
     <div style="margin-top:10px;font-size:.66rem;color:var(--muted);font-family:var(--mono)">${d.readings||0} readings logged · ${d.leaks>0?'🚨 Leak event recorded':'✓ No leak events'}</div>
