@@ -707,8 +707,12 @@ body.lang-ar .i18n-ar,body.lang-ar .dec-ar{direction:rtl}
           <div id="flJournalTitle" style="font-size:.7rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--deep);display:flex;align-items:center;gap:7px"><i class="ti ti-photo"></i>أرشيف الصور</div>
           <div id="flJournalSub" style="font-family:var(--ar);font-size:.72rem;color:var(--muted);margin-top:2px">صور وملاحظات حقيقية &middot; الأحدث أولاً</div>
         </div>
-        <select id="flFilter" class="rep-select" onchange="renderJournal()" aria-label="Filter journal"><option value="">كل الأنشطة</option></select>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select id="flMonth" class="rep-select" onchange="renderJournal()" aria-label="Filter by month"><option value="">كل الشهور</option></select>
+          <select id="flFilter" class="rep-select" onchange="renderJournal()" aria-label="Filter journal"><option value="">كل الأنشطة</option></select>
+        </div>
       </div>
+      <div id="flJournalCount" style="font-size:.68rem;color:var(--muted);margin:-4px 2px 8px;font-weight:700"></div>
       <div id="flJournal"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">…</div></div>
     </div>
   </div>
@@ -1550,7 +1554,7 @@ function applyFlLang(){
   const btn=$('flSubmit');if(!btn.disabled)btn.textContent=t.save;
   $('flJournalTitle').innerHTML='<i class="ti ti-photo"></i>'+t.journal;
   $('flJournalSub').textContent=t.journalSub;
-  flBuildLoc();flBuildChips();flBuildFilter();renderJournal();
+  flBuildLoc();flBuildChips();flBuildFilter();flBuildMonths();renderJournal();
 }
 function flBuildLoc(){
   const t=FL_T[flLang],line=$('flLine'),tower=$('flTower'),cl=line.value,ct=tower.value;
@@ -1628,14 +1632,25 @@ async function submitFieldLog(e){
   finally{btn.disabled=false;btn.textContent=FL_T[flLang].save;}
 }
 async function loadJournal(){
-  try{const res=await fetch('/api/field-log-list?limit=200');_journal=await res.json();if(!Array.isArray(_journal))_journal=[];}
+  try{const res=await fetch('/api/field-log-list?limit=500');_journal=await res.json();if(!Array.isArray(_journal))_journal=[];}
   catch(_){_journal=[];}
-  renderJournal();
+  flBuildMonths();renderJournal();
+}
+// Populate the month filter from the entries present, so the journal browses as
+// a dated archive.
+function flBuildMonths(){
+  const sel=$('flMonth');if(!sel)return;const cur=sel.value;
+  const months=[...new Set(_journal.map(r=>{const d=new Date(r.log_date||r.created_at);return isNaN(d)?null:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}).filter(Boolean))].sort().reverse();
+  sel.innerHTML='<option value="">'+(flLang==='ar'?'كل الشهور':'All months')+'</option>';
+  months.forEach(m=>{const p=m.split('-'),d=new Date(+p[0],+p[1]-1,1);const o=document.createElement('option');o.value=m;o.textContent=d.toLocaleDateString(flLang==='ar'?'ar':'en-GB',{month:'long',year:'numeric'});sel.appendChild(o);});
+  sel.value=cur;
 }
 function renderJournal(){
-  const box=$('flJournal');if(!box)return;const filter=$('flFilter').value;
+  const box=$('flJournal');if(!box)return;const filter=$('flFilter').value;const month=$('flMonth')?$('flMonth').value:'';
   let rows=_journal;
   if(filter)rows=rows.filter(r=>(Array.isArray(r.activities)&&r.activities.includes(filter))||(filter==='__other'&&r.other_note));
+  if(month)rows=rows.filter(r=>{const d=new Date(r.log_date||r.created_at);return !isNaN(d)&&(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'))===month;});
+  const cEl=$('flJournalCount');if(cEl)cEl.textContent=_journal.length?(flLang==='ar'?arNum(rows.length)+' من '+arNum(_journal.length)+' إدخال':rows.length+' of '+_journal.length+' entries'):'';
   if(!rows.length){box.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">${FL_T[flLang].empty}</div>`;return;}
   box.innerHTML=rows.map(r=>{
     const acts=(Array.isArray(r.activities)?r.activities:[]).map(flActLabel);if(r.other_note)acts.push(r.other_note);
