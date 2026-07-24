@@ -653,6 +653,11 @@ img,svg,canvas{max-width:100%}
 body.lang-ar .metric-label-en{display:none}
 body.lang-ar .metric-label-ar{font-size:.95rem;font-weight:800;color:var(--deep);margin-top:0}
 body.lang-ar .nav a{direction:rtl}
+/* Stage 2 — indicators (verdicts) & operational alerts show one language at a
+   time. .i18n-en/.i18n-ar tag inline pairs; .dec-*/.alert-* are existing pairs. */
+body.lang-ar .i18n-en,body.lang-ar .dec-en,body.lang-ar .alert-title{display:none}
+body:not(.lang-ar) .i18n-ar,body:not(.lang-ar) .dec-ar,body:not(.lang-ar) .alert-ar{display:none}
+body.lang-ar .i18n-ar,body.lang-ar .dec-ar{direction:rtl}
 </style>
 
 <!-- Daily Plant Log — field workers upload photos + what they did; builds the knowledge house -->
@@ -813,8 +818,8 @@ function renderTempVerdict(){
   const markPct=tw!=null?pct(tw):null;
   box.innerHTML=`<div style="background:var(--card);border:1px solid ${V.color};border-left:5px solid ${V.color};border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-      <div><div style="font-size:.62rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Greenhouse Temperature Status</div>
-      <div style="font-family:var(--ar);font-size:.78rem;color:var(--muted);direction:rtl">حالة حرارة البيت المحمي</div></div>
+      <div><div class="i18n-en" style="font-size:.62rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Greenhouse Temperature Status</div>
+      <div class="i18n-ar" style="font-family:var(--ar);font-size:.78rem;color:var(--muted);direction:rtl">حالة حرارة البيت المحمي</div></div>
       <span style="font-family:var(--mono);font-weight:900;font-size:.74rem;letter-spacing:.06em;color:#fff;background:${V.color};padding:5px 12px;border-radius:999px">${V.status}</span>
     </div>
     <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
@@ -825,8 +830,8 @@ function renderTempVerdict(){
         <div style="display:flex;justify-content:space-between;font-size:.56rem;color:var(--muted);font-family:var(--mono);margin-top:4px"><span>14°</span><span>16 ideal 22</span><span>26 crit</span><span>34°</span></div>
       </div>
     </div>
-    <div style="margin-top:12px;font-size:.82rem;color:var(--deep);line-height:1.55">${V.en}</div>
-    <div style="font-family:var(--ar);font-size:.76rem;color:var(--muted);direction:rtl;margin-top:3px">${V.ar}</div>
+    <div class="i18n-en" style="margin-top:12px;font-size:.82rem;color:var(--deep);line-height:1.55">${V.en}</div>
+    <div class="i18n-ar" style="font-family:var(--ar);font-size:.76rem;color:var(--muted);direction:rtl;margin-top:3px">${V.ar}</div>
   </div>`;
 }
 // PARENT INDICATOR — correlates every thermal signal into one health index.
@@ -865,7 +870,7 @@ function renderThermalHealth(){
   box.innerHTML=`<div style="background:linear-gradient(135deg,var(--soft-sage),rgba(230,211,163,.35));border:1px solid ${H.color};border-radius:14px;padding:14px 16px">`
     +`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">`
     +`<div style="display:flex;align-items:baseline;gap:10px"><span style="font-family:var(--mono);font-size:2.4rem;font-weight:950;letter-spacing:-.05em;color:${H.color};line-height:1">${H.index}</span><span style="font-weight:900;color:var(--muted);font-size:.8rem">/100</span>`
-    +`<div><div style="font-size:.6rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Thermal Health Index</div><div style="font-family:var(--ar);font-size:.72rem;color:var(--muted);direction:rtl">مؤشر الصحة الحرارية</div></div></div>`
+    +`<div><div class="i18n-en" style="font-size:.6rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Thermal Health Index</div><div class="i18n-ar" style="font-family:var(--ar);font-size:.72rem;color:var(--muted);direction:rtl">مؤشر الصحة الحرارية</div></div></div>`
     +`<span style="font-family:var(--mono);font-weight:900;font-size:.72rem;letter-spacing:.06em;color:#fff;background:${H.color};padding:5px 12px;border-radius:999px">${H.status}</span></div>`
     +`<div style="font-size:.72rem;color:var(--deep);margin-top:8px">Limiting factor: <strong>${H.worst.k}</strong> (${H.worst.v}).${H.summer?` Judged against ${H.outside}°C outside.`:''}</div>`
     +`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${chips}</div></div>`;
