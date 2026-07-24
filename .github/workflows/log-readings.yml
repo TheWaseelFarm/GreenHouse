@@ -1,0 +1,35 @@
+name: Log greenhouse readings
+
+# Continuously persist sensor readings so the Operations Report and the 7/14/30
+# day charts actually have history — instead of only accumulating data while
+# someone has the dashboard open in a browser.
+#
+# Vercel Hobby crons only run once per day, so we schedule the call from GitHub
+# Actions instead. It hits the existing /api/cron-save endpoint, which reads
+# every SwitchBot + Tuya sensor and writes one row to Supabase.
+#
+# Required repository secret:
+#   CRON_SECRET   — must match the CRON_SECRET env var set in Vercel.
+# Optional repository secret:
+#   DASHBOARD_URL — production origin (defaults to the known Vercel domain).
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # every 15 minutes (UTC); GitHub may delay under load
+  workflow_dispatch: {}        # allow a manual run from the Actions tab
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger cron-save
+        env:
+          BASE: ${{ secrets.DASHBOARD_URL || 'https://green-house-iota.vercel.app' }}
+          SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          code=$(curl -sS -o /tmp/out.txt -w '%{http_code}' \
+            -H "Authorization: Bearer ${SECRET}" \
+            "${BASE}/api/cron-save")
+          echo "HTTP ${code}"
+          cat /tmp/out.txt
+          test "${code}" = "200"

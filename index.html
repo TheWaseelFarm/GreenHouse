@@ -1091,8 +1091,18 @@ function setRange(h){
   if(h===1)applyChart(S.localHist.map(r=>({...r,recorded_at:r.time})));
   else loadHistory(h);
 }
+// Enough rows to actually span the selected window even at ~1 reading/min,
+// then thinned to keep the chart smooth. A fixed limit=500 made 7D show only
+// ~1 day because 500 dense rows don't reach back 7 days.
+function histLimit(hours){return hours>=168?15000:hours>=24?4000:1500;}
+function downsampleSeries(rows,maxPoints){
+  if(!Array.isArray(rows)||rows.length<=maxPoints)return rows;
+  const step=rows.length/maxPoints,out=[];
+  for(let i=0;i<rows.length;i+=step)out.push(rows[Math.floor(i)]);
+  return out;
+}
 async function loadHistory(hours){
-  try{const res=await fetch('/api/history?hours='+hours+'&limit=500');const data=await res.json();if(Array.isArray(data)&&data.length>0)applyChart(data);}catch(e){console.warn('History:',e.message);}
+  try{const res=await fetch('/api/history?hours='+hours+'&limit='+histLimit(hours));const data=await res.json();if(Array.isArray(data)&&data.length>0)applyChart(downsampleSeries(data,400));}catch(e){console.warn('History:',e.message);}
 }
 function zoneClick(btn,metric,view){
   S.subView[metric]=view;S.metric=metric;
@@ -1104,7 +1114,7 @@ function zoneClick(btn,metric,view){
   if(ct)ct.textContent=(metric==='temp'?'Temperature — ':'Humidity — ')+(labels[view]||view);
   function applyZone(data){if(!S.chart||!Array.isArray(data)||!data.length)return;var r=getDatasets(data,metric,view);S.chart.data.labels=r.labels;S.chart.data.datasets=r.datasets;updateChartAxes(metric);S.chart.update();var cn=$('chartNote');if(cn)cn.textContent=r.note;}
   if(S.range===1&&S.localHist.length>0)applyZone(S.localHist.map(r=>Object.assign({},r,{recorded_at:r.time})));
-  else fetch('/api/history?hours='+S.range+'&limit=500').then(r=>r.json()).then(applyZone).catch(e=>console.warn('zoneClick:',e.message));
+  else fetch('/api/history?hours='+S.range+'&limit='+histLimit(S.range)).then(r=>r.json()).then(d=>applyZone(downsampleSeries(d,400))).catch(e=>console.warn('zoneClick:',e.message));
 }
 function calcDP(t,rh){const a=17.27,b=237.3,al=(a*t)/(b+t)+Math.log(rh/100);return parseFloat((b*al/(a-al)).toFixed(1));}
 function calcHI(t,rh){if(t<27)return t;return parseFloat((-8.78+1.61*t+2.34*rh-0.15*t*rh-0.012*t*t-0.016*rh*rh+0.002*t*t*rh+0.0007*t*rh*rh).toFixed(1));}
