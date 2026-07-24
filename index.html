@@ -661,6 +661,7 @@ body.lang-ar .i18n-ar,body.lang-ar .dec-ar{direction:rtl}
 /* Stage 3 — section headers & zone labels (class-paired) */
 body.lang-ar .rec-title-en,body.lang-ar .wt-label,body.lang-ar .zn{display:none}
 body:not(.lang-ar) .rec-title-ar,body:not(.lang-ar) .panel-ar,body:not(.lang-ar) .wt-label-ar,body:not(.lang-ar) .zn-ar,body:not(.lang-ar) .metric-label-ar{display:none}
+body.lang-ar #chartTitle{display:none}
 </style>
 
 <!-- Daily Plant Log — field workers upload photos + what they did; builds the knowledge house -->
@@ -746,6 +747,9 @@ function applySiteLang(){
   document.body.classList.toggle('lang-ar',siteLang==='ar');
   document.querySelectorAll('[data-i18n]').forEach(el=>{const t=I18N[el.getAttribute('data-i18n')];if(t&&t[siteLang])el.textContent=t[siteLang];});
   const b=$('langToggle');if(b)b.textContent=siteLang==='ar'?'🌐 EN':'🌐 عربي';
+  // Re-render JS-set text (metric status badges, chart title) so a toggle
+  // updates them immediately instead of waiting for the next data refresh.
+  try{if(typeof S!=='undefined'&&S.live&&S.live.co2!=null&&typeof renderMetrics==='function')renderMetrics();}catch(_){}
 }
 function setSiteLang(l){siteLang=l;try{localStorage.setItem('wf_lang',l);}catch(_){}applySiteLang();}
 function toggleSiteLang(){setSiteLang(siteLang==='ar'?'en':'ar');}
@@ -757,8 +761,8 @@ function hideLoadingBar(){const b=$('loadingBar');b.classList.remove('running');
 function navClick(el,sid){document.querySelectorAll('.nav a:not(.logout-link)').forEach(a=>a.classList.remove('active'));el.classList.add('active');if(sid){const t=document.getElementById(sid);if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}}
 function doRefresh(btn){btn.disabled=true;btn.style.opacity='0.6';showLoadingBar();fetchLive().finally(()=>{btn.disabled=false;btn.style.opacity='1';hideLoadingBar();});}
 function getStatus(m,v){if(m==='hum')return(v>=T.hum.ok[0]&&v<=T.hum.ok[1])?'good':'warn';if(v>=T[m].ok[0]&&v<=T[m].ok[1])return'good';if(v>=T[m].warn[0]&&v<=T[m].warn[1])return'warn';return'danger';}
-function getHumBadge(v){if(v>=T.hum.ok[0]&&v<=T.hum.ok[1])return{s:'good',t:'Optimal'};if(v>T.hum.ok[1])return{s:'warning',t:'Elevated'};if(v>=T.hum.warn[0])return{s:'warning',t:'Below Range'};return{s:'danger',t:'Critical'};}
-function getBadge(m,v){if(m==='hum')return getHumBadge(v);const s=getStatus(m,v);const map={co2:{good:'Normal',warn:'Monitor',danger:'Check'},temp:{good:'Optimal',warn:'Above Range',danger:'Critical'},vpd:{good:'Optimal',warn:'Elevated',danger:'Critical'}};return{s,t:(map[m]||{})[s==='good'?'good':s==='warn'?'warn':'danger']||s};}
+function getHumBadge(v){if(v>=T.hum.ok[0]&&v<=T.hum.ok[1])return{s:'good',t:'Optimal',ar:'مثالي'};if(v>T.hum.ok[1])return{s:'warning',t:'Elevated',ar:'مرتفع'};if(v>=T.hum.warn[0])return{s:'warning',t:'Below Range',ar:'دون النطاق'};return{s:'danger',t:'Critical',ar:'حرج'};}
+function getBadge(m,v){if(m==='hum')return getHumBadge(v);const s=getStatus(m,v);const map={co2:{good:'Normal',warn:'Monitor',danger:'Check'},temp:{good:'Optimal',warn:'Above Range',danger:'Critical'},vpd:{good:'Optimal',warn:'Elevated',danger:'Critical'}};const mapAr={co2:{good:'طبيعي',warn:'راقب',danger:'تحقق'},temp:{good:'مثالي',warn:'فوق النطاق',danger:'حرج'},vpd:{good:'مثالي',warn:'مرتفع',danger:'حرج'}};const k=s==='good'?'good':s==='warn'?'warn':'danger';return{s,t:(map[m]||{})[k]||s,ar:(mapAr[m]||{})[k]||''};}
 function col(s){return s==='good'?'#16894E':s==='warn'?'var(--gold)':'var(--danger)';}
 function rangeBar(m,v){const t=T[m];return clamp(((v-t.warn[0])/(t.warn[1]-t.warn[0]))*100,0,100);}
 function renderMetrics(){
@@ -790,7 +794,7 @@ function updateCard(m,v){
   const sel=mc.classList.contains('selected');
   mc.className='metric '+cls+(sel?' selected':'');
   const valEl=$(valMap[m]);if(valEl)valEl.textContent=m==='vpd'?Number(v).toFixed(2):m==='temp'?Number(v).toFixed(1):Math.round(v);
-  const badgeEl=$(badgeMap[m]);if(badgeEl)badgeEl.textContent=bd.t||bd.s;
+  const badgeEl=$(badgeMap[m]);if(badgeEl)badgeEl.textContent=(siteLang==='ar'&&bd.ar)?bd.ar:(bd.t||bd.s);
   const barEl=$('bar-'+m);if(barEl)barEl.style.width=rangeBar(m,parseFloat(v))+'%';
 }
 // The single source of truth for "is the greenhouse temperature OK right now?"
@@ -912,7 +916,7 @@ function renderYieldImpact(){
   const chips=Y.factors.length?Y.factors.map(f=>`<span style="font-size:.6rem;color:var(--muted);background:rgba(6,68,46,.06);border-radius:6px;padding:2px 7px;margin:2px 4px 0 0;display:inline-block">${esc(f.k)} ${esc(f.v)} · −${f.l}%</span>`).join(''):'<span style="font-size:.66rem;color:#16894E;font-weight:700">✓ All yield drivers within range</span>';
   box.innerHTML=`<div class="panel panel-pad" style="border-left:5px solid ${col}">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-      <div><div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Yield &amp; Revenue Impact</div><div style="font-family:var(--ar);font-size:.74rem;color:var(--muted);direction:rtl">أثر الظروف على المحصول والإيراد</div></div>
+      <div><div class="i18n-en" style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Yield &amp; Revenue Impact</div><div class="i18n-ar" style="font-family:var(--ar);font-size:.74rem;color:var(--muted);direction:rtl">أثر الظروف على المحصول والإيراد</div></div>
       <button onclick="openYieldAssumptions()" style="border:1px solid var(--border);border-radius:8px;padding:4px 10px;background:var(--card);cursor:pointer;font-size:.68rem;color:var(--muted)">⚙ Assumptions</button>
     </div>
     <div class="yield-flow">
