@@ -399,12 +399,12 @@ img,svg,canvas{max-width:100%}
   </div>
   <div class="panel zones-panel">
     <div class="panel-head"><div>
-      <h2 class="panel-title"><i class="ti ti-temperature" style="margin-right:5px"></i>Greenhouse Thermal Monitoring</h2>
+      <h2 class="panel-title"><i class="ti ti-temperature" style="margin-right:5px"></i><span class="i18n-en">Greenhouse Thermal Monitoring</span></h2>
       <div class="panel-ar">&#x645;&#x631;&#x627;&#x642;&#x628;&#x629; &#x62D;&#x631;&#x627;&#x631;&#x629; &#x627;&#x644;&#x628;&#x64A;&#x62A; &mdash; &#x643;&#x644; &#x627;&#x644;&#x645;&#x624;&#x634;&#x631;&#x627;&#x62A; &#x641;&#x64A; &#x645;&#x643;&#x627;&#x646; &#x648;&#x627;&#x62D;&#x62F;</div>
     </div></div>
     <div id="thermalHealth" style="margin-bottom:12px"></div>
     <section id="tempVerdict" style="margin-bottom:14px"></section>
-    <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px">🌿 Air Zones · مناطق الهواء</div>
+    <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px"><span class="i18n-en">🌿 Air Zones</span><span class="i18n-ar">🌿 مناطق الهواء</span></div>
     <div class="weighted-row" style="margin-bottom:10px">
       <div><div class="wt-label">Weighted Greenhouse Avg</div><div class="wt-label-ar">&#x645;&#x62A;&#x648;&#x633;&#x637; &#x645;&#x648;&#x632;&#x648;&#x646; &middot; 70% &#x645;&#x62D;&#x635;&#x648;&#x644; + 30% &#x62A;&#x628;&#x631;&#x64A;&#x62F;</div></div>
       <div style="text-align:right"><div class="wt-val" id="wtTemp">&mdash;&deg;C</div><div class="wt-sub" id="wtHum">Humidity: &mdash;%</div></div>
@@ -436,11 +436,11 @@ img,svg,canvas{max-width:100%}
       </div>
     </div>
     <div id="tuyaAirStrip" style="display:flex;gap:10px;margin:10px 0"></div>
-    <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:12px 2px 6px">💧 Water Temperatures · حرارة المياه</div>
+    <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:12px 2px 6px"><span class="i18n-en">💧 Water Temperatures</span><span class="i18n-ar">💧 حرارة المياه</span></div>
     <div id="waterTempStrip" style="display:flex;gap:10px;margin-bottom:10px"></div>
     <div id="waterCooling" style="margin-bottom:12px"></div>
     <div id="heatHours" style="margin-bottom:12px"></div>
-    <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px">❄️ Cooling · التبريد</div>
+    <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px"><span class="i18n-en">❄️ Cooling</span><span class="i18n-ar">❄️ التبريد</span></div>
     <div class="cooling-row">
       <div><div class="cl-desc">Cooling Gradient</div><div class="cl-desc-ar" id="clDesc">&#x62A;&#x62F;&#x631;&#x62C; &#x627;&#x644;&#x62A;&#x628;&#x631;&#x64A;&#x62F;</div></div>
       <div style="text-align:right"><div class="cl-val" id="clVal">&mdash;</div><div style="font-size:.56rem;color:var(--muted)">&deg;C canopy vs wet wall</div></div>
@@ -455,8 +455,8 @@ img,svg,canvas{max-width:100%}
   <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:10px">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <div>
-        <div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Ambient Temperature</div>
-        <div style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">&#x62D;&#x631;&#x627;&#x631;&#x629; &#x627;&#x644;&#x645;&#x62D;&#x64A;&#x637; &#x627;&#x644;&#x62E;&#x627;&#x631;&#x62C;&#x64A; &middot; &#x627;&#x644;&#x62F;&#x631;&#x639;&#x64A;&#x629;</div>
+        <div class="i18n-en" style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Ambient Temperature</div>
+        <div class="i18n-ar" style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">&#x62D;&#x631;&#x627;&#x631;&#x629; &#x627;&#x644;&#x645;&#x62D;&#x64A;&#x637; &#x627;&#x644;&#x62E;&#x627;&#x631;&#x62C;&#x64A; &middot; &#x627;&#x644;&#x62F;&#x631;&#x639;&#x64A;&#x629;</div>
         <div style="font-size:.56rem;color:var(--muted);margin-top:2px;font-family:var(--mono)">Source: SwitchBot outdoor sensor &middot; live</div>
       </div>
       <div id="outsideBadge" class="badge" style="background:rgba(6,68,46,.08);color:var(--muted)">&mdash;</div>
@@ -472,8 +472,8 @@ img,svg,canvas{max-width:100%}
   </div>
   <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:10px">
     <div>
-      <div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Cooling System Performance</div>
-      <div style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">&#x623;&#x62F;&#x627;&#x621; &#x645;&#x646;&#x638;&#x648;&#x645;&#x629; &#x627;&#x644;&#x62A;&#x628;&#x631;&#x64A;&#x62F;</div>
+      <div class="i18n-en" style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Cooling System Performance</div>
+      <div class="i18n-ar" style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">&#x623;&#x62F;&#x627;&#x621; &#x645;&#x646;&#x638;&#x648;&#x645;&#x629; &#x627;&#x644;&#x62A;&#x628;&#x631;&#x64A;&#x62F;</div>
     </div>
     <div style="display:flex;align-items:baseline;gap:4px">
       <span id="coolingScore" style="font-family:var(--mono);font-size:2.6rem;font-weight:950;letter-spacing:-.08em;color:var(--deep)">&mdash;</span>
@@ -490,8 +490,8 @@ img,svg,canvas{max-width:100%}
   </div>
   <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:10px">
     <div>
-      <div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Stress Accumulation &mdash; Current Shift</div>
-      <div style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">&#x62A;&#x631;&#x627;&#x643;&#x645; &#x627;&#x644;&#x625;&#x62C;&#x647;&#x627;&#x62F; &mdash; &#x627;&#x644;&#x648;&#x631;&#x62F;&#x64A;&#x629; &#x627;&#x644;&#x62D;&#x627;&#x644;&#x64A;&#x629;</div>
+      <div class="i18n-en" style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Stress Accumulation &mdash; Current Shift</div>
+      <div class="i18n-ar" style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">&#x62A;&#x631;&#x627;&#x643;&#x645; &#x627;&#x644;&#x625;&#x62C;&#x647;&#x627;&#x62F; &mdash; &#x627;&#x644;&#x648;&#x631;&#x62F;&#x64A;&#x629; &#x627;&#x644;&#x62D;&#x627;&#x644;&#x64A;&#x629;</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:7px">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--soft-sage);border-radius:8px">
@@ -658,6 +658,9 @@ body.lang-ar .nav a{direction:rtl}
 body.lang-ar .i18n-en,body.lang-ar .dec-en,body.lang-ar .alert-title{display:none}
 body:not(.lang-ar) .i18n-ar,body:not(.lang-ar) .dec-ar,body:not(.lang-ar) .alert-ar{display:none}
 body.lang-ar .i18n-ar,body.lang-ar .dec-ar{direction:rtl}
+/* Stage 3 — section headers & zone labels (class-paired) */
+body.lang-ar .rec-title-en,body.lang-ar .wt-label,body.lang-ar .zn{display:none}
+body:not(.lang-ar) .rec-title-ar,body:not(.lang-ar) .panel-ar,body:not(.lang-ar) .wt-label-ar,body:not(.lang-ar) .zn-ar,body:not(.lang-ar) .metric-label-ar{display:none}
 </style>
 
 <!-- Daily Plant Log — field workers upload photos + what they did; builds the knowledge house -->
