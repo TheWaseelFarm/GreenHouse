@@ -6,6 +6,8 @@ const handlers = {
   'save-reading': require('../_lib/handlers/save-reading'),
   incidents: require('../_lib/handlers/incidents'),
   council: require('../_lib/handlers/council'),
+  'field-log-save': require('../_lib/handlers/field-log-save'),
+  'field-log-list': require('../_lib/handlers/field-log-list'),
 };
 
 module.exports = (req, res) => {
