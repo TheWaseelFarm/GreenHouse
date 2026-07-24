@@ -1421,7 +1421,12 @@ function renderCoolingScore(){
   if(tEl&&ot!==null)tEl.textContent=ot.toFixed(1);
   if(!el)return;
   if(tw===null||tw===undefined){el.textContent='—';return;}
-  const score=ot!==null?calcCoolingScore(ot,tw,grad):Math.min(100,Math.max(0,grad>=3?80:grad>=1?60:grad>=0?30:5));
+  // When the canopy is already comfortable (cooling is succeeding) or the
+  // outside air is mild (no cooling demand — e.g. a cool night), the system is
+  // performing as intended. Report 100 rather than a misleading low score
+  // driven by the naturally small ambient gap when cooling isn't running.
+  const noDemand=tw<=24||(ot!==null&&ot<30);
+  const score=noDemand?100:(ot!==null?calcCoolingScore(ot,tw,grad):Math.min(100,Math.max(0,grad>=3?80:grad>=1?60:grad>=0?30:5)));
   el.textContent=isNaN(score)?'—':score;
   const color=score>=70?'#16894E':score>=40?'var(--gold)':'var(--danger)';
   el.style.color=color;
@@ -1429,9 +1434,10 @@ function renderCoolingScore(){
   if(deltaEl&&ot!==null&&tw!==null){
     const delta=parseFloat((ot-tw).toFixed(1));
     deltaEl.textContent=isNaN(delta)?'—':(delta>0?'+':'')+delta+'°C';
-    deltaEl.style.color=delta>15?'#16894E':delta>8?'var(--gold)':'var(--danger)';
+    deltaEl.style.color=noDemand||delta>15?'#16894E':delta>8?'var(--gold)':'var(--danger)';
     if(badgeEl){
-      if(delta>15){badgeEl.textContent='Excellent';badgeEl.style.background='rgba(22,137,78,.1)';badgeEl.style.color='#16894E';}
+      if(noDemand){badgeEl.textContent='Optimal';badgeEl.style.background='rgba(22,137,78,.1)';badgeEl.style.color='#16894E';}
+      else if(delta>15){badgeEl.textContent='Excellent';badgeEl.style.background='rgba(22,137,78,.1)';badgeEl.style.color='#16894E';}
       else if(delta>8){badgeEl.textContent='Operational';badgeEl.style.background='rgba(196,154,58,.12)';badgeEl.style.color='#8B5E00';}
       else{badgeEl.textContent='Insufficient';badgeEl.style.background='rgba(192,57,43,.1)';badgeEl.style.color='var(--danger)';}
     }
