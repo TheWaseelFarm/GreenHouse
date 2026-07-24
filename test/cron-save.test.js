@@ -158,6 +158,29 @@ describe('api/cron-save', () => {
     expect(saved.far_end_humidity).toBeNull();
   });
 
+  it('falls back to canopy-only when the wet-wall Hub 2 faults (-45)', async () => {
+    mockDevice(METER, { temperature: 25, humidity: 60, CO2: 800 });
+    mockDevice(HUB, { temperature: -45, humidity: 49 }); // faulted temp, humidity ok
+    mockDevice(WATER, {});
+    mockDevice(OUTDOOR, { temperature: 40, humidity: 12 });
+    mockDevice(FAR_END, { temperature: 27, humidity: 63 });
+
+    let saved;
+    nock(SUPA).post('/rest/v1/readings', (b) => { saved = b; return true; }).reply(201, '');
+
+    const res = makeRes();
+    await cronSave(makeReq({ headers: authHeaders }), res);
+
+    expect(res.statusCode).toBe(200);
+    // Not 0.7*25 + 0.3*(-45) = 4°C — must fall back to the canopy value.
+    expect(res.body.temp_weighted).toBe(25);
+    expect(res.body.cooling_delta).toBeNull();
+    expect(saved.hub_temp).toBeNull();
+    // Humidity 49 is valid, so the humidity weighting still applies.
+    expect(saved.hub_humidity).toBe(49);
+    expect(res.body.hum_weighted).toBe(56.7); // 60*0.7 + 49*0.3
+  });
+
   it('detects a leak via the detectionState field as well', async () => {
     mockDevice(METER, { temperature: 24, humidity: 55, CO2: 700 });
     mockDevice(HUB, { temperature: 23, humidity: 70 });

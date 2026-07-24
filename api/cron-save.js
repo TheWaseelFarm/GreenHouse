@@ -36,15 +36,22 @@ module.exports = async (req, res) => {
       fetchDevice(TOKEN, SECRET, FAR_END_ID)
     ]);
  
+    // Reject implausible sensor readings (e.g. a faulted wet-wall Hub 2
+    // reporting -45C) so one bad sensor can't corrupt the weighted average,
+    // the cooling gradient, or the logged history. Mirrors the live dashboard.
+    const validTemp = (v) => { const n = parseFloat(v); return (!isNaN(n) && n > -5 && n < 65) ? n : null; };
+    const validHum  = (v) => { const n = parseFloat(v); return (!isNaN(n) && n >= 0 && n <= 100) ? n : null; };
+
     // Meter Pro — canopy zone
     const co2      = meterData.CO2 ?? meterData.co2 ?? 0;
     const temp     = parseFloat(meterData.temperature ?? 0);
     const humidity = parseFloat(meterData.humidity ?? 0);
     const vpd      = calcVPD(temp, humidity);
- 
-    // Hub 2 — wet wall zone
-    const hub_temp     = parseFloat(hubData.temperature ?? 0);
-    const hub_humidity = parseFloat(hubData.humidity ?? 0);
+
+    // Hub 2 — wet wall zone (null when the sensor faults, so the fallbacks below
+    // use canopy-only rather than logging garbage).
+    const hub_temp     = validTemp(hubData.temperature);
+    const hub_humidity = validHum(hubData.humidity);
 
     // Outdoor (ambient) and far-end sensors. Use null (not 0) when a reading is
     // missing so a dropped sensor doesn't record a fake 0°C.
@@ -78,12 +85,18 @@ module.exports = async (req, res) => {
     const water_temp_irrigation = tuyaGh.temp_external ?? null;
     const water_temp_outside    = tuyaOut.temp_external ?? null;
 
-    // Weighted averages — 70% canopy + 30% wet wall
-    const temp_weighted = parseFloat((temp * W_CANOPY + hub_temp * W_WETWALL).toFixed(1));
-    const hum_weighted  = parseFloat((humidity * W_CANOPY + hub_humidity * W_WETWALL).toFixed(1));
- 
-    // Cooling gradient — how much warmer canopy is vs wet wall input (positive = normal)
-    const cooling_delta = parseFloat((temp - hub_temp).toFixed(1));
+    // Weighted averages — 70% canopy + 30% wet wall. Fall back to canopy-only
+    // when the wet-wall sensor is faulted, so a bad Hub 2 can't skew history.
+    const temp_weighted = hub_temp !== null
+      ? parseFloat((temp * W_CANOPY + hub_temp * W_WETWALL).toFixed(1))
+      : parseFloat(temp.toFixed(1));
+    const hum_weighted  = hub_humidity !== null
+      ? parseFloat((humidity * W_CANOPY + hub_humidity * W_WETWALL).toFixed(1))
+      : parseFloat(humidity.toFixed(1));
+
+    // Cooling gradient — how much warmer canopy is vs wet wall input (positive =
+    // normal). Null when the wet-wall reading is unavailable.
+    const cooling_delta = hub_temp !== null ? parseFloat((temp - hub_temp).toFixed(1)) : null;
  
     // Water leak detector
     const water_leak_1 = leak1Data.status === 'leak_detected' || leak1Data.detectionState === 'detected';
