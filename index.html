@@ -1266,9 +1266,9 @@ async function renderHeatHours(){
   const days={};
   Object.values(hourAvg).forEach(h=>{
     const a=h.sum/h.n;
-    if(!days[h.day])days[h.day]={h28:0,h30:0,date:h.date,heatSum:0,heatN:0,peak:-Infinity,peakHour:null};
+    if(!days[h.day])days[h.day]={h28:0,h30:0,date:h.date,heatSum:0,heatN:0,peak:-Infinity,peakHour:null,first:null,last:null};
     const dd=days[h.day];
-    if(a>28){dd.h28++;dd.heatSum+=a;dd.heatN++;}
+    if(a>28){dd.h28++;dd.heatSum+=a;dd.heatN++;if(dd.first==null||h.hour<dd.first)dd.first=h.hour;if(dd.last==null||h.hour>dd.last)dd.last=h.hour;}
     if(a>30)dd.h30++;
     if(a>dd.peak){dd.peak=a;dd.peakHour=h.hour;}
   });
@@ -1276,10 +1276,17 @@ async function renderHeatHours(){
   const last7=arr.slice(-7);
   const now=new Date();
   const todayKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-  const today=last7.find(d=>d.day===todayKey)||last7[last7.length-1]||{h28:0,h30:0,heatN:0,heatSum:0,peak:-Infinity,peakHour:null};
+  const today=last7.find(d=>d.day===todayKey)||last7[last7.length-1]||{h28:0,h30:0,heatN:0,heatSum:0,peak:-Infinity,peakHour:null,first:null,last:null};
   const fmtHr=h=>(h==null?'':String(h).padStart(2,'0')+':00');
-  const todayAvg=today.heatN?(today.heatSum/today.heatN).toFixed(1)+'°C':'—';
-  const todayPeak=today.peak>-Infinity?today.peak.toFixed(1)+'°C at '+fmtHr(today.peakHour):'—';
+  const windowStr=d=>(d.first!=null?String(d.first).padStart(2,'0')+'–'+String((d.last+1)%24).padStart(2,'0'):'');
+  // Today line: only frame it as "heat hours" when there actually were any;
+  // otherwise show the day's high so a night-only peak isn't mistaken for heat.
+  let todayLine;
+  if(today.heatN){
+    todayLine=`heat window <strong>${fmtHr(today.first)}–${fmtHr((today.last+1)%24)}</strong> &middot; avg <strong>${(today.heatSum/today.heatN).toFixed(1)}&deg;C</strong> &middot; peak <strong>${today.peak.toFixed(1)}&deg;C at ${fmtHr(today.peakHour)}</strong>`;
+  } else {
+    todayLine=`no hours above 28&deg;C yet today &middot; high so far <strong>${today.peak>-Infinity?today.peak.toFixed(1)+'&deg;C':'—'}</strong>`;
+  }
   const maxH=Math.max(6,...last7.map(d=>d.h28));
   const bars=last7.map(d=>{
     const isToday=d.day===todayKey;
@@ -1288,19 +1295,21 @@ async function renderHeatHours(){
     const dl=d.date.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2);
     const peakLbl=d.peak>-Infinity?Math.round(d.peak)+'°':'';
     const peakClr=d.h30>0?'var(--danger)':d.h28>0?'#8B5E00':'var(--muted)';
+    const win=windowStr(d);
     return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">`
       +`<div style="font-size:.52rem;color:${peakClr};font-weight:800;height:9px">${peakLbl}</div>`
       +`<div style="width:100%;height:40px;display:flex;align-items:flex-end"><div style="width:100%;height:${h}px;background:${color};border-radius:3px 3px 0 0"></div></div>`
-      +`<div style="font-size:.5rem;font-weight:${isToday?'900':'600'};color:${isToday?'var(--deep)':'var(--muted)'}">${dl}</div></div>`;
+      +`<div style="font-size:.5rem;font-weight:${isToday?'900':'600'};color:${isToday?'var(--deep)':'var(--muted)'}">${dl}</div>`
+      +`<div style="font-size:.46rem;color:var(--muted);letter-spacing:-.02em;height:8px">${win}</div></div>`;
   }).join('');
   box.innerHTML=`<div style="border:1px solid rgba(6,68,46,.12);border-radius:10px;background:rgba(6,68,46,.03);padding:8px 10px">`
     +`<div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)">☀️ Midday Heat Load &middot; ساعات ذروة الحرارة</div><div style="font-size:.58rem;color:var(--muted)">today</div></div>`
     +`<div style="display:flex;align-items:baseline;gap:14px;margin:4px 0 2px">`
     +`<div><span style="font-family:var(--mono);font-size:1.5rem;font-weight:900;color:${today.h28>0?'var(--gold)':'#16894E'}">${today.h28}</span><span style="font-size:.62rem;color:var(--muted)"> hrs &gt;28&deg;C</span></div>`
     +`<div><span style="font-family:var(--mono);font-size:1.5rem;font-weight:900;color:${today.h30>0?'var(--danger)':'#16894E'}">${today.h30}</span><span style="font-size:.62rem;color:var(--muted)"> hrs &gt;30&deg;C</span></div></div>`
-    +`<div style="font-size:.62rem;color:var(--deep);margin:0 0 8px;font-weight:600">avg during heat hours <strong>${todayAvg}</strong> &middot; peak <strong>${todayPeak}</strong></div>`
+    +`<div style="font-size:.62rem;color:var(--deep);margin:0 0 8px;font-weight:600">${todayLine}</div>`
     +`<div style="display:flex;gap:4px;align-items:flex-end">${bars}</div>`
-    +`<div style="font-size:.56rem;color:var(--muted);margin-top:6px;line-height:1.45">Number above each bar = that day's peak hourly canopy temp; bar height = hours &gt;28&deg;C (gold) / &gt;30&deg;C (red). Watch for a rising trend into August &mdash; shade is worth deploying if &gt;30&deg;C persists 3h+.</div></div>`;
+    +`<div style="font-size:.56rem;color:var(--muted);margin-top:6px;line-height:1.45">Above each bar = that day's peak canopy temp; below = the heat window (hours &gt;28&deg;C, e.g. 09–15). Bar height = hours &gt;28&deg;C (gold) / &gt;30&deg;C (red). Shade is worth deploying if &gt;30&deg;C persists 3h+.</div></div>`;
 }
 function renderTuyaAir(){
   const strip=$('tuyaAirStrip');
