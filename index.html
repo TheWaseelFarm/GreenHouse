@@ -1284,6 +1284,12 @@ function renderWaterAlerts(){
     if(v>26)alerts.push({tag:'CRITICAL',en:`${it.label} ${v.toFixed(1)}°C — CRITICAL: root damage risk. Cool or exchange the water immediately.`,ar:`حرارة ${it.ar} ${v.toFixed(1)}°م — حرج: خطر تلف الجذور. برّد أو استبدل الماء فوراً.`});
     else if(v>22)alerts.push({tag:'URGENT',en:`${it.label} ${v.toFixed(1)}°C — URGENT: above 22°C. Increase cooling or shade the supply.`,ar:`حرارة ${it.ar} ${v.toFixed(1)}°م — عاجل: فوق 22°م. زد التبريد أو ظلّل المصدر.`});
   }
+  // Greenhouse air humidity (Tuya) — Botrytis (grey mould) pressure.
+  const ghHum=S.tuya&&S.tuya.gh?S.tuya.gh.hum:null;
+  if(ghHum!=null){
+    if(ghHum>90)alerts.push({tag:'CRITICAL',en:`Greenhouse air humidity ${ghHum}% — CRITICAL Botrytis pressure. Ventilate/dehumidify now and stop evening misting.`,ar:`رطوبة هواء البيت ${ghHum}% — ضغط بوتريتيس حرج. شغّل التهوية/إزالة الرطوبة فوراً وأوقف الرذاذ المسائي.`});
+    else if(ghHum>85)alerts.push({tag:'URGENT',en:`Greenhouse air humidity ${ghHum}% — above the 85% Botrytis risk zone. Increase ventilation; check for a damp pocket near the sensor.`,ar:`رطوبة هواء البيت ${ghHum}% — فوق نطاق خطر البوتريتيس 85%. زد التهوية وتحقق من رطوبة موضعية قرب المستشعر.`});
+  }
   box.innerHTML=alerts.map(a=>`<div class="dec-item"><span class="ptag ph">${a.tag}</span><div><div class="dec-en">${a.en}</div><div class="dec-ar">${a.ar}</div></div></div>`).join('');
 }
 function calcCoolingScore(ot,it,g){
@@ -2002,6 +2008,23 @@ async function askCouncil(){
     const H=(typeof thermalHealth==='function')?thermalHealth():null;
     const irr=S.water&&S.water.irrigation!=null?S.water.irrigation+'C':'unknown';
     const outW=S.water&&S.water.outside!=null?S.water.outside+'C':'unknown';
+    const ghAir=S.tuya&&S.tuya.gh&&(S.tuya.gh.temp!=null||S.tuya.gh.hum!=null)?((S.tuya.gh.temp!=null?S.tuya.gh.temp+'C':'?')+' / '+(S.tuya.gh.hum!=null?S.tuya.gh.hum+'%':'?')):'unknown';
+    const outAir=S.tuya&&S.tuya.out&&(S.tuya.out.temp!=null||S.tuya.out.hum!=null)?((S.tuya.out.temp!=null?S.tuya.out.temp+'C':'?')+' / '+(S.tuya.out.hum!=null?S.tuya.out.hum+'%':'?')):'unknown';
+    // Recent engineer field observations (photos + activities + notes) so the
+    // council reasons from what's actually happening on the ground, not only sensors.
+    let fieldNotes='None logged in the last 7 days.';
+    try{
+      const flRes=await fetch('/api/field-log-list?days=7&limit=8');
+      const fl=await flRes.json();
+      if(Array.isArray(fl)&&fl.length){
+        fieldNotes=fl.slice(0,6).map(r=>{
+          const d=new Date(r.log_date||r.created_at);const ds=isNaN(d)?'':d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+          const acts=(Array.isArray(r.activities)?r.activities:[]).slice();if(r.other_note)acts.push(r.other_note);
+          const parts=[ds];if(r.location)parts.push(r.location);if(acts.length)parts.push(acts.join(', '));if(r.note)parts.push('"'+r.note+'"');
+          return '- '+parts.filter(Boolean).join(' — ');
+        }).join('\n');
+      }
+    }catch(_){}
     farmContext='Al-Waseel Farm, Diriyah Riyadh. SEEDLINGS: 1000 Albion Frigo, arrived June 7 2026, currently week '
       +Math.floor((Date.now()-new Date('2026-06-07'))/604800000)
       +' of establishment in peat moss small pots before tower transfer. '
@@ -2016,6 +2039,8 @@ async function askCouncil(){
       +', Water leak: '+(live.w1?'LEAK DETECTED':'dry')+'.'
       +' LAST 24H: Avg temp='+avgT+'C, Max='+maxT+', Min='+minT
       +', Avg humidity='+avgH+'%, Avg VPD='+avgV+' kPa, Avg CO2='+avgC+' ppm.'
+      +' Greenhouse air sensor (Tuya, temp/humidity)='+ghAir+', Outside air sensor (Tuya)='+outAir+'.'
+      +' RECENT FIELD LOG (engineer Mohammed — work done & observations):\n'+fieldNotes+'\n'
       +' FARM: 6-line vertical hydroponic tower system, 30x9m greenhouse, 2000L drinking water tank.'
       +' Owner: Khalid AlHakbani. Engineer Mohammed on site.';
   }catch(e){
