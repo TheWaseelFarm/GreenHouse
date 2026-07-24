@@ -651,50 +651,52 @@ img,svg,canvas{max-width:100%}
 <div class="reports-overlay" id="fieldLogOverlay">
   <div class="reports-panel">
     <div class="rep-header">
-      <div><h2><i class="ti ti-camera" style="margin-right:8px"></i>Daily Plant Log</h2><div class="rep-header-ar">سجل النباتات اليومي &mdash; صور وملاحظات ميدانية</div></div>
-      <button class="rep-close" onclick="closeFieldLog()" aria-label="Close"><i class="ti ti-x"></i></button>
+      <div><h2><i class="ti ti-camera" style="margin-right:8px"></i><span id="flTitle">سجل النباتات اليومي</span></h2><div class="rep-header-ar" id="flSub">صور وملاحظات ميدانية</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button type="button" id="flLangBtn" onclick="toggleFlLang()" style="border:1px solid var(--border);background:var(--card,#fff);border-radius:9px;padding:6px 11px;font-size:.74rem;font-weight:800;color:var(--deep);cursor:pointer">🌐 EN</button>
+        <button class="rep-close" onclick="closeFieldLog()" aria-label="Close"><i class="ti ti-x"></i></button>
+      </div>
     </div>
     <div class="rep-body">
       <form id="flForm" onsubmit="submitFieldLog(event)" class="fl-form">
         <div class="fl-row">
-          <label class="fl-lbl">Date &mdash; التاريخ</label>
+          <label class="fl-lbl" id="flLblDate">التاريخ</label>
           <input type="date" id="flDate" class="fl-input">
         </div>
         <div class="fl-row">
-          <label class="fl-lbl">Location &mdash; الموقع</label>
-          <select id="flLocation" class="fl-input">
-            <option value="">— Select —</option>
-            <option>Row A</option><option>Row B</option><option>Row C</option>
-            <option>Nursery</option><option>Wet wall</option><option>Water tanks</option><option>Whole greenhouse</option>
-          </select>
+          <label class="fl-lbl" id="flLblLoc">الموقع</label>
+          <div style="display:flex;gap:8px">
+            <select id="flLine" class="fl-input"></select>
+            <select id="flTower" class="fl-input"></select>
+          </div>
         </div>
         <div class="fl-row">
-          <label class="fl-lbl">Photos &mdash; الصور</label>
+          <label class="fl-lbl" id="flLblPhotos">الصور</label>
           <input type="file" id="flPhotos" class="fl-input" accept="image/*" capture="environment" multiple onchange="flPreview()">
           <div id="flPreview" class="fl-preview"></div>
-          <div class="fl-hint">Tap to open the camera. Up to 6 photos.</div>
+          <div class="fl-hint" id="flHint">اضغط لفتح الكاميرا · حتى ٦ صور</div>
         </div>
         <div class="fl-row">
-          <label class="fl-lbl">What did you do today? &mdash; ماذا عملت اليوم؟</label>
+          <label class="fl-lbl" id="flLblActs">ماذا عملت اليوم؟</label>
           <div id="flActivities" class="fl-acts"></div>
-          <input type="text" id="flOther" class="fl-input" placeholder="Other — اكتب هنا" style="display:none;margin-top:8px">
+          <input type="text" id="flOther" class="fl-input" style="display:none;margin-top:8px">
         </div>
         <div class="fl-row">
-          <label class="fl-lbl">Notes / observations &mdash; ملاحظات</label>
-          <textarea id="flNote" class="fl-input" rows="2" placeholder="Anything you noticed — pests, new flowers, discoloration…"></textarea>
+          <label class="fl-lbl" id="flLblNotes">ملاحظات</label>
+          <textarea id="flNote" class="fl-input" rows="2"></textarea>
         </div>
-        <button type="submit" id="flSubmit" class="fl-submit">📷 Save entry &mdash; حفظ</button>
+        <button type="submit" id="flSubmit" class="fl-submit">📷 حفظ الإدخال</button>
         <div id="flMsg" class="fl-msg"></div>
       </form>
 
       <div class="fl-journal-head">
         <div>
-          <div style="font-size:.7rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--deep);display:flex;align-items:center;gap:7px"><i class="ti ti-photo"></i>Field Journal &mdash; أرشيف الصور</div>
-          <div style="font-family:var(--ar);font-size:.72rem;color:var(--muted);direction:rtl;margin-top:2px">صور وملاحظات حقيقية &middot; الأحدث أولاً</div>
+          <div id="flJournalTitle" style="font-size:.7rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--deep);display:flex;align-items:center;gap:7px"><i class="ti ti-photo"></i>أرشيف الصور</div>
+          <div id="flJournalSub" style="font-family:var(--ar);font-size:.72rem;color:var(--muted);margin-top:2px">صور وملاحظات حقيقية &middot; الأحدث أولاً</div>
         </div>
-        <select id="flFilter" class="rep-select" onchange="renderJournal()" aria-label="Filter journal"><option value="">All activities</option></select>
+        <select id="flFilter" class="rep-select" onchange="renderJournal()" aria-label="Filter journal"><option value="">كل الأنشطة</option></select>
       </div>
-      <div id="flJournal"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">Loading journal…</div></div>
+      <div id="flJournal"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">…</div></div>
     </div>
   </div>
 </div>
@@ -1458,27 +1460,86 @@ function openReports(){$('reportsOverlay').classList.add('open');loadReport();lo
 function closeReports(){$('reportsOverlay').classList.remove('open');}
 
 /* ---------- Daily Plant Log (Field Journal) ---------- */
-const FL_ACTS=['Irrigation / watering check','Nutrient (EC) adjustment','pH adjustment','Pruning / deleafing','Pollination','Pest & disease inspection','Pest treatment / spraying','Harvesting','Transplanting / replacing plants','Cleaning / sanitation','Equipment & sensor check','Water tank refill'];
-let _journal=[];
+// Bilingual (Arabic-first) so Mohammed can use the log; activities store their
+// English canonical value for consistent filtering/reporting but display in the
+// chosen language.
+const FL_ACTS=[
+  {en:'Irrigation / watering check',ar:'فحص الري والسقي'},
+  {en:'Nutrient (EC) adjustment',ar:'ضبط المغذيات (EC)'},
+  {en:'pH adjustment',ar:'ضبط الحموضة (pH)'},
+  {en:'Pruning / deleafing',ar:'التقليم وإزالة الأوراق'},
+  {en:'Pollination',ar:'التلقيح'},
+  {en:'Pest & disease inspection',ar:'فحص الآفات والأمراض'},
+  {en:'Pest treatment / spraying',ar:'مكافحة الآفات والرش'},
+  {en:'Harvesting',ar:'الحصاد والقطف'},
+  {en:'Transplanting / replacing plants',ar:'الشتل واستبدال النباتات'},
+  {en:'Cleaning / sanitation',ar:'التنظيف والتعقيم'},
+  {en:'Equipment & sensor check',ar:'فحص المعدات والحساسات'},
+  {en:'Water tank refill',ar:'تعبئة خزان الماء'}
+];
+const FL_OTHER={en:'Other',ar:'أخرى'};
+const FL_T={
+  ar:{title:'سجل النباتات اليومي',sub:'صور وملاحظات ميدانية',date:'التاريخ',location:'الموقع',line:'الخط',tower:'البرج',photos:'الصور',photoHint:'اضغط لفتح الكاميرا · حتى ٦ صور',activities:'ماذا عملت اليوم؟',otherPh:'اكتب النشاط الآخر هنا',notes:'ملاحظات',notesPh:'أي شيء لاحظته — آفات، أزهار جديدة، تغيّر لون…',save:'📷 حفظ الإدخال',saving:'جارٍ الرفع…',journal:'أرشيف الصور',journalSub:'صور وملاحظات حقيقية · الأحدث أولاً',allActs:'كل الأنشطة',empty:'لا توجد إدخالات بعد. أضف أول واحدة أعلاه.',needOne:'أضف صورة أو ملاحظة على الأقل.',saved:'✓ تم الحفظ — الإدخال في الأرشيف بالأسفل.',langBtn:'EN'},
+  en:{title:'Daily Plant Log',sub:'field photos & notes',date:'Date',location:'Location',line:'Line',tower:'Tower',photos:'Photos',photoHint:'Tap to open the camera · up to 6 photos',activities:'What did you do today?',otherPh:'Type the other activity here',notes:'Notes / observations',notesPh:'Anything you noticed — pests, new flowers, discoloration…',save:'📷 Save entry',saving:'Uploading…',journal:'Field Journal',journalSub:'real photos & notes · newest first',allActs:'All activities',empty:'No entries yet. Add the first one above.',needOne:'Add at least a photo or a note.',saved:'✓ Saved — the entry is in the Field Journal below.',langBtn:'عربي'}
+};
+let _journal=[], flLang='ar', flSel=new Set(), flOtherOn=false;
+const arNum=s=>String(s).replace(/[0-9]/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const flActLabel=v=>{const a=FL_ACTS.find(x=>x.en===v);return a?(flLang==='ar'?a.ar:a.en):v;};
+const flLocLabel=loc=>{if(!loc)return '';return flLang==='ar'?arNum(loc.replace(/Line/g,'خط').replace(/Tower/g,'برج')):loc;};
 function openFieldLog(){
   const ov=$('fieldLogOverlay');ov.classList.add('open');
   if(!ov._init){
     ov._init=true;
     $('flDate').value=new Date().toISOString().slice(0,10);
-    flBuildChips();
-    const f=$('flFilter');FL_ACTS.concat(['Other']).forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;f.appendChild(o);});
     ov.addEventListener('click',e=>{if(e.target===ov)closeFieldLog();});
   }
+  applyFlLang();
   loadJournal();
 }
 function closeFieldLog(){$('fieldLogOverlay').classList.remove('open');}
+function toggleFlLang(){flLang=flLang==='ar'?'en':'ar';applyFlLang();}
+function applyFlLang(){
+  const t=FL_T[flLang],rtl=flLang==='ar';
+  const f=$('flForm');if(f)f.style.direction=rtl?'rtl':'ltr';
+  $('flTitle').textContent=t.title;$('flSub').textContent=t.sub;
+  $('flLangBtn').textContent='🌐 '+t.langBtn;
+  $('flLblDate').textContent=t.date;$('flLblLoc').textContent=t.location;
+  $('flLblPhotos').textContent=t.photos;$('flHint').textContent=t.photoHint;
+  $('flLblActs').textContent=t.activities;$('flLblNotes').textContent=t.notes;
+  $('flOther').placeholder=t.otherPh;$('flNote').placeholder=t.notesPh;
+  const btn=$('flSubmit');if(!btn.disabled)btn.textContent=t.save;
+  $('flJournalTitle').innerHTML='<i class="ti ti-photo"></i>'+t.journal;
+  $('flJournalSub').textContent=t.journalSub;
+  flBuildLoc();flBuildChips();flBuildFilter();renderJournal();
+}
+function flBuildLoc(){
+  const t=FL_T[flLang],line=$('flLine'),tower=$('flTower'),cl=line.value,ct=tower.value;
+  line.innerHTML='<option value="">'+t.line+'</option>';
+  for(let i=1;i<=6;i++){const o=document.createElement('option');o.value=i;o.textContent=flLang==='ar'?'خط '+arNum(i):'Line '+i;line.appendChild(o);}
+  tower.innerHTML='<option value="">'+t.tower+'</option>';
+  for(let i=1;i<=24;i++){const o=document.createElement('option');o.value=i;o.textContent=flLang==='ar'?'برج '+arNum(i):'Tower '+i;tower.appendChild(o);}
+  line.value=cl;tower.value=ct;
+}
+function flBuildFilter(){
+  const f=$('flFilter'),cur=f.value;
+  f.innerHTML='<option value="">'+FL_T[flLang].allActs+'</option>';
+  FL_ACTS.forEach(a=>{const o=document.createElement('option');o.value=a.en;o.textContent=flLang==='ar'?a.ar:a.en;f.appendChild(o);});
+  const oo=document.createElement('option');oo.value='__other';oo.textContent=flLang==='ar'?FL_OTHER.ar:FL_OTHER.en;f.appendChild(oo);
+  f.value=cur;
+}
 function flBuildChips(){
   const box=$('flActivities');box.innerHTML='';
-  FL_ACTS.concat(['Other']).forEach(a=>{
-    const c=document.createElement('div');c.className='fl-chip';c.textContent=a;c.setAttribute('data-a',a);
-    c.onclick=()=>{c.classList.toggle('on');if(a==='Other')$('flOther').style.display=c.classList.contains('on')?'block':'none';};
+  const items=FL_ACTS.map(a=>({v:a.en,label:flLang==='ar'?a.ar:a.en})).concat([{v:'__other',label:flLang==='ar'?FL_OTHER.ar:FL_OTHER.en}]);
+  items.forEach(it=>{
+    const on=it.v==='__other'?flOtherOn:flSel.has(it.v);
+    const c=document.createElement('div');c.className='fl-chip'+(on?' on':'');c.textContent=it.label;c.setAttribute('data-v',it.v);
+    c.onclick=()=>{
+      if(it.v==='__other'){flOtherOn=!flOtherOn;c.classList.toggle('on',flOtherOn);$('flOther').style.display=flOtherOn?'block':'none';}
+      else{if(flSel.has(it.v)){flSel.delete(it.v);c.classList.remove('on');}else{flSel.add(it.v);c.classList.add('on');}}
+    };
     box.appendChild(c);
   });
+  $('flOther').style.display=flOtherOn?'block':'none';
 }
 // Downscale a photo in-browser to <=1280px JPEG q0.7 so uploads stay small
 // even on slow farm wifi.
@@ -1504,26 +1565,27 @@ function flPreview(){
 }
 async function submitFieldLog(e){
   e.preventDefault();
-  const btn=$('flSubmit'),msg=$('flMsg');
-  const acts=Array.from(document.querySelectorAll('#flActivities .fl-chip.on')).map(c=>c.getAttribute('data-a')).filter(a=>a!=='Other');
-  const otherOn=document.querySelector('#flActivities .fl-chip.on[data-a="Other"]');
-  const other=otherOn?($('flOther').value||'').trim():'';
+  const btn=$('flSubmit'),msg=$('flMsg'),t=FL_T[flLang];
+  const acts=Array.from(flSel);
+  const other=flOtherOn?($('flOther').value||'').trim():'';
   const note=($('flNote').value||'').trim();
+  const ln=$('flLine').value,tw=$('flTower').value;
+  const location=ln&&tw?('Line '+ln+' · Tower '+tw):(ln?'Line '+ln:'');
   const files=Array.from($('flPhotos').files||[]).slice(0,6);
-  if(!files.length&&!acts.length&&!other&&!note){msg.style.display='block';msg.style.color='var(--danger)';msg.textContent='Add at least a photo or a note.';return;}
-  btn.disabled=true;btn.textContent='Uploading…';msg.style.display='none';
+  if(!files.length&&!acts.length&&!other&&!note){msg.style.display='block';msg.style.color='var(--danger)';msg.textContent=t.needOne;return;}
+  btn.disabled=true;btn.textContent=t.saving;msg.style.display='none';
   try{
     const photos=[];for(const f of files){try{photos.push(await flCompress(f));}catch(_){}}
-    const res=await fetch('/api/field-log-save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({log_date:$('flDate').value,location:$('flLocation').value,activities:acts,other,note,photos})});
+    const res=await fetch('/api/field-log-save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({log_date:$('flDate').value,location,activities:acts,other,note,photos})});
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'Save failed');
-    msg.style.display='block';msg.style.color='#16894E';msg.textContent='✓ Saved — the entry is in the Field Journal below.';
+    msg.style.display='block';msg.style.color='#16894E';msg.textContent=t.saved;
     // reset
-    $('flNote').value='';$('flOther').value='';$('flOther').style.display='none';$('flPhotos').value='';$('flPreview').innerHTML='';
-    document.querySelectorAll('#flActivities .fl-chip.on').forEach(c=>c.classList.remove('on'));
+    flSel.clear();flOtherOn=false;flBuildChips();
+    $('flNote').value='';$('flOther').value='';$('flPhotos').value='';$('flPreview').innerHTML='';$('flLine').value='';$('flTower').value='';
     loadJournal();
   }catch(err){msg.style.display='block';msg.style.color='var(--danger)';msg.textContent='✕ '+err.message;}
-  finally{btn.disabled=false;btn.textContent='📷 Save entry — حفظ';}
+  finally{btn.disabled=false;btn.textContent=FL_T[flLang].save;}
 }
 async function loadJournal(){
   try{const res=await fetch('/api/field-log-list?limit=200');_journal=await res.json();if(!Array.isArray(_journal))_journal=[];}
@@ -1531,17 +1593,17 @@ async function loadJournal(){
   renderJournal();
 }
 function renderJournal(){
-  const box=$('flJournal');const filter=$('flFilter').value;
+  const box=$('flJournal');if(!box)return;const filter=$('flFilter').value;
   let rows=_journal;
-  if(filter)rows=rows.filter(r=>(Array.isArray(r.activities)&&r.activities.includes(filter))||(filter==='Other'&&r.other_note));
-  if(!rows.length){box.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">No entries yet. Add the first one above.</div>';return;}
+  if(filter)rows=rows.filter(r=>(Array.isArray(r.activities)&&r.activities.includes(filter))||(filter==='__other'&&r.other_note));
+  if(!rows.length){box.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">${FL_T[flLang].empty}</div>`;return;}
   box.innerHTML=rows.map(r=>{
-    const acts=(Array.isArray(r.activities)?r.activities:[]).slice();if(r.other_note)acts.push(r.other_note);
+    const acts=(Array.isArray(r.activities)?r.activities:[]).map(flActLabel);if(r.other_note)acts.push(r.other_note);
     const tags=acts.map(a=>`<span class="fl-tag">${esc(a)}</span>`).join('');
     const photos=(Array.isArray(r.photo_urls)?r.photo_urls:[]).map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" loading="lazy" alt="plant photo"></a>`).join('');
-    const d=new Date(r.log_date||r.created_at);const dateStr=isNaN(d)?esc(r.log_date||''):d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
-    const loc=r.location?' · '+esc(r.location):'';
-    return `<div class="fl-entry">
+    const d=new Date(r.log_date||r.created_at);const dateStr=isNaN(d)?esc(r.log_date||''):d.toLocaleDateString(flLang==='ar'?'ar':'en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+    const loc=r.location?' · '+esc(flLocLabel(r.location)):'';
+    return `<div class="fl-entry" style="direction:${flLang==='ar'?'rtl':'ltr'}">
       <div class="fl-entry-top"><div class="fl-entry-date">${dateStr}${loc}</div><div class="fl-entry-meta">${esc(r.author||'')}</div></div>
       ${tags?`<div class="fl-entry-acts">${tags}</div>`:''}
       ${r.note?`<div class="fl-note">${esc(r.note)}</div>`:''}
