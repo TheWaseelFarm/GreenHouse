@@ -300,6 +300,7 @@ img,svg,canvas{max-width:100%}
     <a onclick="navClick(this,'chart')"><i class="ti ti-chart-line"></i>Climate Trends</a>
     <a onclick="navClick(this,'alerts')"><i class="ti ti-bell"></i>Alerts</a>
     <a onclick="navClick(this,null);openReports()"><i class="ti ti-file-analytics"></i>Operations Report</a>
+    <a onclick="navClick(this,null);openFieldLog()"><i class="ti ti-camera"></i>Daily Plant Log</a>
     <a onclick="navClick(this,null);openCouncil()"><i class="ti ti-brain"></i>Expert Council</a>
     <a onclick="navClick(this,null);openAccessRequests()"><i class="ti ti-user-plus"></i>Access Requests</a>
     <a onclick="navClick(this,null);openChangePassword()"><i class="ti ti-key"></i>Change Password</a>
@@ -616,6 +617,87 @@ img,svg,canvas{max-width:100%}
     </div>
   </div>
 </div>
+
+<style>
+.fl-form{background:var(--card,#fff);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:22px}
+.fl-row{margin-bottom:14px}
+.fl-lbl{display:block;font-size:.72rem;font-weight:800;color:var(--deep);margin-bottom:6px}
+.fl-input{width:100%;box-sizing:border-box;padding:11px 12px;font-size:15px;border:1px solid var(--border);border-radius:10px;background:#fff;color:#1c2a22;font-family:inherit}
+.fl-input:focus{outline:none;border-color:var(--deep)}
+.fl-hint{font-size:.68rem;color:var(--muted);margin-top:5px}
+.fl-acts{display:flex;flex-wrap:wrap;gap:8px}
+.fl-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font-size:.78rem;font-weight:600;border:1px solid var(--border);border-radius:999px;background:#fff;color:#33413a;cursor:pointer;user-select:none;transition:all .12s}
+.fl-chip.on{background:#06442E;color:#fff;border-color:#06442E}
+.fl-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.fl-preview img{width:72px;height:72px;object-fit:cover;border-radius:9px;border:1px solid var(--border)}
+.fl-submit{width:100%;padding:13px;font-size:15px;font-weight:800;color:#fff;background:#06442E;border:none;border-radius:12px;cursor:pointer}
+.fl-submit:disabled{opacity:.6;cursor:default}
+.fl-msg{margin-top:10px;font-size:.8rem;font-weight:700;text-align:center;display:none}
+.fl-journal-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.fl-entry{border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:12px;background:var(--card,#fff)}
+.fl-entry-top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.fl-entry-date{font-weight:900;color:#06442E;font-size:.92rem}
+.fl-entry-meta{font-size:.7rem;color:var(--muted)}
+.fl-entry-acts{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.fl-tag{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(6,68,46,.08);color:#06442E}
+.fl-photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.fl-photos a{display:block}
+.fl-photos img{width:104px;height:104px;object-fit:cover;border-radius:10px;border:1px solid var(--border)}
+.fl-note{font-size:.82rem;color:#33413a;margin-top:6px;line-height:1.45}
+</style>
+
+<!-- Daily Plant Log — field workers upload photos + what they did; builds the knowledge house -->
+<div class="reports-overlay" id="fieldLogOverlay">
+  <div class="reports-panel">
+    <div class="rep-header">
+      <div><h2><i class="ti ti-camera" style="margin-right:8px"></i>Daily Plant Log</h2><div class="rep-header-ar">سجل النباتات اليومي &mdash; صور وملاحظات ميدانية</div></div>
+      <button class="rep-close" onclick="closeFieldLog()" aria-label="Close"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rep-body">
+      <form id="flForm" onsubmit="submitFieldLog(event)" class="fl-form">
+        <div class="fl-row">
+          <label class="fl-lbl">Date &mdash; التاريخ</label>
+          <input type="date" id="flDate" class="fl-input">
+        </div>
+        <div class="fl-row">
+          <label class="fl-lbl">Location &mdash; الموقع</label>
+          <select id="flLocation" class="fl-input">
+            <option value="">— Select —</option>
+            <option>Row A</option><option>Row B</option><option>Row C</option>
+            <option>Nursery</option><option>Wet wall</option><option>Water tanks</option><option>Whole greenhouse</option>
+          </select>
+        </div>
+        <div class="fl-row">
+          <label class="fl-lbl">Photos &mdash; الصور</label>
+          <input type="file" id="flPhotos" class="fl-input" accept="image/*" capture="environment" multiple onchange="flPreview()">
+          <div id="flPreview" class="fl-preview"></div>
+          <div class="fl-hint">Tap to open the camera. Up to 6 photos.</div>
+        </div>
+        <div class="fl-row">
+          <label class="fl-lbl">What did you do today? &mdash; ماذا عملت اليوم؟</label>
+          <div id="flActivities" class="fl-acts"></div>
+          <input type="text" id="flOther" class="fl-input" placeholder="Other — اكتب هنا" style="display:none;margin-top:8px">
+        </div>
+        <div class="fl-row">
+          <label class="fl-lbl">Notes / observations &mdash; ملاحظات</label>
+          <textarea id="flNote" class="fl-input" rows="2" placeholder="Anything you noticed — pests, new flowers, discoloration…"></textarea>
+        </div>
+        <button type="submit" id="flSubmit" class="fl-submit">📷 Save entry &mdash; حفظ</button>
+        <div id="flMsg" class="fl-msg"></div>
+      </form>
+
+      <div class="fl-journal-head">
+        <div>
+          <div style="font-size:.7rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--deep);display:flex;align-items:center;gap:7px"><i class="ti ti-photo"></i>Field Journal &mdash; أرشيف الصور</div>
+          <div style="font-family:var(--ar);font-size:.72rem;color:var(--muted);direction:rtl;margin-top:2px">صور وملاحظات حقيقية &middot; الأحدث أولاً</div>
+        </div>
+        <select id="flFilter" class="rep-select" onchange="renderJournal()" aria-label="Filter journal"><option value="">All activities</option></select>
+      </div>
+      <div id="flJournal"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">Loading journal…</div></div>
+    </div>
+  </div>
+</div>
+
 <script>
 const HUB_ID='FDD0AE072D7C',WATER1_ID='E7760186472B';
 const W_CANOPY=0.70,W_WETWALL=0.30,ALERT_TEMP=26,ALERT_VPD=1.3;
@@ -1028,7 +1110,18 @@ function calcDP(t,rh){const a=17.27,b=237.3,al=(a*t)/(b+t)+Math.log(rh/100);retu
 function calcHI(t,rh){if(t<27)return t;return parseFloat((-8.78+1.61*t+2.34*rh-0.15*t*rh-0.012*t*t-0.016*rh*rh+0.002*t*t*rh+0.0007*t*rh*rh).toFixed(1));}
 function calcPSI(v,t,h){let s=0;if(v>1.0&&v<=1.3)s+=2;if(v>1.3)s+=4;if(t>22&&t<=26)s+=2;if(t>26)s+=4;if(h<60&&h>=50)s+=1;if(h<50)s+=3;if(h>85)s+=2;return Math.min(s,10);}
 async function saveReading(payload){
-  try{const res=await fetch('/api/save-reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(res.ok){const t=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});$('lastSaved').textContent='Saved '+t;$('footerSaved').textContent='Last sync: '+t;}}catch(e){}
+  // Persist at most once per 10 min, coordinated across open tabs via
+  // localStorage. The live UI still refreshes every 60s (read-only); this only
+  // throttles DB writes so history stays a sane ~144 rows/day instead of ~1440,
+  // which is what let the Operations Report cover a full 7/14/30-day window
+  // instead of truncating to the newest few days.
+  try{
+    const LOG_MIN_MS=600000;
+    const last=parseInt(localStorage.getItem('wf_lastLog')||'0',10);
+    const now=Date.now();
+    if(now-last<LOG_MIN_MS)return;
+    localStorage.setItem('wf_lastLog',String(now));
+    const res=await fetch('/api/save-reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(res.ok){const t=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});$('lastSaved').textContent='Saved '+t;$('footerSaved').textContent='Last sync: '+t;}}catch(e){}
 }
 async function fetchLive(){
   try{
@@ -1269,12 +1362,105 @@ function detectIncidents(){
 }
 function openReports(){$('reportsOverlay').classList.add('open');loadReport();loadIncidents();}
 function closeReports(){$('reportsOverlay').classList.remove('open');}
+
+/* ---------- Daily Plant Log (Field Journal) ---------- */
+const FL_ACTS=['Irrigation / watering check','Nutrient (EC) adjustment','pH adjustment','Pruning / deleafing','Pollination','Pest & disease inspection','Pest treatment / spraying','Harvesting','Transplanting / replacing plants','Cleaning / sanitation','Equipment & sensor check','Water tank refill'];
+let _journal=[];
+function openFieldLog(){
+  const ov=$('fieldLogOverlay');ov.classList.add('open');
+  if(!ov._init){
+    ov._init=true;
+    $('flDate').value=new Date().toISOString().slice(0,10);
+    flBuildChips();
+    const f=$('flFilter');FL_ACTS.concat(['Other']).forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;f.appendChild(o);});
+    ov.addEventListener('click',e=>{if(e.target===ov)closeFieldLog();});
+  }
+  loadJournal();
+}
+function closeFieldLog(){$('fieldLogOverlay').classList.remove('open');}
+function flBuildChips(){
+  const box=$('flActivities');box.innerHTML='';
+  FL_ACTS.concat(['Other']).forEach(a=>{
+    const c=document.createElement('div');c.className='fl-chip';c.textContent=a;c.setAttribute('data-a',a);
+    c.onclick=()=>{c.classList.toggle('on');if(a==='Other')$('flOther').style.display=c.classList.contains('on')?'block':'none';};
+    box.appendChild(c);
+  });
+}
+// Downscale a photo in-browser to <=1280px JPEG q0.7 so uploads stay small
+// even on slow farm wifi.
+function flCompress(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      const max=1280;let{width:w,height:h}=img;
+      if(w>max||h>max){const s=max/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s);}
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(cv.toDataURL('image/jpeg',0.7));
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('bad image'));};
+    img.src=url;
+  });
+}
+function flPreview(){
+  const files=Array.from($('flPhotos').files||[]).slice(0,6);
+  const box=$('flPreview');box.innerHTML='';
+  files.forEach(f=>{const im=document.createElement('img');im.src=URL.createObjectURL(f);box.appendChild(im);});
+}
+async function submitFieldLog(e){
+  e.preventDefault();
+  const btn=$('flSubmit'),msg=$('flMsg');
+  const acts=Array.from(document.querySelectorAll('#flActivities .fl-chip.on')).map(c=>c.getAttribute('data-a')).filter(a=>a!=='Other');
+  const otherOn=document.querySelector('#flActivities .fl-chip.on[data-a="Other"]');
+  const other=otherOn?($('flOther').value||'').trim():'';
+  const note=($('flNote').value||'').trim();
+  const files=Array.from($('flPhotos').files||[]).slice(0,6);
+  if(!files.length&&!acts.length&&!other&&!note){msg.style.display='block';msg.style.color='var(--danger)';msg.textContent='Add at least a photo or a note.';return;}
+  btn.disabled=true;btn.textContent='Uploading…';msg.style.display='none';
+  try{
+    const photos=[];for(const f of files){try{photos.push(await flCompress(f));}catch(_){}}
+    const res=await fetch('/api/field-log-save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({log_date:$('flDate').value,location:$('flLocation').value,activities:acts,other,note,photos})});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Save failed');
+    msg.style.display='block';msg.style.color='#16894E';msg.textContent='✓ Saved — the entry is in the Field Journal below.';
+    // reset
+    $('flNote').value='';$('flOther').value='';$('flOther').style.display='none';$('flPhotos').value='';$('flPreview').innerHTML='';
+    document.querySelectorAll('#flActivities .fl-chip.on').forEach(c=>c.classList.remove('on'));
+    loadJournal();
+  }catch(err){msg.style.display='block';msg.style.color='var(--danger)';msg.textContent='✕ '+err.message;}
+  finally{btn.disabled=false;btn.textContent='📷 Save entry — حفظ';}
+}
+async function loadJournal(){
+  try{const res=await fetch('/api/field-log-list?limit=200');_journal=await res.json();if(!Array.isArray(_journal))_journal=[];}
+  catch(_){_journal=[];}
+  renderJournal();
+}
+function renderJournal(){
+  const box=$('flJournal');const filter=$('flFilter').value;
+  let rows=_journal;
+  if(filter)rows=rows.filter(r=>(Array.isArray(r.activities)&&r.activities.includes(filter))||(filter==='Other'&&r.other_note));
+  if(!rows.length){box.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">No entries yet. Add the first one above.</div>';return;}
+  box.innerHTML=rows.map(r=>{
+    const acts=(Array.isArray(r.activities)?r.activities:[]).slice();if(r.other_note)acts.push(r.other_note);
+    const tags=acts.map(a=>`<span class="fl-tag">${esc(a)}</span>`).join('');
+    const photos=(Array.isArray(r.photo_urls)?r.photo_urls:[]).map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" loading="lazy" alt="plant photo"></a>`).join('');
+    const d=new Date(r.log_date||r.created_at);const dateStr=isNaN(d)?esc(r.log_date||''):d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+    const loc=r.location?' · '+esc(r.location):'';
+    return `<div class="fl-entry">
+      <div class="fl-entry-top"><div class="fl-entry-date">${dateStr}${loc}</div><div class="fl-entry-meta">${esc(r.author||'')}</div></div>
+      ${tags?`<div class="fl-entry-acts">${tags}</div>`:''}
+      ${r.note?`<div class="fl-note">${esc(r.note)}</div>`:''}
+      ${photos?`<div class="fl-photos">${photos}</div>`:''}
+    </div>`;
+  }).join('');
+}
 async function loadReport(){
   const days=parseInt($('repDays').value)||7;const hours=days*24;
   $('repContent').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)"><p>Retrieving operational data...</p></div>';
   $('repSummary').innerHTML='';$('repInsight').style.display='none';$('repStatus').textContent='Fetching...';
   try{
-    const res=await fetch('/api/history?hours='+hours+'&limit=2000');
+    const res=await fetch('/api/history?hours='+hours+'&limit=10000');
     const data=await res.json();
     if(!Array.isArray(data)||data.length===0){$('repContent').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">No operational data available for this period.</div>';return;}
     $('repStatus').textContent=data.length+' readings loaded';renderReport(data,days);
@@ -1408,12 +1594,32 @@ function drillDay(date){
       ${ot!==null?wcard('OUTDOOR','الخارجي',ot,'x'):''}
     </div>
     <div style="display:flex;flex-direction:column;gap:8px">${an.map(a=>`<div style="display:flex;gap:10px;padding:10px;border-radius:10px;background:rgba(248,244,234,0.8);border:1px solid var(--border)"><span style="font-size:1.1rem;flex-shrink:0">${a.i}</span><div><div style="font-size:.82rem;color:var(--deep);line-height:1.5">${a.en}</div><div style="font-family:var(--ar);font-size:.76rem;color:var(--muted);direction:rtl;margin-top:4px">${a.ar}</div></div></div>`).join('')}</div>
+    <div id="drillJournal" style="margin-top:12px"></div>
     <div style="margin-top:10px;font-size:.66rem;color:var(--muted);font-family:var(--mono)">${d.readings||0} readings logged · ${d.leaks>0?'🚨 Leak event recorded':'✓ No leak events'}</div>
   </div>`;
   const content=$('repContent');
   const ex=content.querySelector('div[style*="border-radius:16px"]');if(ex)ex.remove();
   content.insertAdjacentHTML('beforeend',html);
   content.lastElementChild.scrollIntoView({behavior:'smooth',block:'nearest'});
+  fillDrillJournal(d);
+}
+// Match field-log entries to a report day and render them inside the drill-down.
+function flEntriesForDate(dayObj){
+  const target=dayObj&&dayObj.date?dayObj.date:null;if(!target)return [];
+  const y=target.getFullYear(),m=target.getMonth(),dd=target.getDate();
+  return _journal.filter(r=>{const e=new Date(r.log_date||r.created_at);return !isNaN(e)&&e.getFullYear()===y&&e.getMonth()===m&&e.getDate()===dd;});
+}
+async function fillDrillJournal(dayObj){
+  const box=document.getElementById('drillJournal');if(!box)return;
+  if(!_journal.length){try{const res=await fetch('/api/field-log-list?days=45&limit=200');const j=await res.json();if(Array.isArray(j))_journal=j;}catch(_){}}
+  const entries=flEntriesForDate(dayObj);
+  if(!entries.length){box.innerHTML='<div style="font-size:.7rem;color:var(--muted)">No field-log entries for this day. <a onclick="closeReports();openFieldLog()" style="color:var(--deep);cursor:pointer;text-decoration:underline">Add one</a></div>';return;}
+  box.innerHTML='<div style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--deep);margin-bottom:8px">📷 Field Journal — ما تم في هذا اليوم</div>'+entries.map(r=>{
+    const acts=(Array.isArray(r.activities)?r.activities:[]).slice();if(r.other_note)acts.push(r.other_note);
+    const tags=acts.map(a=>`<span class="fl-tag">${esc(a)}</span>`).join('');
+    const photos=(Array.isArray(r.photo_urls)?r.photo_urls:[]).map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" loading="lazy" alt="plant photo"></a>`).join('');
+    return `<div class="fl-entry">${r.location?`<div class="fl-entry-meta" style="margin-bottom:6px">${esc(r.location)} · ${esc(r.author||'')}</div>`:''}${tags?`<div class="fl-entry-acts">${tags}</div>`:''}${r.note?`<div class="fl-note">${esc(r.note)}</div>`:''}${photos?`<div class="fl-photos">${photos}</div>`:''}</div>`;
+  }).join('');
 }
 function generateInsights(days,avgT,avgH,avgV,avgO){
   const insights=[];
