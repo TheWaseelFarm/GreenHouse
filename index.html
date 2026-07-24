@@ -838,18 +838,23 @@ function renderZones(){
   renderThermalHealth();
   renderYieldImpact();
   const{hubTemp,hubHum,temp,hum,tempW,humW,w1}=S.live;
-  if(hubTemp===null)return;
-  $('hubTemp').textContent=Number(hubTemp).toFixed(1);$('hubHum').textContent=hubHum;
+  if(temp===null||temp===undefined)return;
+  $('hubTemp').textContent=hubTemp!=null?Number(hubTemp).toFixed(1):'—';$('hubHum').textContent=hubHum!=null?hubHum:'—';
   $('canTemp').textContent=Number(temp).toFixed(1);$('canHum').textContent=hum;
   $('canTemp').style.color=col(getStatus('temp',temp));$('canHum').style.color=col(getHumBadge(hum).s);
   $('wtTemp').textContent=tempW!==null?tempW.toFixed(1)+'°C':'--°C';
   $('wtHum').textContent=humW!==null?'Humidity: '+humW.toFixed(0)+'%':'Humidity: --%';
-  const delta=parseFloat((temp-hubTemp).toFixed(1));
-  const cv=$('clVal');cv.textContent=(delta>0?'+':'')+delta+'°C';
-  if(delta>=3){cv.style.color='#16894E';$('clDesc').innerHTML='✅ Cooling gradient nominal — wet wall operating at rated capacity';}
-  else if(delta>=1){cv.style.color='#16894E';$('clDesc').innerHTML='✓ Adequate gradient — cooling effective';}
-  else if(delta>=0){cv.style.color='var(--gold)';$('clDesc').innerHTML='⚠️ Insufficient gradient — only '+delta+'°C. Inspect wet wall pump and pad condition';}
-  else{cv.style.color='var(--danger)';$('clDesc').innerHTML='🚨 Reverse gradient detected — wet wall zone hotter than canopy. Immediate inspection required';}
+  const cv=$('clVal');
+  if(hubTemp!=null){
+    const delta=parseFloat((temp-hubTemp).toFixed(1));
+    cv.textContent=(delta>0?'+':'')+delta+'°C';
+    if(delta>=3){cv.style.color='#16894E';$('clDesc').innerHTML='✅ Cooling gradient nominal — wet wall operating at rated capacity';}
+    else if(delta>=1){cv.style.color='#16894E';$('clDesc').innerHTML='✓ Adequate gradient — cooling effective';}
+    else if(delta>=0){cv.style.color='var(--gold)';$('clDesc').innerHTML='⚠️ Insufficient gradient — only '+delta+'°C. Inspect wet wall pump and pad condition';}
+    else{cv.style.color='var(--danger)';$('clDesc').innerHTML='🚨 Reverse gradient detected — wet wall zone hotter than canopy. Immediate inspection required';}
+  } else {
+    cv.textContent='—';cv.style.color='var(--muted)';$('clDesc').innerHTML='⚠️ Wet wall sensor reading unavailable — showing canopy only';
+  }
   const w1El=$('w1Status');
   if(w1El){w1El.textContent=w1?'🚨 LEAK DETECTED':'✓ No leak';w1El.style.color=w1?'var(--danger)':'#16894E';w1El.style.fontWeight='800';}
   if(w1)showAlert('Leak Detection Alert','Water sensor triggered. Inspect tank and irrigation lines immediately.','تنبيه كشف تسرب — افحص الخزان وخطوط الري فوراً.');
@@ -1044,11 +1049,18 @@ async function fetchLive(){
     const co2=b.CO2??b.co2??0,temp=parseFloat(b.temperature??0),hum=parseFloat(b.humidity??0),vpd=calcVPD(temp,hum);
     const [hubRes,w1Res]=await Promise.all([fetch(`/api/status?id=${HUB_ID}`).then(r=>r.json()),fetch(`/api/status?id=${WATER1_ID}`).then(r=>r.json())]);
     const hub=hubRes.body??{};
-    const hubTemp=parseFloat(hub.temperature??0),hubHum=parseFloat(hub.humidity??0);
+    // Reject implausible sensor readings (e.g. a faulty wet-wall hub reporting
+    // -45C) so one bad sensor can't corrupt the weighted average, the cooling
+    // gradient, or the logged history.
+    const validTemp=v=>{const n=parseFloat(v);return(!isNaN(n)&&n>-5&&n<65)?n:null;};
+    const validHum=v=>{const n=parseFloat(v);return(!isNaN(n)&&n>=0&&n<=100)?n:null;};
+    const hubTemp=validTemp(hub.temperature),hubHum=validHum(hub.humidity);
     const w1=w1Res.body?.status==='leak_detected'||w1Res.body?.detectionState==='detected';
-    const tempW=weighted(temp,hubTemp),humW=weighted(hum,hubHum);
+    const tempW=hubTemp!=null?weighted(temp,hubTemp):parseFloat(temp.toFixed(1));
+    const humW=hubHum!=null?weighted(hum,hubHum):parseFloat(hum.toFixed(1));
+    const coolingDelta=hubTemp!=null?parseFloat((temp-hubTemp).toFixed(1)):null;
     S.live={co2,temp,hum,vpd,hubTemp,hubHum,w1,tempW,humW,outsideTemp:S.live.outsideTemp};
-    saveReading({co2,temperature:temp,humidity:hum,vpd,hub_temp:hubTemp,hub_humidity:hubHum,temp_weighted:tempW,hum_weighted:humW,cooling_delta:parseFloat((temp-hubTemp).toFixed(1)),water_leak_1:w1,heat_index:calcHI(temp,hum),dew_point:calcDP(temp,hum),plant_stress_index:calcPSI(vpd,temp,hum),abs_humidity:parseFloat((0.6108*Math.exp((17.27*temp)/(temp+237.3))*(hum/100)*1000/(0.4615*(273.15+temp))).toFixed(1))});
+    saveReading({co2,temperature:temp,humidity:hum,vpd,hub_temp:hubTemp,hub_humidity:hubHum,temp_weighted:tempW,hum_weighted:humW,cooling_delta:coolingDelta,water_leak_1:w1,heat_index:calcHI(temp,hum),dew_point:calcDP(temp,hum),plant_stress_index:calcPSI(vpd,temp,hum),abs_humidity:parseFloat((0.6108*Math.exp((17.27*temp)/(temp+237.3))*(hum/100)*1000/(0.4615*(273.15+temp))).toFixed(1))});
     const now=new Date();
     S.localHist.push({co2,temperature:temp,humidity:hum,vpd,hub_temp:hubTemp,hub_humidity:hubHum,temp_weighted:tempW,hum_weighted:humW,time:now.toISOString()});
     if(S.localHist.length>72)S.localHist.shift();
