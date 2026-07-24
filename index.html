@@ -1028,7 +1028,18 @@ function calcDP(t,rh){const a=17.27,b=237.3,al=(a*t)/(b+t)+Math.log(rh/100);retu
 function calcHI(t,rh){if(t<27)return t;return parseFloat((-8.78+1.61*t+2.34*rh-0.15*t*rh-0.012*t*t-0.016*rh*rh+0.002*t*t*rh+0.0007*t*rh*rh).toFixed(1));}
 function calcPSI(v,t,h){let s=0;if(v>1.0&&v<=1.3)s+=2;if(v>1.3)s+=4;if(t>22&&t<=26)s+=2;if(t>26)s+=4;if(h<60&&h>=50)s+=1;if(h<50)s+=3;if(h>85)s+=2;return Math.min(s,10);}
 async function saveReading(payload){
-  try{const res=await fetch('/api/save-reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(res.ok){const t=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});$('lastSaved').textContent='Saved '+t;$('footerSaved').textContent='Last sync: '+t;}}catch(e){}
+  // Persist at most once per 10 min, coordinated across open tabs via
+  // localStorage. The live UI still refreshes every 60s (read-only); this only
+  // throttles DB writes so history stays a sane ~144 rows/day instead of ~1440,
+  // which is what let the Operations Report cover a full 7/14/30-day window
+  // instead of truncating to the newest few days.
+  try{
+    const LOG_MIN_MS=600000;
+    const last=parseInt(localStorage.getItem('wf_lastLog')||'0',10);
+    const now=Date.now();
+    if(now-last<LOG_MIN_MS)return;
+    localStorage.setItem('wf_lastLog',String(now));
+    const res=await fetch('/api/save-reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(res.ok){const t=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});$('lastSaved').textContent='Saved '+t;$('footerSaved').textContent='Last sync: '+t;}}catch(e){}
 }
 async function fetchLive(){
   try{
@@ -1274,7 +1285,7 @@ async function loadReport(){
   $('repContent').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)"><p>Retrieving operational data...</p></div>';
   $('repSummary').innerHTML='';$('repInsight').style.display='none';$('repStatus').textContent='Fetching...';
   try{
-    const res=await fetch('/api/history?hours='+hours+'&limit=2000');
+    const res=await fetch('/api/history?hours='+hours+'&limit=10000');
     const data=await res.json();
     if(!Array.isArray(data)||data.length===0){$('repContent').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">No operational data available for this period.</div>';return;}
     $('repStatus').textContent=data.length+' readings loaded';renderReport(data,days);
