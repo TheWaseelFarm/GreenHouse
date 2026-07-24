@@ -437,6 +437,7 @@ img,svg,canvas{max-width:100%}
     <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:12px 2px 6px">💧 Water Temperatures · حرارة المياه</div>
     <div id="waterTempStrip" style="display:flex;gap:10px;margin-bottom:10px"></div>
     <div id="waterCooling" style="margin-bottom:12px"></div>
+    <div id="heatHours" style="margin-bottom:12px"></div>
     <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px">❄️ Cooling · التبريد</div>
     <div class="cooling-row">
       <div><div class="cl-desc">Cooling Gradient</div><div class="cl-desc-ar" id="clDesc">&#x62A;&#x62F;&#x631;&#x62C; &#x627;&#x644;&#x62A;&#x628;&#x631;&#x64A;&#x62F;</div></div>
@@ -1244,6 +1245,55 @@ function renderWaterCooling(){
     +`<div style="padding:6px 10px;border-top:1px solid rgba(6,68,46,.08);font-size:.6rem;color:var(--muted);line-height:1.5">vs ${WATER_BASELINE.date} baseline: ${WATER_BASELINE.supply}°C → ${WATER_BASELINE.irrigation}°C (Δ ${baseDelta}°C)${cmp}</div>`
     +`</div>`;
 }
+// Midday heat-load tracker — how many hours/day the canopy averaged above 28°C
+// and 30°C, over the last 7 days, so a worsening summer trend is visible before
+// it becomes a problem (the point at which shade is worth deploying).
+async function renderHeatHours(){
+  const box=$('heatHours'); if(!box)return;
+  let data=[];
+  try{const res=await fetch('/api/history?hours=168&limit=8000');data=await res.json();}catch(_){}
+  if(!Array.isArray(data)||!data.length){box.innerHTML='';return;}
+  const hourAvg={};
+  data.forEach(r=>{
+    let t=r.temp_weighted; if(!t&&r.temperature)t=r.temperature; t=parseFloat(t);
+    if(isNaN(t)||t<5||t>50)return;
+    const d=new Date(r.recorded_at);
+    const dayKey=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const hk=dayKey+'|'+d.getHours();
+    if(!hourAvg[hk])hourAvg[hk]={sum:0,n:0,day:dayKey,date:new Date(d.getFullYear(),d.getMonth(),d.getDate())};
+    hourAvg[hk].sum+=t;hourAvg[hk].n++;
+  });
+  const days={};
+  Object.values(hourAvg).forEach(h=>{
+    const a=h.sum/h.n;
+    if(!days[h.day])days[h.day]={h28:0,h30:0,date:h.date};
+    if(a>28)days[h.day].h28++;
+    if(a>30)days[h.day].h30++;
+  });
+  const arr=Object.entries(days).map(([k,v])=>({day:k,...v})).sort((a,b)=>a.date-b.date);
+  const last7=arr.slice(-7);
+  const now=new Date();
+  const todayKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  const today=last7.find(d=>d.day===todayKey)||last7[last7.length-1]||{h28:0,h30:0};
+  const maxH=Math.max(6,...last7.map(d=>d.h28));
+  const bars=last7.map(d=>{
+    const isToday=d.day===todayKey;
+    const h=Math.max(2,Math.round((d.h28/maxH)*40));
+    const color=d.h30>0?'var(--danger)':d.h28>0?'var(--gold)':'#cdd6c4';
+    const dl=d.date.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2);
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">`
+      +`<div style="font-size:.5rem;color:var(--danger);font-weight:800;height:8px">${d.h30>0?d.h30+'h':''}</div>`
+      +`<div style="width:100%;height:44px;display:flex;align-items:flex-end"><div style="width:100%;height:${h}px;background:${color};border-radius:3px 3px 0 0"></div></div>`
+      +`<div style="font-size:.5rem;font-weight:${isToday?'900':'600'};color:${isToday?'var(--deep)':'var(--muted)'}">${dl}</div></div>`;
+  }).join('');
+  box.innerHTML=`<div style="border:1px solid rgba(6,68,46,.12);border-radius:10px;background:rgba(6,68,46,.03);padding:8px 10px">`
+    +`<div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)">☀️ Midday Heat Load &middot; ساعات ذروة الحرارة</div><div style="font-size:.58rem;color:var(--muted)">today</div></div>`
+    +`<div style="display:flex;align-items:baseline;gap:14px;margin:4px 0 8px">`
+    +`<div><span style="font-family:var(--mono);font-size:1.5rem;font-weight:900;color:${today.h28>0?'var(--gold)':'#16894E'}">${today.h28}</span><span style="font-size:.62rem;color:var(--muted)"> hrs &gt;28&deg;C</span></div>`
+    +`<div><span style="font-family:var(--mono);font-size:1.5rem;font-weight:900;color:${today.h30>0?'var(--danger)':'#16894E'}">${today.h30}</span><span style="font-size:.62rem;color:var(--muted)"> hrs &gt;30&deg;C</span></div></div>`
+    +`<div style="display:flex;gap:4px;align-items:flex-end">${bars}</div>`
+    +`<div style="font-size:.56rem;color:var(--muted);margin-top:6px;line-height:1.45">Hours/day the canopy averaged above 28&deg;C (gold) &amp; 30&deg;C (red). Watch for a rising trend into August &mdash; shade is worth deploying if &gt;30&deg;C persists 3h+.</div></div>`;
+}
 function renderTuyaAir(){
   const strip=$('tuyaAirStrip');
   if(!strip)return;
@@ -1939,9 +1989,11 @@ document.addEventListener('DOMContentLoaded',async function(){
   buildChart();setActiveMetric('all');fetchLive();loadHistory(1);
   fetchOutsideTemp();
   fetchTuyaWater();
+  renderHeatHours();
   setInterval(fetchLive,60000);
   setInterval(fetchOutsideTemp,600000);
   setInterval(fetchTuyaWater,120000);
+  setInterval(renderHeatHours,600000);
   setInterval(()=>{
     const n=new Date();
     const ts=$('timestamp');if(ts)ts.textContent=n.toLocaleTimeString('en-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
