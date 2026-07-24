@@ -291,21 +291,21 @@ img,svg,canvas{max-width:100%}
     <div>
       <div class="brand-ar">&#x645;&#x632;&#x631;&#x639;&#x629; &#x627;&#x644;&#x648;&#x635;&#x64A;&#x644;</div>
       <div class="brand-en">AL-WASEEL FARM</div>
-      <div class="side-meta"><span>Diriyah</span><span>&middot;</span><span>Riyadh</span></div>
+      <div class="side-meta"><span data-i18n="loc_diriyah">Diriyah</span><span>&middot;</span><span data-i18n="loc_riyadh">Riyadh</span></div>
     </div>
   </div>
   <nav class="nav" aria-label="Platform navigation">
-    <a class="active" onclick="navClick(this,'top')"><i class="ti ti-home"></i>Overview</a>
-    <a onclick="navClick(this,'environment')"><i class="ti ti-thermometer"></i>Environment</a>
-    <a onclick="navClick(this,'chart')"><i class="ti ti-chart-line"></i>Climate Trends</a>
-    <a onclick="navClick(this,'alerts')"><i class="ti ti-bell"></i>Alerts</a>
-    <a onclick="navClick(this,null);openReports()"><i class="ti ti-file-analytics"></i>Operations Report</a>
-    <a onclick="navClick(this,null);openFieldLog()"><i class="ti ti-camera"></i>Daily Plant Log</a>
-    <a onclick="navClick(this,null);openCouncil()"><i class="ti ti-brain"></i>Expert Council</a>
-    <a onclick="navClick(this,null);openAccessRequests()"><i class="ti ti-user-plus"></i>Access Requests</a>
-    <a onclick="navClick(this,null);openChangePassword()"><i class="ti ti-key"></i>Change Password</a>
-    <a onclick="navClick(this,'settings')"><i class="ti ti-settings"></i>Settings</a>
-    <a href="/api/auth/logout" class="logout-link"><i class="ti ti-logout"></i>Sign Out &mdash; &#x62E;&#x631;&#x648;&#x62C;</a>
+    <a class="active" onclick="navClick(this,'top')"><i class="ti ti-home"></i><span data-i18n="nav_overview">Overview</span></a>
+    <a onclick="navClick(this,'environment')"><i class="ti ti-thermometer"></i><span data-i18n="nav_environment">Environment</span></a>
+    <a onclick="navClick(this,'chart')"><i class="ti ti-chart-line"></i><span data-i18n="nav_trends">Climate Trends</span></a>
+    <a onclick="navClick(this,'alerts')"><i class="ti ti-bell"></i><span data-i18n="nav_alerts">Alerts</span></a>
+    <a onclick="navClick(this,null);openReports()"><i class="ti ti-file-analytics"></i><span data-i18n="nav_reports">Operations Report</span></a>
+    <a onclick="navClick(this,null);openFieldLog()"><i class="ti ti-camera"></i><span data-i18n="nav_plantlog">Daily Plant Log</span></a>
+    <a onclick="navClick(this,null);openCouncil()"><i class="ti ti-brain"></i><span data-i18n="nav_council">Expert Council</span></a>
+    <a onclick="navClick(this,null);openAccessRequests()"><i class="ti ti-user-plus"></i><span data-i18n="nav_access">Access Requests</span></a>
+    <a onclick="navClick(this,null);openChangePassword()"><i class="ti ti-key"></i><span data-i18n="nav_password">Change Password</span></a>
+    <a onclick="navClick(this,'settings')"><i class="ti ti-settings"></i><span data-i18n="nav_settings">Settings</span></a>
+    <a href="/api/auth/logout" class="logout-link"><i class="ti ti-logout"></i><span data-i18n="nav_signout">Sign Out</span></a>
   </nav>
   <div class="side-art">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 170" fill="none"><path d="M20 139h380M55 139V90l23-18 23 18v49M137 139V64h46v75M157 64V40h24v24M218 139V83l37-26 37 26v56M322 139V72h39v67" stroke="#C49A3A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/><path d="M70 99h12M70 116h12M151 83h10M151 101h10M151 119h10M235 96h10M255 96h10M275 96h10M335 91h9M335 110h9" stroke="#06442E" stroke-width="4" stroke-linecap="round" opacity=".65"/><path d="M25 151c62-14 99-13 151-4s88 5 127-3 64-4 92 5" stroke="#8FAF7A" stroke-width="3" stroke-linecap="round" opacity=".75"/></svg>
@@ -315,15 +315,17 @@ img,svg,canvas{max-width:100%}
 <main class="main" id="top">
 <header class="topbar">
   <div class="title-block">
-    <h1>Farm Environment Monitor</h1>
+    <h1 data-i18n="hdr_title">Farm Environment Monitor</h1>
     <p>&#x645;&#x632;&#x631;&#x639;&#x629; &#x627;&#x644;&#x648;&#x635;&#x64A;&#x644; &mdash; &#x645;&#x646;&#x635;&#x629; &#x627;&#x644;&#x639;&#x645;&#x644;&#x64A;&#x627;&#x62A; &#x627;&#x644;&#x632;&#x631;&#x627;&#x639;&#x64A;&#x629;</p>
   </div>
   <div class="status-row">
-    <div class="status-item"><i class="ti ti-clock"></i><span id="timestamp">--:--:--</span><small>Last Reading</small></div>
+    <button id="langToggle" type="button" onclick="toggleSiteLang()" title="Language" style="border:1px solid var(--border);background:var(--card,#fff);border-radius:9px;padding:6px 11px;font-size:.74rem;font-weight:800;color:var(--deep);cursor:pointer">🌐 عربي</button>
     <div class="tb-divider"></div>
-    <div class="status-item"><i class="ti ti-calendar"></i><span id="dateStamp">--</span><small>Date</small></div>
+    <div class="status-item"><i class="ti ti-clock"></i><span id="timestamp">--:--:--</span><small data-i18n="st_lastreading">Last Reading</small></div>
     <div class="tb-divider"></div>
-    <div class="status-item"><span class="online-dot"></span><span>Systems Online<small>All Sensors Active</small></span></div>
+    <div class="status-item"><i class="ti ti-calendar"></i><span id="dateStamp">--</span><small data-i18n="st_date">Date</small></div>
+    <div class="tb-divider"></div>
+    <div class="status-item"><span class="online-dot"></span><span><span data-i18n="st_online">Systems Online</span><small data-i18n="st_active">All Sensors Active</small></span></div>
   </div>
 </header>
 <div class="status-bar">
@@ -645,6 +647,12 @@ img,svg,canvas{max-width:100%}
 .fl-photos a{display:block}
 .fl-photos img{width:104px;height:104px;object-fit:cover;border-radius:10px;border:1px solid var(--border)}
 .fl-note{font-size:.82rem;color:#33413a;margin-top:6px;line-height:1.45}
+/* Global language switch: Arabic mode promotes the Arabic labels on the
+   bilingual metric cards and hides the English variant. English mode keeps the
+   current bilingual look untouched. */
+body.lang-ar .metric-label-en{display:none}
+body.lang-ar .metric-label-ar{font-size:.95rem;font-weight:800;color:var(--deep);margin-top:0}
+body.lang-ar .nav a{direction:rtl}
 </style>
 
 <!-- Daily Plant Log — field workers upload photos + what they did; builds the knowledge house -->
@@ -708,6 +716,27 @@ const T={co2:{ok:[350,500],warn:[300,800]},temp:{ok:[16,22],warn:[14,26]},hum:{o
 const S={live:{co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,tempW:null,humW:null,outsideTemp:null},water:{irrigation:null,outside:null},tuya:{gh:{},out:{}},metric:'all',subView:{temp:'weighted',hum:'weighted'},range:1,lastAlert:0,localHist:[],chart:null,lastWeatherFetch:0};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Global language switch (Arabic/English) for the dashboard chrome. Bilingual
+// metric cards flip via CSS (body.lang-ar); text-only chrome flips via this map.
+const I18N={
+  nav_overview:{en:'Overview',ar:'الرئيسية'},nav_environment:{en:'Environment',ar:'البيئة'},
+  nav_trends:{en:'Climate Trends',ar:'اتجاهات المناخ'},nav_alerts:{en:'Alerts',ar:'التنبيهات'},
+  nav_reports:{en:'Operations Report',ar:'تقرير العمليات'},nav_plantlog:{en:'Daily Plant Log',ar:'سجل النباتات اليومي'},
+  nav_council:{en:'Expert Council',ar:'المجلس الاستشاري'},nav_access:{en:'Access Requests',ar:'طلبات الوصول'},
+  nav_password:{en:'Change Password',ar:'تغيير كلمة المرور'},nav_settings:{en:'Settings',ar:'الإعدادات'},
+  nav_signout:{en:'Sign Out',ar:'تسجيل الخروج'},hdr_title:{en:'Farm Environment Monitor',ar:'مراقبة بيئة المزرعة'},
+  st_lastreading:{en:'Last Reading',ar:'آخر قراءة'},st_date:{en:'Date',ar:'التاريخ'},
+  st_online:{en:'Systems Online',ar:'الأنظمة تعمل'},st_active:{en:'All Sensors Active',ar:'كل الحساسات نشطة'},
+  loc_diriyah:{en:'Diriyah',ar:'الدرعية'},loc_riyadh:{en:'Riyadh',ar:'الرياض'}
+};
+let siteLang=(()=>{try{return localStorage.getItem('wf_lang')||'en';}catch(_){return 'en';}})();
+function applySiteLang(){
+  document.body.classList.toggle('lang-ar',siteLang==='ar');
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const t=I18N[el.getAttribute('data-i18n')];if(t&&t[siteLang])el.textContent=t[siteLang];});
+  const b=$('langToggle');if(b)b.textContent=siteLang==='ar'?'🌐 EN':'🌐 عربي';
+}
+function setSiteLang(l){siteLang=l;try{localStorage.setItem('wf_lang',l);}catch(_){}applySiteLang();}
+function toggleSiteLang(){setSiteLang(siteLang==='ar'?'en':'ar');}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function calcVPD(t,rh){return parseFloat((0.6108*Math.exp((17.27*t)/(t+237.3))*(1-rh/100)).toFixed(2));}
 function weighted(c,w){return parseFloat((c*W_CANOPY+w*W_WETWALL).toFixed(1));}
@@ -2077,6 +2106,7 @@ document.addEventListener('DOMContentLoaded',async function(){
   if(!authOk){ showLoginGate(); return; }
   if(mustChange){ showPasswordChangeGate(); return; }
   buildChart();setActiveMetric('all');fetchLive();loadHistory(1);
+  applySiteLang();
   fetchOutsideTemp();
   fetchTuyaWater();
   renderHeatHours();
