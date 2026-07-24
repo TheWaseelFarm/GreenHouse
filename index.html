@@ -588,32 +588,32 @@ img,svg,canvas{max-width:100%}
 <div class="reports-overlay" id="reportsOverlay">
   <div class="reports-panel">
     <div class="rep-header">
-      <div><h2><i class="ti ti-file-analytics" style="margin-right:8px"></i>Farm Operations Report</h2><div class="rep-header-ar">تقرير العمليات الزراعية &mdash; مزرعة الوصيل</div></div>
+      <div><h2><i class="ti ti-file-analytics" style="margin-right:8px"></i><span data-i18n="rep_title">Farm Operations Report</span></h2><div class="rep-header-ar">تقرير العمليات الزراعية &mdash; مزرعة الوصيل</div></div>
       <button class="rep-close" onclick="closeReports()" aria-label="Close"><i class="ti ti-x"></i></button>
     </div>
     <div class="rep-body">
       <div class="rep-controls">
         <select class="rep-select" id="repDays" onchange="loadReport()" aria-label="Report period">
-          <option value="7">Last 7 days</option>
-          <option value="14">Last 14 days</option>
-          <option value="30">Last 30 days</option>
+          <option value="7" data-i18n="rep_d7">Last 7 days</option>
+          <option value="14" data-i18n="rep_d14">Last 14 days</option>
+          <option value="30" data-i18n="rep_d30">Last 30 days</option>
         </select>
-        <button class="rep-btn" onclick="loadReport()"><i class="ti ti-refresh"></i> Refresh</button>
+        <button class="rep-btn" onclick="loadReport()"><i class="ti ti-refresh"></i> <span data-i18n="rep_refresh">Refresh</span></button>
         <span id="repStatus" style="font-size:0.72rem;color:var(--muted);font-family:var(--mono)"></span>
       </div>
       <div id="repSummary" class="rep-summary"></div>
       <div id="repContent" class="rep-loading"><i class="ti ti-loader" style="font-size:2rem;color:var(--gold)"></i><p>Retrieving operational data...</p></div>
       <div id="repInsight" class="rep-insight" style="display:none">
-        <div class="rep-insight-title"><i class="ti ti-chart-bar"></i>Agronomic Performance Analysis &mdash; تحليل الأداء الزراعي</div>
+        <div class="rep-insight-title"><i class="ti ti-chart-bar"></i><span data-i18n="rep_analysis">Agronomic Performance Analysis</span></div>
         <div id="repInsightBody"></div>
       </div>
       <div style="margin-top:20px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
           <div>
-            <div style="font-size:.7rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--deep);display:flex;align-items:center;gap:7px"><i class="ti ti-alert-circle" style="color:var(--danger)"></i>Incident Registry &mdash; سجل الحوادث التشغيلية</div>
-            <div style="font-family:var(--ar);font-size:.72rem;color:var(--muted);direction:rtl;margin-top:2px">حوادث مكتشفة تلقائياً &middot; مرتبة بالأحدث أولاً</div>
+            <div style="font-size:.7rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--deep);display:flex;align-items:center;gap:7px"><i class="ti ti-alert-circle" style="color:var(--danger)"></i><span data-i18n="rep_incidents">Incident Registry</span></div>
+            <div class="i18n-ar" style="font-family:var(--ar);font-size:.72rem;color:var(--muted);direction:rtl;margin-top:2px">حوادث مكتشفة تلقائياً &middot; مرتبة بالأحدث أولاً</div>
           </div>
-          <button onclick="loadIncidents()" class="rep-btn"><i class="ti ti-refresh"></i> Refresh</button>
+          <button onclick="loadIncidents()" class="rep-btn"><i class="ti ti-refresh"></i> <span data-i18n="rep_refresh">Refresh</span></button>
         </div>
         <div id="incidentLog"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">Click Refresh to load incident registry</div></div>
       </div>
@@ -660,7 +660,7 @@ body:not(.lang-ar) .i18n-ar,body:not(.lang-ar) .dec-ar,body:not(.lang-ar) .alert
 body.lang-ar .i18n-ar,body.lang-ar .dec-ar{direction:rtl}
 /* Stage 3 — section headers & zone labels (class-paired) */
 body.lang-ar .rec-title-en,body.lang-ar .wt-label,body.lang-ar .zn{display:none}
-body:not(.lang-ar) .rec-title-ar,body:not(.lang-ar) .panel-ar,body:not(.lang-ar) .wt-label-ar,body:not(.lang-ar) .zn-ar,body:not(.lang-ar) .metric-label-ar{display:none}
+body:not(.lang-ar) .rec-title-ar,body:not(.lang-ar) .panel-ar,body:not(.lang-ar) .wt-label-ar,body:not(.lang-ar) .zn-ar,body:not(.lang-ar) .metric-label-ar,body:not(.lang-ar) .rep-header-ar{display:none}
 body.lang-ar #chartTitle{display:none}
 </style>
 
@@ -740,7 +740,16 @@ const I18N={
   nav_signout:{en:'Sign Out',ar:'تسجيل الخروج'},hdr_title:{en:'Farm Environment Monitor',ar:'مراقبة بيئة المزرعة'},
   st_lastreading:{en:'Last Reading',ar:'آخر قراءة'},st_date:{en:'Date',ar:'التاريخ'},
   st_online:{en:'Systems Online',ar:'الأنظمة تعمل'},st_active:{en:'All Sensors Active',ar:'كل الحساسات نشطة'},
-  loc_diriyah:{en:'Diriyah',ar:'الدرعية'},loc_riyadh:{en:'Riyadh',ar:'الرياض'}
+  loc_diriyah:{en:'Diriyah',ar:'الدرعية'},loc_riyadh:{en:'Riyadh',ar:'الرياض'},
+  rep_title:{en:'Farm Operations Report',ar:'تقرير العمليات الزراعية'},rep_refresh:{en:'Refresh',ar:'تحديث'},
+  rep_d7:{en:'Last 7 days',ar:'آخر ٧ أيام'},rep_d14:{en:'Last 14 days',ar:'آخر ١٤ يوم'},rep_d30:{en:'Last 30 days',ar:'آخر ٣٠ يوم'},
+  rep_incidents:{en:'Incident Registry',ar:'سجل الحوادث'},rep_analysis:{en:'Agronomic Performance Analysis',ar:'تحليل الأداء الزراعي'},
+  rep_c_date:{en:'Date',ar:'التاريخ'},rep_c_rating:{en:'Operational Rating',ar:'التقييم التشغيلي'},rep_c_temp:{en:'Avg Temp',ar:'متوسط الحرارة'},
+  rep_c_hum:{en:'Avg Humidity',ar:'متوسط الرطوبة'},rep_c_vpd:{en:'Avg VPD',ar:'متوسط VPD'},rep_c_co2:{en:'Avg CO₂',ar:'متوسط CO₂'},
+  rep_c_irr:{en:'Irrigation Water',ar:'ماء الري'},rep_c_outw:{en:'Outside Water',ar:'الماء الخارجي'},rep_c_far:{en:'Far End',ar:'المنطقة الطرفية'},
+  rep_c_readings:{en:'Readings',ar:'القراءات'},rep_c_field:{en:'Field Status',ar:'الحالة الميدانية'},
+  council_title:{en:'Expert Advisory Council',ar:'المجلس الاستشاري التخصصي'},council_consult:{en:'Consult Council 🏛️',ar:'استشر المجلس 🏛️'},council_load:{en:'Load',ar:'تحميل'},
+  council_prev:{en:'Previous Council Decisions',ar:'قرارات المجلس السابقة'}
 };
 let siteLang=(()=>{try{return localStorage.getItem('wf_lang')||'en';}catch(_){return 'en';}})();
 function applySiteLang(){
@@ -1681,7 +1690,7 @@ async function loadReport(){
     const res=await fetch('/api/history?hours='+hours+'&limit=10000');
     const data=await res.json();
     if(!Array.isArray(data)||data.length===0){$('repContent').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">No operational data available for this period.</div>';return;}
-    $('repStatus').textContent=data.length+' readings loaded';renderReport(data,days);
+    $('repStatus').textContent=data.length+' readings loaded';renderReport(data,days);applySiteLang();
   }catch(e){$('repContent').innerHTML='<div style="text-align:center;padding:40px;color:var(--danger)">Data retrieval error: '+e.message+'</div>';}
 }
 var _repDays={};
@@ -1779,7 +1788,7 @@ function renderReport(data,days){
   const ctxNote=avgO!==null?`<div style="font-size:.7rem;color:var(--muted);margin-bottom:10px;padding:8px 12px;background:rgba(196,154,58,.1);border:1px solid rgba(196,154,58,.28);border-radius:10px;line-height:1.5">🌡 Benchmarks adjusted for Saudi summer conditions — outside ambient avg <strong style="color:var(--deep)">${avgO}°C</strong>. Cooling performance is judged against this ambient load, not a temperate-climate ideal.<div style="font-family:var(--ar);direction:rtl;color:var(--muted);margin-top:3px">معايير معدَّلة لظروف الصيف السعودي — متوسط الحرارة الخارجية ${avgO}°م</div></div>`:'';
   $('repContent').innerHTML=ctxNote+`<p style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Select a date to view full operational breakdown for that day</p>
     <div class="rep-table-wrap"><table class="rep-table">
-      <thead><tr><th>Date</th><th>Operational Rating</th><th>Avg Temp<br><small>✓ 16–22°C</small></th><th>Avg Humidity<br><small>✓ 60–75%</small></th><th>Avg VPD<br><small>✓ 0.5–1.0</small></th><th>Avg CO₂<br><small>✓ 350–500</small></th><th>Irrigation Water<br><small>✓ ≤22°C</small></th><th>Outside Water<br><small>supply</small></th><th>Far End<br><small>zone °C</small></th><th>Readings</th><th>Field Status</th></tr></thead>
+      <thead><tr><th><span data-i18n="rep_c_date">Date</span></th><th><span data-i18n="rep_c_rating">Operational Rating</span></th><th><span data-i18n="rep_c_temp">Avg Temp</span><br><small>✓ 16–22°C</small></th><th><span data-i18n="rep_c_hum">Avg Humidity</span><br><small>✓ 60–75%</small></th><th><span data-i18n="rep_c_vpd">Avg VPD</span><br><small>✓ 0.5–1.0</small></th><th><span data-i18n="rep_c_co2">Avg CO₂</span><br><small>✓ 350–500</small></th><th><span data-i18n="rep_c_irr">Irrigation Water</span><br><small>✓ ≤22°C</small></th><th><span data-i18n="rep_c_outw">Outside Water</span><br><small>supply</small></th><th><span data-i18n="rep_c_far">Far End</span><br><small>zone °C</small></th><th><span data-i18n="rep_c_readings">Readings</span></th><th><span data-i18n="rep_c_field">Field Status</span></th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>`;
   generateInsights(ds,avgT,avgH,avgV,avgO);
@@ -2295,20 +2304,20 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="reports-overlay" id="councilOverlay">
   <div class="reports-panel" style="max-width:860px">
     <div class="rep-header">
-      <div><h2><i class="ti ti-brain" style="margin-right:8px"></i>Expert Advisory Council</h2><div class="rep-header-ar">المجلس الاستشاري التخصصي &mdash; مزرعة الوصيل</div></div>
+      <div><h2><i class="ti ti-brain" style="margin-right:8px"></i><span data-i18n="council_title">Expert Advisory Council</span></h2><div class="rep-header-ar">المجلس الاستشاري التخصصي &mdash; مزرعة الوصيل</div></div>
       <button class="rep-close" onclick="closeCouncil()"><i class="ti ti-x"></i></button>
     </div>
     <div class="rep-body">
       <div style="margin-bottom:18px">
-        <div style="font-size:.72rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--deep);margin-bottom:8px">Submit Consultation — تقديم استشارة</div>
+        <div style="font-size:.72rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--deep);margin-bottom:8px"><span class="i18n-en">Submit Consultation</span><span class="i18n-ar">تقديم استشارة</span></div>
         <div style="display:flex;gap:8px;align-items:flex-end">
           <textarea id="councilQuestion" placeholder="Describe the issue or question for expert consultation..." style="flex:1;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-family:var(--sans);font-size:.85rem;outline:none;resize:vertical;min-height:60px;background:var(--soft-sage);color:var(--deep)"></textarea>
         </div>
         <div style="margin-top:8px">
-          <div style="font-size:.68rem;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Field Context (optional) — سياق ميداني إضافي</div>
+          <div style="font-size:.68rem;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em"><span class="i18n-en">Field Context (optional)</span><span class="i18n-ar">سياق ميداني إضافي</span></div>
           <textarea id="councilContext" placeholder="e.g. Plants are 3 weeks old, water EC is 1.2, leaf tips showing yellowing since yesterday..." style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-family:var(--sans);font-size:.82rem;outline:none;resize:vertical;min-height:50px;background:#fffdf7;color:var(--deep);direction:ltr"></textarea>
         </div>
-        <button onclick="askCouncil()" id="councilAskBtn" style="margin-top:8px;padding:10px 18px;background:linear-gradient(135deg,#7ea06d,var(--deep));color:var(--light-gold);border:none;border-radius:10px;font-weight:800;font-size:.82rem;cursor:pointer;height:50px">Consult Council 🏛️</button>
+        <button onclick="askCouncil()" id="councilAskBtn" data-i18n="council_consult" style="margin-top:8px;padding:10px 18px;background:linear-gradient(135deg,#7ea06d,var(--deep));color:var(--light-gold);border:none;border-radius:10px;font-weight:800;font-size:.82rem;cursor:pointer;height:50px">Consult Council 🏛️</button>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
         <span onclick="$('councilQuestion').value=this.textContent" style="padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:16px;font-size:.72rem;cursor:pointer;color:var(--deep)">Are seedlings ready for tower transfer?</span>
@@ -2319,8 +2328,8 @@ document.addEventListener('DOMContentLoaded',function(){
       <div id="councilDiscussion"></div>
       <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <div style="font-size:.68rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Previous Council Decisions</div>
-          <button class="rep-btn" onclick="loadCouncilDecisions()"><i class="ti ti-refresh"></i> Load</button>
+          <div style="font-size:.68rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)"><span data-i18n="council_prev">Previous Council Decisions</span></div>
+          <button class="rep-btn" onclick="loadCouncilDecisions()"><i class="ti ti-refresh"></i> <span data-i18n="council_load">Load</span></button>
         </div>
         <div id="councilLog"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">Click Load to retrieve past council decisions</div></div>
       </div>
