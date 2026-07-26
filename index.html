@@ -772,7 +772,10 @@ function navClick(el,sid){document.querySelectorAll('.nav a:not(.logout-link)').
 function doRefresh(btn){btn.disabled=true;btn.style.opacity='0.6';showLoadingBar();fetchLive().finally(()=>{btn.disabled=false;btn.style.opacity='1';hideLoadingBar();});}
 function getStatus(m,v){if(m==='hum')return(v>=T.hum.ok[0]&&v<=T.hum.ok[1])?'good':'warn';if(v>=T[m].ok[0]&&v<=T[m].ok[1])return'good';if(v>=T[m].warn[0]&&v<=T[m].warn[1])return'warn';return'danger';}
 function getHumBadge(v){if(v>=T.hum.ok[0]&&v<=T.hum.ok[1])return{s:'good',t:'Optimal',ar:'مثالي'};if(v>T.hum.ok[1])return{s:'warning',t:'Elevated',ar:'مرتفع'};if(v>=T.hum.warn[0])return{s:'warning',t:'Below Range',ar:'دون النطاق'};return{s:'danger',t:'Critical',ar:'حرج'};}
-function getBadge(m,v){if(m==='hum')return getHumBadge(v);const s=getStatus(m,v);const map={co2:{good:'Normal',warn:'Monitor',danger:'Check'},temp:{good:'Optimal',warn:'Above Range',danger:'Critical'},vpd:{good:'Optimal',warn:'Elevated',danger:'Critical'}};const mapAr={co2:{good:'طبيعي',warn:'راقب',danger:'تحقق'},temp:{good:'مثالي',warn:'فوق النطاق',danger:'حرج'},vpd:{good:'مثالي',warn:'مرتفع',danger:'حرج'}};const k=s==='good'?'good':s==='warn'?'warn':'danger';return{s,t:(map[m]||{})[k]||s,ar:(mapAr[m]||{})[k]||''};}
+// Temperature badge derives from the adaptive verdict so summer reads "Good"
+// when cooling is at its physical limit, not a permanent red "Above Range".
+function getTempBadge(tw){const V=tempVerdict(tw,S.live.outsideTemp);const s=V.color==='var(--gold)'?'warn':(V.color==='var(--danger)'?'danger':'good');const map={OPTIMAL:['Optimal','مثالي'],GOOD:['Good','جيد'],MONITOR:['Monitor','راقب'],CRITICAL:['Critical','حرج'],'CHECK COOLING':['Check Cooling','افحص التبريد'],'TOO HOT':['Too Hot','حار جداً'],COOL:['Cool','بارد']};const l=map[V.status]||[V.status,V.status];return{s,t:l[0],ar:l[1]};}
+function getBadge(m,v){if(m==='hum')return getHumBadge(v);if(m==='temp')return getTempBadge(v);const s=getStatus(m,v);const map={co2:{good:'Normal',warn:'Monitor',danger:'Check'},vpd:{good:'Optimal',warn:'Elevated',danger:'Critical'}};const mapAr={co2:{good:'طبيعي',warn:'راقب',danger:'تحقق'},vpd:{good:'مثالي',warn:'مرتفع',danger:'حرج'}};const k=s==='good'?'good':s==='warn'?'warn':'danger';return{s,t:(map[m]||{})[k]||s,ar:(mapAr[m]||{})[k]||''};}
 function col(s){return s==='good'?'#16894E':s==='warn'?'var(--gold)':'var(--danger)';}
 function rangeBar(m,v){const t=T[m];return clamp(((v-t.warn[0])/(t.warn[1]-t.warn[0]))*100,0,100);}
 function renderMetrics(){
@@ -807,26 +810,45 @@ function updateCard(m,v){
   const badgeEl=$(badgeMap[m]);if(badgeEl)badgeEl.textContent=(siteLang==='ar'&&bd.ar)?bd.ar:(bd.t||bd.s);
   const barEl=$('bar-'+m);if(barEl)barEl.style.width=rangeBar(m,parseFloat(v))+'%';
 }
-// The single source of truth for "is the greenhouse temperature OK right now?"
-// Judges the weighted greenhouse temperature against the strawberry target
-// band, weighted by the outside (ambient) context, and returns a clear verdict.
+// Stull (2011) wet-bulb approximation from dry-bulb temp and RH.
+function calcWetBulb(t,rh){
+  if(t==null||rh==null)return null;
+  rh=Math.max(1,Math.min(100,rh));
+  const wb=t*Math.atan(0.151977*Math.sqrt(rh+8.313659))+Math.atan(t+rh)-Math.atan(rh-1.676331)+0.00391838*Math.pow(rh,1.5)*Math.atan(0.023101*rh)-4.686035;
+  return parseFloat(wb.toFixed(1));
+}
+// Realistic achievable canopy target given outside conditions. Evaporative
+// cooling can only pull incoming air toward the outside wet-bulb; the canopy
+// then sits a few °C above that. Below this target, cooling is at its physical
+// best (16–22°C is simply impossible in a 45°C Riyadh afternoon); well above it
+// means genuine room to improve or a fault.
+const PAD_EFF=0.82, CANOPY_GAIN=3;
+function adaptiveTemp(){
+  const ot=S.live.outsideTemp, orh=S.live.outsideHumidity;
+  const wb=(ot!=null&&orh!=null)?calcWetBulb(ot,orh):null;
+  let achievable=null;
+  if(wb!=null&&ot!=null){const inlet=ot-PAD_EFF*(ot-wb);achievable=parseFloat((inlet+CANOPY_GAIN).toFixed(1));}
+  return {ideal:[16,22], wetBulb:wb, achievable, hardMax:30};
+}
+// Verdict: strict biological ideal (16–22°C) when reachable; otherwise judged
+// against today's physically achievable target so summer heat isn't flagged as
+// a failure when cooling is already at its limit.
 function tempVerdict(tw, outside){
-  const summer = outside!=null && outside>38;
-  if(tw==null) return {status:'—', color:'var(--muted)', band:'', en:'Awaiting sensor data.', ar:'بانتظار بيانات المستشعر.'};
-  const redu = outside!=null ? parseFloat((outside-tw).toFixed(1)) : null;
-  const coolCtx = (redu!=null) ? ` Holding ${redu}°C below the ${outside}°C outside — cooling is working` : '';
-  const coolCtxAr = (redu!=null) ? ` (أقل بـ${redu}°م من ${outside}°م خارجياً — التبريد فعّال)` : '';
-  if(tw>26) return {status:'TOO HOT', color:'var(--danger)',
-    en:`${(tw-26).toFixed(1)}°C above the 26°C critical line — sugar development slows.${coolCtx}, but needs more. Priority: raise cooling + humidity.`,
-    ar:`${(tw-26).toFixed(1)}°م فوق الحد الحرج 26°م — تباطؤ تطور السكر.${coolCtxAr} الأولوية: زيادة التبريد والرطوبة.`};
-  if(tw>24) return {status:'MONITOR', color:'var(--gold)',
-    en:`Warm — ${(tw-22).toFixed(1)}°C above the 22°C ideal. Acceptable but watch closely and keep cooling up.${coolCtx}.`,
-    ar:`دافئ — ${(tw-22).toFixed(1)}°م فوق المثالي 22°م. مقبول لكن راقب عن كثب وأبقِ التبريد مرتفعاً.`};
-  if(tw>22) return summer
-    ? {status:'GOOD', color:'#16894E', en:`${tw.toFixed(1)}°C — just above the 22°C ideal, but excellent against a ${outside}°C outside (${redu}°C reduction). Cooling performing well.`, ar:`${tw.toFixed(1)}°م — أعلى قليلاً من المثالي، لكنه ممتاز مقابل ${outside}°م خارجياً. التبريد يعمل جيداً.`}
-    : {status:'MONITOR', color:'var(--gold)', en:`${tw.toFixed(1)}°C — slightly above the 16–22°C ideal band. Nudge cooling up.`, ar:`${tw.toFixed(1)}°م — أعلى قليلاً من النطاق المثالي 16–22°م. ارفع التبريد قليلاً.`};
-  if(tw>=16) return {status:'OPTIMAL', color:'#16894E', en:`Within the ideal 16–22°C band for strawberry fruit development. Conditions on target.`, ar:`ضمن النطاق المثالي 16–22°م لتطور ثمار الفراولة. الظروف مطابقة للهدف.`};
-  return {status:'COOL', color:'#2f6f9e', en:`${tw.toFixed(1)}°C — below the 16°C ideal minimum. Growth may slow; reduce cooling.`, ar:`${tw.toFixed(1)}°م — تحت الحد الأدنى المثالي 16°م. قد ينمو ببطء؛ قلّل التبريد.`};
+  if(tw==null) return {status:'—', color:'var(--muted)', en:'Awaiting sensor data.', ar:'بانتظار بيانات المستشعر.'};
+  if(tw>=16&&tw<=22) return {status:'OPTIMAL', color:'#16894E', en:`Within the ideal 16–22°C band for strawberry fruit development. Conditions on target.`, ar:`ضمن النطاق المثالي 16–22°م لتطور ثمار الفراولة. الظروف مطابقة للهدف.`};
+  if(tw<16) return {status:'COOL', color:'#2f6f9e', en:`${tw.toFixed(1)}°C — below the 16°C ideal minimum. Growth may slow; reduce cooling.`, ar:`${tw.toFixed(1)}°م — تحت الحد الأدنى المثالي 16°م. قد ينمو ببطء؛ قلّل التبريد.`};
+  if(tw>30) return {status:'CRITICAL', color:'var(--danger)', en:`${tw.toFixed(1)}°C — heat stress, above the 30°C safety line. Maximise cooling + airflow and add shade.`, ar:`${tw.toFixed(1)}°م — إجهاد حراري فوق حد الأمان 30°م. زد التبريد والتهوية وأضف تظليلاً.`};
+  const A=adaptiveTemp(); const ach=A.achievable;
+  if(ach!=null){
+    const gap=parseFloat((tw-ach).toFixed(1));
+    if(gap<=1) return {status:'OPTIMAL', color:'#16894E', en:`${tw.toFixed(1)}°C — as cool as physically possible today (best achievable ~${ach}°C against ${outside}°C outside). Cooling is at its limit; above 22°C only because of the heat.`, ar:`${tw.toFixed(1)}°م — أبرد ما يمكن فيزيائياً اليوم (أفضل ممكن ~${ach}°م مقابل ${outside}°م خارجياً). التبريد عند حده الأقصى.`};
+    if(gap<=3) return {status:'GOOD', color:'#16894E', en:`${tw.toFixed(1)}°C — good for the conditions (best achievable ~${ach}°C). Only a small margin to the physical limit; keep cooling steady.`, ar:`${tw.toFixed(1)}°م — جيد للظروف (أفضل ممكن ~${ach}°م). هامش صغير للحد الفيزيائي؛ حافظ على التبريد.`};
+    if(gap<=5) return {status:'MONITOR', color:'var(--gold)', en:`${tw.toFixed(1)}°C — about ${gap}°C above what's achievable (~${ach}°C). Room to improve: check pad wetting, airflow, and shade.`, ar:`${tw.toFixed(1)}°م — نحو ${gap}°م فوق الممكن (~${ach}°م). مجال للتحسين: افحص ترطيب الألواح والتهوية والتظليل.`};
+    return {status:'CHECK COOLING', color:'var(--danger)', en:`${tw.toFixed(1)}°C — ${gap}°C above achievable (~${ach}°C). Cooling is underperforming: inspect the pump, pads, and airflow.`, ar:`${tw.toFixed(1)}°م — ${gap}°م فوق الممكن (~${ach}°م). التبريد دون المستوى: افحص المضخة والألواح والتهوية.`};
+  }
+  // No outside data — fall back to the fixed band.
+  if(tw>26) return {status:'TOO HOT', color:'var(--danger)', en:`${(tw-26).toFixed(1)}°C above the 26°C critical line. Raise cooling + humidity.`, ar:`${(tw-26).toFixed(1)}°م فوق الحد الحرج 26°م. ارفع التبريد والرطوبة.`};
+  return {status:'MONITOR', color:'var(--gold)', en:`${tw.toFixed(1)}°C — above the 16–22°C ideal band. Nudge cooling up.`, ar:`${tw.toFixed(1)}°م — فوق النطاق المثالي 16–22°م. ارفع التبريد قليلاً.`};
 }
 function renderTempVerdict(){
   const box=$('tempVerdict'); if(!box)return;
@@ -837,6 +859,7 @@ function renderTempVerdict(){
   const lo=14,hi=34,pct=x=>Math.max(0,Math.min(100,((x-lo)/(hi-lo))*100));
   const grad=`linear-gradient(90deg,#7fb0d6 0%,#7fb0d6 ${pct(16)}%,#16894E ${pct(16)}%,#16894E ${pct(22)}%,#C49A3A ${pct(22)}%,#C49A3A ${pct(26)}%,#C0392B ${pct(26)}%,#C0392B 100%)`;
   const markPct=tw!=null?pct(tw):null;
+  const A=adaptiveTemp();const achPct=A.achievable!=null?pct(A.achievable):null;
   box.innerHTML=`<div style="background:var(--card);border:1px solid ${V.color};border-left:5px solid ${V.color};border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
       <div><div class="i18n-en" style="font-size:.62rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Greenhouse Temperature Status</div>
@@ -847,12 +870,13 @@ function renderTempVerdict(){
       <div style="flex-shrink:0"><div style="font-family:var(--mono);font-size:2.6rem;font-weight:950;letter-spacing:-.06em;color:${V.color};line-height:1">${tw!=null?tw.toFixed(1)+'°C':'—'}</div>
       <div style="font-size:.6rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Weighted greenhouse avg</div></div>
       <div style="flex:1;min-width:220px">
-        <div style="position:relative;height:12px;border-radius:6px;background:${grad}">${markPct!=null?`<div style="position:absolute;top:-4px;bottom:-4px;left:${markPct}%;width:3px;background:#0d1b12;border-radius:2px;box-shadow:0 0 0 2px #fff"></div>`:''}</div>
+        <div style="position:relative;height:12px;border-radius:6px;background:${grad}">${achPct!=null?`<div title="best achievable today" style="position:absolute;top:-8px;left:${achPct}%;transform:translateX(-50%);font-size:.6rem;color:#8B5E00;line-height:1">▼</div>`:''}${markPct!=null?`<div style="position:absolute;top:-4px;bottom:-4px;left:${markPct}%;width:3px;background:#0d1b12;border-radius:2px;box-shadow:0 0 0 2px #fff"></div>`:''}</div>
         <div style="display:flex;justify-content:space-between;font-size:.56rem;color:var(--muted);font-family:var(--mono);margin-top:4px"><span>14°</span><span>16 ideal 22</span><span>26 crit</span><span>34°</span></div>
       </div>
     </div>
     <div class="i18n-en" style="margin-top:12px;font-size:.82rem;color:var(--deep);line-height:1.55">${V.en}</div>
     <div class="i18n-ar" style="font-family:var(--ar);font-size:.76rem;color:var(--muted);direction:rtl;margin-top:3px">${V.ar}</div>
+    ${A.achievable!=null?`<div style="margin-top:8px;font-size:.6rem;color:var(--muted);font-family:var(--mono);border-top:1px dashed var(--border);padding-top:6px"><span class="i18n-en">▼ Ideal 16–22°C · best achievable today ~${A.achievable}°C (outside wet-bulb ${A.wetBulb}°C)</span><span class="i18n-ar">▼ المثالي 16–22°م · أفضل ممكن اليوم ~${A.achievable}°م (البصيلة الرطبة خارجياً ${A.wetBulb}°م)</span></div>`:''}
   </div>`;
 }
 // PARENT INDICATOR — correlates every thermal signal into one health index.
@@ -865,7 +889,7 @@ function thermalHealth(){
   const outside=S.live.outsideTemp;
   const summer=outside!=null&&outside>38;
   const comps=[];
-  if(tw!=null){let s;if(tw>26)s=30;else if(tw>24)s=summer?80:55;else if(tw>22)s=summer?90:75;else if(tw>=16)s=100;else s=70;comps.push({k:'Canopy temp',w:0.50,s,v:tw.toFixed(1)+'°C'});}
+  if(tw!=null){const A=adaptiveTemp();let s;if(tw>=16&&tw<=24)s=100;else if(tw>30)s=25;else if(A.achievable!=null){const gap=tw-A.achievable;s=gap<=1?95:gap<=3?85:gap<=5?60:35;}else{s=tw>26?45:70;}comps.push({k:'Canopy temp',w:0.50,s,v:tw.toFixed(1)+'°C'});}
   if(vpd!=null){let s;if(vpd>1.5)s=25;else if(vpd>1.3)s=45;else if(vpd>1.0)s=70;else if(vpd<0.4)s=70;else s=100;comps.push({k:'VPD',w:0.25,s,v:Number(vpd).toFixed(2)+' kPa'});}
   if(irr!=null){let s;if(irr>26)s=30;else if(irr>22)s=60;else s=100;comps.push({k:'Irrigation water',w:0.15,s,v:irr.toFixed(1)+'°C'});}
   if(grad!=null){let s;if(grad<0)s=20;else if(grad<1)s=55;else if(grad<3)s=85;else s=100;comps.push({k:'Cooling gradient',w:0.10,s,v:(grad>0?'+':'')+grad.toFixed(1)+'°C'});}
