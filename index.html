@@ -370,7 +370,7 @@ img,svg,canvas{max-width:100%}
       <div id="humidityStatus" class="badge">Optimal</div>
     </div>
     <div class="metric-value"><span id="humidityValue" class="metric-number">&mdash;</span><span class="unit">%</span></div>
-    <div class="optimal">Operational range: 60&ndash;75 %</div>
+    <div class="optimal" id="humRangeLabel">Operational range: 60&ndash;75 %</div>
     <div class="mc-bar"><div class="mc-bar-fill" id="bar-hum" style="width:0%"></div></div>
     <svg class="spark" viewBox="0 0 220 28" preserveAspectRatio="none"><path class="fill" d="M0 21 C24 22 31 11 51 9 S86 27 111 18 137 11 154 20 186 27 220 8 V28 H0Z"/><path d="M0 21 C24 22 31 11 51 9 S86 27 111 18 137 11 154 20 186 27 220 8"/></svg>
     <div class="mc-hint">Click to drill down by zone</div>
@@ -382,7 +382,7 @@ img,svg,canvas{max-width:100%}
       <div id="vpdStatus" class="badge">Optimal</div>
     </div>
     <div class="metric-value"><span id="vpdValue" class="metric-number">&mdash;</span><span class="unit">kPa</span></div>
-    <div class="optimal">Operational range: 0.5&ndash;1.0 kPa</div>
+    <div class="optimal" id="vpdRangeLabel">Operational range: 0.5&ndash;1.0 kPa</div>
     <div class="mc-bar"><div class="mc-bar-fill" id="bar-vpd" style="width:0%"></div></div>
     <svg class="spark" viewBox="0 0 220 28" preserveAspectRatio="none"><path class="fill" d="M0 21 C22 11 32 18 45 16 S75 7 99 19 132 28 152 15 185 7 220 14 V28 H0Z"/><path d="M0 21 C22 11 32 18 45 16 S75 7 99 19 132 28 152 15 185 7 220 14"/></svg>
     <div class="mc-hint">Click to isolate metric</div>
@@ -774,8 +774,23 @@ function getStatus(m,v){if(m==='hum')return(v>=T.hum.ok[0]&&v<=T.hum.ok[1])?'goo
 function getHumBadge(v){if(v>=T.hum.ok[0]&&v<=T.hum.ok[1])return{s:'good',t:'Optimal',ar:'مثالي'};if(v>T.hum.ok[1])return{s:'warning',t:'Elevated',ar:'مرتفع'};if(v>=T.hum.warn[0])return{s:'warning',t:'Below Range',ar:'دون النطاق'};return{s:'danger',t:'Critical',ar:'حرج'};}
 // Temperature badge derives from the adaptive verdict so summer reads "Good"
 // when cooling is at its physical limit, not a permanent red "Above Range".
-function getTempBadge(tw){const V=tempVerdict(tw);const s=V.color==='var(--gold)'?'warn':(V.color==='var(--danger)'?'danger':'good');const map={OPTIMAL:['Optimal','مثالي'],GOOD:['Good','جيد'],MONITOR:['Monitor','راقب'],'QUALITY RISK':['Quality Risk','خطر جودة'],'FROST RISK':['Frost Risk','خطر صقيع'],COOL:['Cool','بارد']};const l=map[V.status]||[V.status,V.status];return{s,t:l[0],ar:l[1]};}
-function getBadge(m,v){if(m==='hum')return getHumBadge(v);if(m==='temp')return getTempBadge(v);const s=getStatus(m,v);const map={co2:{good:'Normal',warn:'Monitor',danger:'Check'},vpd:{good:'Optimal',warn:'Elevated',danger:'Critical'}};const mapAr={co2:{good:'طبيعي',warn:'راقب',danger:'تحقق'},vpd:{good:'مثالي',warn:'مرتفع',danger:'حرج'}};const k=s==='good'?'good':s==='warn'?'warn':'danger';return{s,t:(map[m]||{})[k]||s,ar:(mapAr[m]||{})[k]||''};}
+function getTempBadge(tw){const V=tempVerdict(tw);const s=(V.color==='#16894E'||V.color==='#2f6f9e')?'good':(V.color==='var(--danger)'?'danger':'warn');const map={OPTIMAL:['Optimal','مثالي'],ACCEPTABLE:['Acceptable','مقبول'],MONITOR:['Monitor','راقب'],'QUALITY RISK':['Quality Risk','خطر جودة'],'FROST RISK':['Frost Risk','خطر صقيع'],COOL:['Cool','بارد']};const l=map[V.status]||[V.status,V.status];return{s,t:l[0],ar:l[1]};}
+// LOCKED day/night quality bands for VPD (kPa) and humidity (%). Two-sided:
+// green in ideal, amber in the acceptable band, red beyond the hard limits.
+// VPD tuned for young/establishing plants; both are lower/tighter at night.
+const VPD_BAND={day:{ideal:[0.5,0.9],acc:[0.4,1.1],hard:[0.3,1.3]}, night:{ideal:[0.4,0.8],acc:[0.3,1.0],hard:[0.2,1.1]}};
+const HUM_BAND={day:{ideal:[60,75],acc:[50,85],hard:[40,90]}, night:{ideal:[70,85],acc:[60,90],hard:[45,92]}};
+function isDayNow(){const h=new Date().getHours();return h>=6&&h<18;}
+function bandNow(B){return isDayNow()?B.day:B.night;}
+function judgeBand(v,b){const ilo=b.ideal[0],ihi=b.ideal[1];
+  if(v>=ilo&&v<=ihi)return{sev:0,side:0};
+  if(v<b.hard[0])return{sev:3,side:-1};if(v>b.hard[1])return{sev:3,side:1};
+  if(v>=b.acc[0]&&v<=b.acc[1])return{sev:1,side:v<ilo?-1:1};
+  return{sev:2,side:v<ilo?-1:1};}
+function getBandBadge(m,v){const j=judgeBand(v,bandNow(m==='vpd'?VPD_BAND:HUM_BAND));
+  const L={'0':['Optimal','مثالي','good'],'1-':['Below Ideal','دون المثالي','warn'],'1+':['Above Ideal','فوق المثالي','warn'],'2-':['Low','منخفض','warn'],'2+':['Elevated','مرتفع','warn'],'3-':['Too Low','منخفض جداً','danger'],'3+':['Too High','مرتفع جداً','danger']};
+  const e=L[j.sev===0?'0':j.sev+(j.side<0?'-':'+')];return{s:e[2],t:e[0],ar:e[1]};}
+function getBadge(m,v){if(m==='temp')return getTempBadge(v);if(m==='vpd'||m==='hum')return getBandBadge(m,v);const s=getStatus(m,v);const map={co2:{good:'Normal',warn:'Monitor',danger:'Check'}};const mapAr={co2:{good:'طبيعي',warn:'راقب',danger:'تحقق'}};const k=s==='good'?'good':s==='warn'?'warn':'danger';return{s,t:(map[m]||{})[k]||s,ar:(mapAr[m]||{})[k]||''};}
 function col(s){return s==='good'?'#16894E':s==='warn'?'var(--gold)':'var(--danger)';}
 function rangeBar(m,v){const t=T[m];return clamp(((v-t.warn[0])/(t.warn[1]-t.warn[0]))*100,0,100);}
 function renderMetrics(){
@@ -803,12 +818,14 @@ function updateCard(m,v){
   const valMap={co2:'co2Value',temp:'tempValue',hum:'humidityValue',vpd:'vpdValue'};
   const badgeMap={co2:'co2Status',temp:'tempStatus',hum:'humidityStatus',vpd:'vpdStatus'};
   const mc=$(idMap[m]);if(!mc)return;
-  const bd=getBadge(m,v);const cls=bd.s==='good'?'good':bd.s==='warning'?'warning':'danger';
+  const bd=getBadge(m,v);const cls=bd.s==='good'?'good':(bd.s==='warn'||bd.s==='warning')?'warning':'danger';
   const sel=mc.classList.contains('selected');
   mc.className='metric '+cls+(sel?' selected':'');
   const valEl=$(valMap[m]);if(valEl)valEl.textContent=m==='vpd'?Number(v).toFixed(2):m==='temp'?Number(v).toFixed(1):Math.round(v);
   const badgeEl=$(badgeMap[m]);if(badgeEl)badgeEl.textContent=(siteLang==='ar'&&bd.ar)?bd.ar:(bd.t||bd.s);
   if(m==='temp'){const B=seasonBand();const rl=$('tempRangeLabel');if(rl)rl.textContent=siteLang==='ar'?`نطاق ${B.nameAr} (${B.isDay?'نهاراً':'ليلاً'}): ${B.ideal[0]}–${B.ideal[1]}°م`:`${B.name} ${B.isDay?'day':'night'} range: ${B.ideal[0]}–${B.ideal[1]}°C`;}
+  else if(m==='vpd'){const b=bandNow(VPD_BAND);const rl=$('vpdRangeLabel');if(rl)rl.textContent=siteLang==='ar'?`نطاق ${isDayNow()?'النهار':'الليل'}: ${b.ideal[0]}–${b.ideal[1]} kPa`:`${isDayNow()?'Day':'Night'} range: ${b.ideal[0]}–${b.ideal[1]} kPa`;}
+  else if(m==='hum'){const b=bandNow(HUM_BAND);const rl=$('humRangeLabel');if(rl)rl.textContent=siteLang==='ar'?`نطاق ${isDayNow()?'النهار':'الليل'}: ${b.ideal[0]}–${b.ideal[1]}%`:`${isDayNow()?'Day':'Night'} range: ${b.ideal[0]}–${b.ideal[1]}%`;}
   const barEl=$('bar-'+m);if(barEl)barEl.style.width=rangeBar(m,parseFloat(v))+'%';
 }
 // Stull (2011) wet-bulb approximation from dry-bulb temp and RH.
@@ -861,8 +878,8 @@ function tempVerdict(tw){
   if(B.frost!=null && tw<=B.frost) return {status:'FROST RISK', color:'var(--danger)', en:`${tw.toFixed(1)}°C — frost risk. Protect the crop immediately.`, ar:`${tw.toFixed(1)}°م — خطر صقيع. احمِ المحصول فوراً.`};
   if(tw<lo) return {status:'COOL', color:'#2f6f9e', en:`${tw.toFixed(1)}°C — below the ${ctx}. Cool; growth may slow but fruit quality is safe.`, ar:`${tw.toFixed(1)}°م — تحت ${ctxAr}. بارد؛ قد يبطؤ النمو لكن الجودة آمنة.`};
   if(tw<=hi) return {status:'OPTIMAL', color:'#16894E', en:`${tw.toFixed(1)}°C — on target for the ${ctx}. Ideal for fruit quality.`, ar:`${tw.toFixed(1)}°م — ضمن ${ctxAr}. مثالي لجودة الثمار.`};
-  if(tw<=B.watch) return {status:'GOOD', color:'#16894E', en:`${tw.toFixed(1)}°C — a little above the ${ctx} but within the acceptable seasonal range. Quality not affected; keep cooling steady.`, ar:`${tw.toFixed(1)}°م — أعلى قليلاً من ${ctxAr} لكن ضمن النطاق الموسمي المقبول. الجودة غير متأثرة؛ حافظ على التبريد.`};
-  if(tw<=B.crit) return {status:'MONITOR', color:'var(--gold)', en:`${tw.toFixed(1)}°C — above the acceptable ${ctx}. Fruit quality beginning to be at risk. Increase cooling, airflow, or shade.`, ar:`${tw.toFixed(1)}°م — فوق النطاق المقبول ${ctxAr}. جودة الثمار بدأت تتأثر. زد التبريد أو التهوية أو التظليل.`};
+  if(tw<=B.watch) return {status:'ACCEPTABLE', color:'var(--gold)', en:`${tw.toFixed(1)}°C — above the ${ctx} but within the acceptable seasonal range. Quality still safe; keep cooling steady.`, ar:`${tw.toFixed(1)}°م — أعلى من ${ctxAr} لكن ضمن النطاق الموسمي المقبول. الجودة آمنة؛ حافظ على التبريد.`};
+  if(tw<=B.crit) return {status:'MONITOR', color:'#C4662A', en:`${tw.toFixed(1)}°C — above the acceptable ${ctx}. Fruit quality beginning to be at risk. Increase cooling, airflow, or shade.`, ar:`${tw.toFixed(1)}°م — فوق النطاق المقبول ${ctxAr}. جودة الثمار بدأت تتأثر. زد التبريد أو التهوية أو التظليل.`};
   return {status:'QUALITY RISK', color:'var(--danger)', en:`${tw.toFixed(1)}°C — above the ${B.crit}°C seasonal limit. Real quality damage (soft fruit, poor set, low sugars). Maximise cooling + shade now.`, ar:`${tw.toFixed(1)}°م — فوق الحد الموسمي ${B.crit}°م. ضرر حقيقي بالجودة (ثمار طرية، عقد ضعيف، سكر منخفض). زد التبريد والتظليل الآن.`};
 }
 function renderTempVerdict(){
@@ -1067,7 +1084,7 @@ function checkAlerts(){
   const{tempW,humW,vpd}=S.live;if(tempW===null)return;
   const now=Date.now();
   const issues=[];
-  if(tempW>ALERT_TEMP){
+  if(tempW>seasonBand().watch){
     if(!ALERT_TIMERS.temp)ALERT_TIMERS.temp=now;
     const mins=Math.round((now-ALERT_TIMERS.temp)/60000);
     const children=[];
