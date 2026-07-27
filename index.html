@@ -358,7 +358,7 @@ img,svg,canvas{max-width:100%}
       <div id="tempStatus" class="badge">Optimal</div>
     </div>
     <div class="metric-value"><span id="tempValue" class="metric-number">&mdash;</span><span class="unit">&deg;C</span></div>
-    <div class="optimal">Operational range: 16&ndash;22 &deg;C</div>
+    <div class="optimal" id="tempRangeLabel">Operational range: 16&ndash;22 &deg;C</div>
     <div class="mc-bar"><div class="mc-bar-fill" id="bar-temp" style="width:0%"></div></div>
     <svg class="spark" viewBox="0 0 220 28" preserveAspectRatio="none"><path class="fill" d="M0 22 C25 8 40 18 58 16 S98 5 122 18 154 26 176 12 201 8 220 18 V28 H0Z"/><path d="M0 22 C25 8 40 18 58 16 S98 5 122 18 154 26 176 12 201 8 220 18"/></svg>
     <div class="mc-hint">Click to drill down by zone</div>
@@ -808,6 +808,7 @@ function updateCard(m,v){
   mc.className='metric '+cls+(sel?' selected':'');
   const valEl=$(valMap[m]);if(valEl)valEl.textContent=m==='vpd'?Number(v).toFixed(2):m==='temp'?Number(v).toFixed(1):Math.round(v);
   const badgeEl=$(badgeMap[m]);if(badgeEl)badgeEl.textContent=(siteLang==='ar'&&bd.ar)?bd.ar:(bd.t||bd.s);
+  if(m==='temp'){const B=seasonBand();const rl=$('tempRangeLabel');if(rl)rl.textContent=siteLang==='ar'?`نطاق ${B.nameAr} (${B.isDay?'نهاراً':'ليلاً'}): ${B.ideal[0]}–${B.ideal[1]}°م`:`${B.name} ${B.isDay?'day':'night'} range: ${B.ideal[0]}–${B.ideal[1]}°C`;}
   const barEl=$('bar-'+m);if(barEl)barEl.style.width=rangeBar(m,parseFloat(v))+'%';
 }
 // Stull (2011) wet-bulb approximation from dry-bulb temp and RH.
