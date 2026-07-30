@@ -780,11 +780,18 @@ function getTempBadge(tw){const V=tempVerdict(tw);const s=(V.color==='#16894E'||
 // VPD tuned for young/establishing plants; both are lower/tighter at night.
 const VPD_BAND={day:{ideal:[0.5,0.9],acc:[0.4,1.1],hard:[0.3,1.3]}, night:{ideal:[0.4,0.8],acc:[0.3,1.0],hard:[0.2,1.1]}};
 const HUM_BAND={day:{ideal:[60,75],acc:[50,85],hard:[40,90]}, night:{ideal:[70,85],acc:[60,90],hard:[45,92]}};
+// The farm is Asia/Riyadh (UTC+3, no DST). ALL time-of-day logic is anchored to
+// the farm, never the viewer's device — so it reads correctly whether you're in
+// Riyadh, the Maldives, or anywhere else. Pass a Date (defaults to now).
+function riyadhParts(date){
+  const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Riyadh',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(date||new Date());
+  const g=t=>(p.find(x=>x.type===t)||{value:'0'}).value;
+  return {year:+g('year'),month:+g('month'),day:+g('day'),hour:+g('hour')%24,minute:+g('minute'),second:+g('second'),dayKey:g('year')+'-'+g('month')+'-'+g('day')};
+}
 // Day vs night by APPROXIMATE Riyadh daylight, seasonally, plus greenhouse
 // thermal lag in the evening (the house stays warm well past sunset in summer).
-// This decides which day/night quality band applies to temp, VPD and humidity.
 function isDayNow(){
-  const now=new Date();const h=now.getHours()+now.getMinutes()/60;const m=now.getMonth()+1;
+  const r=riyadhParts();const h=r.hour+r.minute/60;const m=r.month;
   let start=6,end=19;
   if([12,1,2].includes(m)){start=7;end=17;}          // winter: short days
   else if([5,6,7,8,9].includes(m)){start=6;end=20;}  // summer: long days + hot evenings
@@ -871,7 +878,7 @@ const TEMP_SEASONS=[
   {name:'Summer',        ar:'الصيف',         months:[5,6,7,8,9], day:{ideal:[18,26],watch:28,crit:30}, night:{ideal:[12,18],watch:22,crit:25}, frost:null}
 ];
 function seasonBand(){
-  const month=new Date().getMonth()+1;
+  const month=riyadhParts().month;
   const isDay=isDayNow();
   const s=TEMP_SEASONS.find(x=>x.months.includes(month))||TEMP_SEASONS[0];
   const b=isDay?s.day:s.night;
@@ -1384,10 +1391,10 @@ async function renderHeatHours(){
   data.forEach(r=>{
     let t=r.temp_weighted; if(!t&&r.temperature)t=r.temperature; t=parseFloat(t);
     if(isNaN(t)||t<5||t>50)return;
-    const d=new Date(r.recorded_at);
-    const dayKey=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    const hk=dayKey+'|'+d.getHours();
-    if(!hourAvg[hk])hourAvg[hk]={sum:0,n:0,day:dayKey,hour:d.getHours(),date:new Date(d.getFullYear(),d.getMonth(),d.getDate())};
+    const rp=riyadhParts(new Date(r.recorded_at));
+    const dayKey=rp.dayKey;
+    const hk=dayKey+'|'+rp.hour;
+    if(!hourAvg[hk])hourAvg[hk]={sum:0,n:0,day:dayKey,hour:rp.hour,date:new Date(rp.year,rp.month-1,rp.day)};
     hourAvg[hk].sum+=t;hourAvg[hk].n++;
   });
   const days={};
@@ -1401,8 +1408,7 @@ async function renderHeatHours(){
   });
   const arr=Object.entries(days).map(([k,v])=>({day:k,...v})).sort((a,b)=>a.date-b.date);
   _heatDays=arr.slice(-7);
-  const now=new Date();
-  _heatTodayKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  _heatTodayKey=riyadhParts().dayKey;
   if(!_heatSel||!_heatDays.find(d=>d.day===_heatSel))_heatSel=_heatTodayKey; // keep a valid selection across refreshes
   renderHeatCard();
 }
@@ -1558,7 +1564,7 @@ function renderAmbientCompare(){
 const STRESS={date:null,t:0,h:0,v:0};
 function updateStressTracker(){
   const{tempW,humW,vpd}=S.live;if(tempW===null)return;
-  const today=new Date().toDateString();
+  const today=riyadhParts().dayKey;
   if(STRESS.date!==today){STRESS.date=today;STRESS.t=0;STRESS.h=0;STRESS.v=0;}
   if(tempW>22)STRESS.t++;if(humW&&(humW>75||humW<60))STRESS.h++;if(vpd>1.0)STRESS.v++;
   const tEl=$('stressTempMins'),hEl=$('stressHumMins'),vEl=$('stressVpdMins');
@@ -2249,8 +2255,8 @@ document.addEventListener('DOMContentLoaded',async function(){
   setInterval(renderHeatHours,600000);
   setInterval(()=>{
     const n=new Date();
-    const ts=$('timestamp');if(ts)ts.textContent=n.toLocaleTimeString('en-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    const ds=$('dateStamp');if(ds)ds.textContent=n.toLocaleDateString('en-SA',{day:'2-digit',month:'short',year:'numeric'});
+    const ts=$('timestamp');if(ts)ts.textContent=n.toLocaleTimeString('en-SA',{timeZone:'Asia/Riyadh',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const ds=$('dateStamp');if(ds)ds.textContent=n.toLocaleDateString('en-SA',{timeZone:'Asia/Riyadh',day:'2-digit',month:'short',year:'numeric'});
   },1000);
   const ov=$('reportsOverlay');
   if(ov)ov.addEventListener('click',function(e){if(e.target===this)closeReports();});
