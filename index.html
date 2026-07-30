@@ -780,7 +780,17 @@ function getTempBadge(tw){const V=tempVerdict(tw);const s=(V.color==='#16894E'||
 // VPD tuned for young/establishing plants; both are lower/tighter at night.
 const VPD_BAND={day:{ideal:[0.5,0.9],acc:[0.4,1.1],hard:[0.3,1.3]}, night:{ideal:[0.4,0.8],acc:[0.3,1.0],hard:[0.2,1.1]}};
 const HUM_BAND={day:{ideal:[60,75],acc:[50,85],hard:[40,90]}, night:{ideal:[70,85],acc:[60,90],hard:[45,92]}};
-function isDayNow(){const h=new Date().getHours();return h>=6&&h<18;}
+// Day vs night by APPROXIMATE Riyadh daylight, seasonally, plus greenhouse
+// thermal lag in the evening (the house stays warm well past sunset in summer).
+// This decides which day/night quality band applies to temp, VPD and humidity.
+function isDayNow(){
+  const now=new Date();const h=now.getHours()+now.getMinutes()/60;const m=now.getMonth()+1;
+  let start=6,end=19;
+  if([12,1,2].includes(m)){start=7;end=17;}          // winter: short days
+  else if([5,6,7,8,9].includes(m)){start=6;end=20;}  // summer: long days + hot evenings
+  else {start=6.5;end=18.5;}                           // spring/autumn
+  return h>=start&&h<end;
+}
 function bandNow(B){return isDayNow()?B.day:B.night;}
 function judgeBand(v,b){const ilo=b.ideal[0],ihi=b.ideal[1];
   if(v>=ilo&&v<=ihi)return{sev:0,side:0};
@@ -861,8 +871,8 @@ const TEMP_SEASONS=[
   {name:'Summer',        ar:'الصيف',         months:[5,6,7,8,9], day:{ideal:[18,26],watch:28,crit:30}, night:{ideal:[12,18],watch:22,crit:25}, frost:null}
 ];
 function seasonBand(){
-  const now=new Date();const month=now.getMonth()+1;const hour=now.getHours();
-  const isDay=hour>=6&&hour<18;
+  const month=new Date().getMonth()+1;
+  const isDay=isDayNow();
   const s=TEMP_SEASONS.find(x=>x.months.includes(month))||TEMP_SEASONS[0];
   const b=isDay?s.day:s.night;
   return {name:s.name,nameAr:s.ar,isDay,ideal:b.ideal,watch:b.watch,crit:b.crit,frost:s.frost};
