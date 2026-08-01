@@ -1476,22 +1476,28 @@ function renderWaterAlerts(){
   const strip=$('waterTempStrip'), box=$('waterAlerts');
   if(!strip||!box)return;
   const items=[
-    {label:'Irrigation Water',ar:'ماء الري',temp:S.water.irrigation},
-    {label:'Outside Water',ar:'الماء الخارجي',temp:S.water.outside}
+    {label:'Irrigation Water',ar:'ماء الري',note:'to the roots · للجذور',temp:S.water.irrigation,root:true},
+    {label:'Outside Water',ar:'الماء الخارجي',note:'supply · informational · معلوماتي',temp:S.water.outside,root:false}
   ];
   strip.innerHTML=items.map(it=>{
     const v=it.temp;
-    const color=v===null?'var(--muted)':v>26?'var(--danger)':v>22?'var(--gold)':'#16894E';
+    // Only the irrigation water (what reaches the roots) is colour-coded by
+    // risk. The outside/supply tank is neutral — it's informational.
+    const color=v===null?'var(--muted)':(it.root?(v>26?'var(--danger)':v>22?'var(--gold)':'#16894E'):'var(--deep)');
     return `<div style="flex:1;background:rgba(6,68,46,.05);border:1px solid rgba(6,68,46,.1);border-radius:10px;padding:8px 10px">`
       +`<div style="font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)">${it.label} &middot; ${it.ar}</div>`
       +`<div style="font-size:1.15rem;font-weight:800;color:${color};font-family:var(--mono)">${v===null?'&mdash;':v.toFixed(1)+'&deg;C'}</div>`
+      +`<div style="font-size:.5rem;color:var(--muted);margin-top:1px">${it.note}</div>`
       +`</div>`;
   }).join('');
   const alerts=[];
-  for(const it of items){
-    const v=it.temp; if(v===null)continue;
-    if(v>26)alerts.push({tag:'CRITICAL',en:`${it.label} ${v.toFixed(1)}°C — CRITICAL: root damage risk. Cool or exchange the water immediately.`,ar:`حرارة ${it.ar} ${v.toFixed(1)}°م — حرج: خطر تلف الجذور. برّد أو استبدل الماء فوراً.`});
-    else if(v>22)alerts.push({tag:'URGENT',en:`${it.label} ${v.toFixed(1)}°C — URGENT: above 22°C. Increase cooling or shade the supply.`,ar:`حرارة ${it.ar} ${v.toFixed(1)}°م — عاجل: فوق 22°م. زد التبريد أو ظلّل المصدر.`});
+  // Only the IRRIGATION water reaches the roots. The outside/supply tank is
+  // informational (it shows how hard the cooling is working) and never raises a
+  // root-damage alert — the plants drink from the cooled inside tank.
+  const iw=S.water.irrigation;
+  if(iw!=null){
+    if(iw>26)alerts.push({tag:'CRITICAL',en:`Irrigation water ${iw.toFixed(1)}°C — CRITICAL: root damage risk. Cool or exchange the irrigation water immediately.`,ar:`ماء الري ${iw.toFixed(1)}°م — حرج: خطر تلف الجذور. برّد أو استبدل ماء الري فوراً.`});
+    else if(iw>22)alerts.push({tag:'URGENT',en:`Irrigation water ${iw.toFixed(1)}°C — URGENT: above 22°C at the roots. Increase cooling.`,ar:`ماء الري ${iw.toFixed(1)}°م — عاجل: فوق 22°م عند الجذور. زد التبريد.`});
   }
   // Greenhouse air humidity (Tuya) — Botrytis (grey mould) pressure.
   const ghHum=S.tuya&&S.tuya.gh?S.tuya.gh.hum:null;
