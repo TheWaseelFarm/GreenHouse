@@ -325,7 +325,7 @@ img,svg,canvas{max-width:100%}
     <div class="tb-divider"></div>
     <div class="status-item"><i class="ti ti-calendar"></i><span id="dateStamp">--</span><small data-i18n="st_date">Date</small></div>
     <div class="tb-divider"></div>
-    <div class="status-item"><span class="online-dot"></span><span><span data-i18n="st_online">Systems Online</span><small data-i18n="st_active">All Sensors Active</small></span></div>
+    <div class="status-item"><span class="online-dot" id="sysDot"></span><span><span id="sysText">Systems Online</span><small id="sysSub">All Sensors Active</small></span></div>
   </div>
 </header>
 <div class="status-bar">
@@ -760,6 +760,7 @@ function applySiteLang(){
   // Re-render JS-set text (metric status badges, chart title) so a toggle
   // updates them immediately instead of waiting for the next data refresh.
   try{if(typeof S!=='undefined'&&S.live&&S.live.co2!=null&&typeof renderMetrics==='function')renderMetrics();}catch(_){}
+  try{if(typeof renderFreshness==='function')renderFreshness();}catch(_){}
 }
 function setSiteLang(l){siteLang=l;try{localStorage.setItem('wf_lang',l);}catch(_){}applySiteLang();}
 function toggleSiteLang(){setSiteLang(siteLang==='ar'?'en':'ar');}
@@ -787,6 +788,34 @@ function riyadhParts(date){
   const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Riyadh',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(date||new Date());
   const g=t=>(p.find(x=>x.type===t)||{value:'0'}).value;
   return {year:+g('year'),month:+g('month'),day:+g('day'),hour:+g('hour')%24,minute:+g('minute'),second:+g('second'),dayKey:g('year')+'-'+g('month')+'-'+g('day')};
+}
+// "Last Reading" must reflect the SERVER's most recent stored reading, not the
+// viewer's device clock — so it's honest whether you're on a laptop set to the
+// wrong date, in the Maldives, or anywhere. Also drives the live/stale status.
+async function pollLastReading(){
+  try{
+    const res=await fetch('/api/history?hours=8760&limit=1');
+    const data=await res.json();
+    if(Array.isArray(data)&&data.length&&data[0].recorded_at){
+      const t=Date.parse(data[0].recorded_at);
+      if(!isNaN(t))S.lastReadingAt=t;
+    }
+  }catch(_){}
+  renderFreshness();
+}
+function renderFreshness(){
+  const ts=$('timestamp'),ds=$('dateStamp'),dot=$('sysDot'),txt=$('sysText'),sub=$('sysSub');
+  const ar=siteLang==='ar';
+  if(!S.lastReadingAt){ if(txt)txt.textContent=ar?'بانتظار البيانات':'Awaiting data'; if(sub)sub.textContent=''; return; }
+  const d=new Date(S.lastReadingAt);
+  if(ts)ts.textContent=d.toLocaleTimeString('en-SA',{timeZone:'Asia/Riyadh',hour:'2-digit',minute:'2-digit'});
+  if(ds)ds.textContent=d.toLocaleDateString('en-SA',{timeZone:'Asia/Riyadh',day:'2-digit',month:'short',year:'numeric'});
+  const ageMin=Math.max(0,Math.round((Date.now()-S.lastReadingAt)/60000));
+  const fresh=ageMin<=25; // logged every ~15 min, so >25 min means logging stopped
+  const ago=ageMin<60?(ar?`قبل ${ageMin} دقيقة`:`${ageMin} min ago`):ageMin<1440?(ar?`قبل ${Math.round(ageMin/60)} ساعة`:`${Math.round(ageMin/60)} h ago`):(ar?`قبل ${Math.round(ageMin/1440)} يوم`:`${Math.round(ageMin/1440)} d ago`);
+  if(dot)dot.style.background=fresh?'#16894E':'var(--danger)';
+  if(txt)txt.textContent=fresh?(ar?'متصل — البيانات حديثة':'Live — data fresh'):(ar?'⚠️ البيانات متأخرة':'⚠️ Data delayed');
+  if(sub)sub.textContent=ago;
 }
 // Day vs night by APPROXIMATE Riyadh daylight, seasonally, plus greenhouse
 // thermal lag in the evening (the house stays warm well past sunset in summer).
@@ -2255,15 +2284,13 @@ document.addEventListener('DOMContentLoaded',async function(){
   fetchOutsideTemp();
   fetchTuyaWater();
   renderHeatHours();
+  pollLastReading();
   setInterval(fetchLive,60000);
   setInterval(fetchOutsideTemp,600000);
   setInterval(fetchTuyaWater,120000);
   setInterval(renderHeatHours,600000);
-  setInterval(()=>{
-    const n=new Date();
-    const ts=$('timestamp');if(ts)ts.textContent=n.toLocaleTimeString('en-SA',{timeZone:'Asia/Riyadh',hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    const ds=$('dateStamp');if(ds)ds.textContent=n.toLocaleDateString('en-SA',{timeZone:'Asia/Riyadh',day:'2-digit',month:'short',year:'numeric'});
-  },1000);
+  setInterval(pollLastReading,60000);
+  setInterval(renderFreshness,15000);
   const ov=$('reportsOverlay');
   if(ov)ov.addEventListener('click',function(e){if(e.target===this)closeReports();});
 });
