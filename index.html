@@ -435,7 +435,6 @@ img,svg,canvas{max-width:100%}
         <div class="z-src">Meter &middot; Far end (opposite wet wall)</div>
       </div>
     </div>
-    <div id="tuyaAirStrip" style="display:flex;gap:10px;margin:10px 0"></div>
     <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:12px 2px 6px"><span class="i18n-en">💧 Water Temperatures</span><span class="i18n-ar">💧 حرارة المياه</span></div>
     <div id="waterTempStrip" style="display:flex;gap:10px;margin-bottom:10px"></div>
     <div id="waterCooling" style="margin-bottom:12px"></div>
@@ -469,7 +468,6 @@ img,svg,canvas{max-width:100%}
       <span style="font-size:.72rem;font-weight:700;color:var(--deep)"><span class="i18n-en">Indoor — Outdoor Delta</span><span class="i18n-ar">الفرق بين الداخل والخارج</span></span>
       <span id="coolingDeltaOut" style="font-family:var(--mono);font-weight:950;font-size:.9rem;color:var(--deep)">&mdash;</span>
     </div>
-    <div id="ambientCompare" style="margin-top:2px"></div>
   </div>
   <div class="panel panel-pad" style="display:flex;flex-direction:column;gap:10px">
     <div>
@@ -547,6 +545,7 @@ img,svg,canvas{max-width:100%}
       <button class="zbtn" onclick="zoneClick(this,'hum','compare')">&#x2696; Compare Zones</button>
     </div>
     <div class="chart-note" id="chartNote">Weighted averages: 70% canopy zone + 30% wet wall zone</div>
+    <div id="chartCoverage" style="display:none;margin-top:8px;padding:8px 11px;border-radius:9px;background:rgba(196,57,43,.08);border:1px solid rgba(196,57,43,.2);color:#8B2A1E;font-size:.66rem;font-weight:700;line-height:1.5"></div>
     <button class="refresh-btn" style="margin-top:14px" onclick="doRefresh(this)"><i class="ti ti-refresh"></i>Refresh Data &mdash; &#x62A;&#x62D;&#x62F;&#x64A;&#x62B; &#x627;&#x644;&#x628;&#x64A;&#x627;&#x646;&#x627;&#x62A;</button>
   </section>
   <aside class="panel gauge-panel" id="gaugePanel">
@@ -727,7 +726,7 @@ body.lang-ar #chartTitle{display:none}
 const HUB_ID='FDD0AE072D7C',WATER1_ID='E7760186472B';
 const W_CANOPY=0.70,W_WETWALL=0.30,ALERT_TEMP=26,ALERT_VPD=1.3;
 const T={co2:{ok:[350,500],warn:[300,800]},temp:{ok:[16,22],warn:[14,26]},hum:{ok:[60,75],warn:[50,85]},vpd:{ok:[0.5,1.0],warn:[0,1.3]}};
-const S={live:{co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,tempW:null,humW:null,outsideTemp:null},water:{irrigation:null,outside:null},tuya:{gh:{},out:{}},metric:'all',subView:{temp:'weighted',hum:'weighted'},range:1,lastAlert:0,localHist:[],chart:null,lastWeatherFetch:0};
+const S={live:{co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,tempW:null,humW:null,outsideTemp:null},water:{irrigation:null,outside:null},metric:'all',subView:{temp:'weighted',hum:'weighted'},range:1,lastAlert:0,localHist:[],chart:null,lastWeatherFetch:0};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Global language switch (Arabic/English) for the dashboard chrome. Bilingual
@@ -1200,6 +1199,12 @@ function buildChart(){
   S.chart=new Chart(ctx,{type:'line',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:350,easing:'easeOutQuart'},interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',align:'end',labels:{color:'#06442E',usePointStyle:true,pointStyle:'circle',boxWidth:8,boxHeight:8,padding:16,font:{family:'SFMono-Regular,Consolas,monospace',size:11,weight:'700'}}},tooltip:{backgroundColor:'rgba(6,68,46,0.95)',borderColor:'rgba(196,154,58,0.3)',borderWidth:1,titleColor:'#F8F4EA',bodyColor:'#E6D3A3',padding:11}},scales:{x:{grid:{color:'rgba(6,68,46,0.07)'},ticks:{color:'#6F765F',maxTicksLimit:10,font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},y1:{position:'left',min:350,max:600,title:{display:true,text:'CO₂ ppm',color:'#8FAF7A'},grid:{color:'rgba(6,68,46,0.06)'},ticks:{color:'#8FAF7A',font:{family:'SFMono-Regular,Consolas,monospace',size:10}},border:{color:'rgba(143,175,122,0.3)'}},y2:{position:'right',min:0,max:100,title:{display:true,text:'°C / %',color:'#6F765F'},grid:{display:false},ticks:{color:'#1976D2',font:{family:'SFMono-Regular,Consolas,monospace',size:10}}},y3:{position:'right',display:false,min:0,max:2.5}}}});
 }
 function getDatasets(data,metric,subView){
+  // Plot chronologically (oldest → newest, left → right). The history API returns
+  // newest-first (recorded_at desc), and local live history can arrive in either
+  // order, so sort a copy ascending by timestamp before building labels/series —
+  // otherwise the time axis reads backwards.
+  const ts=r=>new Date(r.recorded_at||r.time||0).getTime();
+  data=Array.isArray(data)?data.slice().sort((a,b)=>ts(a)-ts(b)):data;
   const fmt=r=>{const d=new Date(r.recorded_at||r.time||Date.now());return S.range<=6?d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});};
   const labels=data.map(fmt);
   const calcW=(r,type)=>{const c=type==='temp'?(r.temperature??r.temp):r.humidity;const w=type==='temp'?r.hub_temp:r.hub_humidity;return(c!=null&&w!=null)?parseFloat((c*W_CANOPY+w*W_WETWALL).toFixed(1)):c??null;};
@@ -1217,6 +1222,23 @@ function applyChart(data){
   S.chart.data.labels=labels;S.chart.data.datasets=datasets;
   updateChartAxes(S.metric);S.chart.update();
   if($('chartNote'))$('chartNote').textContent=note;
+  renderChartCoverage(labels.length);
+}
+// Be honest when the selected window is nearly empty. Automated logging writes a
+// reading every ~15 min; a 24h window should hold ~96 points. If far fewer rows
+// exist, the chart isn't wrong — the data simply isn't being logged. Say so
+// instead of drawing a misleading one- or two-point line.
+function renderChartCoverage(points){
+  const el=$('chartCoverage');if(!el)return;
+  if(S.range===1){el.style.display='none';return;} // 1H uses live in-tab history
+  const expected=S.range*4;             // ~4 readings/hour at the 15-min cadence
+  const ratio=expected>0?points/expected:1;
+  if(points>=3&&ratio>=0.5){el.style.display='none';return;}
+  const ar=(typeof siteLang!=='undefined'&&siteLang==='ar');
+  el.style.display='block';
+  el.innerHTML=(ar
+    ?`⚠️ لا يوجد سوى ${points} قراءة في هذه الفترة. التسجيل التلقائي متوقف على ما يبدو — يجب إعادة تفعيل مهمة cron-job.org حتى يمتلئ الرسم البياني.`
+    :`⚠️ Only ${points} reading${points===1?'':'s'} in this window. Automated logging appears to be paused — the cron-job.org task needs re-enabling before this chart can fill in.`);
 }
 function updateChartAxes(metric){
   if(!S.chart)return;
@@ -1273,7 +1295,7 @@ function zoneClick(btn,metric,view){
   var labels={weighted:'Weighted 70/30',canopy:'Canopy Zone',wetwall:'Wet Wall Zone',compare:'Zone Comparison'};
   var ct=$('chartTitle'),ca=$('chartTitleAr');
   if(ct)ct.textContent=(metric==='temp'?'Temperature — ':'Humidity — ')+(labels[view]||view);
-  function applyZone(data){if(!S.chart||!Array.isArray(data)||!data.length)return;var r=getDatasets(data,metric,view);S.chart.data.labels=r.labels;S.chart.data.datasets=r.datasets;updateChartAxes(metric);S.chart.update();var cn=$('chartNote');if(cn)cn.textContent=r.note;}
+  function applyZone(data){if(!S.chart||!Array.isArray(data)||!data.length)return;var r=getDatasets(data,metric,view);S.chart.data.labels=r.labels;S.chart.data.datasets=r.datasets;updateChartAxes(metric);S.chart.update();var cn=$('chartNote');if(cn)cn.textContent=r.note;renderChartCoverage(r.labels.length);}
   if(S.range===1&&S.localHist.length>0)applyZone(S.localHist.map(r=>Object.assign({},r,{recorded_at:r.time})));
   else fetch('/api/history?hours='+S.range+'&limit='+histLimit(S.range)).then(r=>r.json()).then(d=>applyZone(downsampleSeries(d,400))).catch(e=>console.warn('zoneClick:',e.message));
 }
@@ -1372,12 +1394,13 @@ async function fetchTuyaWater(){
     const t=v=>(v===undefined||v===null)?null:v/10;
     S.water.irrigation=t(gh.temp_current_external);
     S.water.outside=t(out.temp_current_external);
-    S.tuya.gh={temp:t(gh.temp_current),hum:gh.humidity_value??null,batt:gh.battery_state??null};
-    S.tuya.out={temp:t(out.temp_current),hum:out.humidity_value??null,batt:out.battery_state??null};
+    // NOTE: the Tuya qxj units also report an onboard air temp/humidity, but the
+    // "greenhouse" unit sits inside the canopy and the "outside" unit is not
+    // truly outdoors — both give misleading air readings. We deliberately use
+    // ONLY the external water probes from these sensors. Air temp/humidity come
+    // from the SwitchBot meters (canopy, wet-wall, far-end, outdoor).
     renderWaterAlerts();
-    renderTuyaAir();
     renderWaterCooling();
-    renderAmbientCompare();
   }catch(e){console.warn('Tuya water:',e.message);}
 }
 // Reference captured on 11 Jul: raw supply 41.5°C cooled to 26.2°C at the roots.
@@ -1482,25 +1505,6 @@ function renderHeatCard(){
     +`<div style="display:flex;gap:4px;align-items:flex-end">${bars}</div>`
     +`<div style="font-size:.56rem;color:var(--muted);margin-top:6px;line-height:1.45">Tap a bar to see that day's window, avg &amp; peak. Above each bar = peak canopy temp; below = heat window (hours &gt;28&deg;C). Bar height = hours &gt;28&deg;C (gold) / &gt;30&deg;C (red).</div></div>`;
 }
-function renderTuyaAir(){
-  const strip=$('tuyaAirStrip');
-  if(!strip)return;
-  const items=[
-    {label:'Greenhouse Air',ar:'هواء البيت',d:S.tuya.gh},
-    {label:'Outside Air',ar:'الهواء الخارجي',d:S.tuya.out}
-  ];
-  strip.innerHTML=items.map(it=>{
-    const temp=it.d&&it.d.temp!=null?it.d.temp:null;
-    const hum=it.d&&it.d.hum!=null?it.d.hum:null;
-    const batt=it.d&&it.d.batt!=null?it.d.batt:null;
-    return `<div style="flex:1;background:rgba(6,68,46,.05);border:1px solid rgba(6,68,46,.1);border-radius:10px;padding:8px 10px">`
-      +`<div style="font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)">${it.label} &middot; ${it.ar}</div>`
-      +`<div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:1.15rem;font-weight:800;color:var(--deep);font-family:var(--mono)">${temp===null?'&mdash;':temp.toFixed(1)+'&deg;C'}</span>`
-      +`<span style="font-size:.72rem;font-weight:700;color:var(--muted);font-family:var(--mono)">${hum===null?'':hum+'%'}</span></div>`
-      +(batt?`<div style="font-size:.54rem;color:var(--muted);margin-top:1px">Battery: ${batt}</div>`:'')
-      +`</div>`;
-  }).join('');
-}
 function renderWaterAlerts(){
   const strip=$('waterTempStrip'), box=$('waterAlerts');
   if(!strip||!box)return;
@@ -1528,11 +1532,13 @@ function renderWaterAlerts(){
     if(iw>26)alerts.push({tag:'CRITICAL',en:`Irrigation water ${iw.toFixed(1)}°C — CRITICAL: root damage risk. Cool or exchange the irrigation water immediately.`,ar:`ماء الري ${iw.toFixed(1)}°م — حرج: خطر تلف الجذور. برّد أو استبدل ماء الري فوراً.`});
     else if(iw>22)alerts.push({tag:'URGENT',en:`Irrigation water ${iw.toFixed(1)}°C — URGENT: above 22°C at the roots. Increase cooling.`,ar:`ماء الري ${iw.toFixed(1)}°م — عاجل: فوق 22°م عند الجذور. زد التبريد.`});
   }
-  // Greenhouse air humidity (Tuya) — Botrytis (grey mould) pressure.
-  const ghHum=S.tuya&&S.tuya.gh?S.tuya.gh.hum:null;
+  // Greenhouse air humidity — Botrytis (grey mould) pressure. Sourced from the
+  // SwitchBot wet-wall Hub 2 (humW), not the Tuya sensor (its air probe sits
+  // inside the canopy and reads unreliably; we use it for water temp only).
+  const ghHum=S.live.humW!=null?S.live.humW:S.live.hum;
   if(ghHum!=null){
-    if(ghHum>90)alerts.push({tag:'CRITICAL',en:`Greenhouse air humidity ${ghHum}% — CRITICAL Botrytis pressure. Ventilate/dehumidify now and stop evening misting.`,ar:`رطوبة هواء البيت ${ghHum}% — ضغط بوتريتيس حرج. شغّل التهوية/إزالة الرطوبة فوراً وأوقف الرذاذ المسائي.`});
-    else if(ghHum>85)alerts.push({tag:'URGENT',en:`Greenhouse air humidity ${ghHum}% — above the 85% Botrytis risk zone. Increase ventilation; check for a damp pocket near the sensor.`,ar:`رطوبة هواء البيت ${ghHum}% — فوق نطاق خطر البوتريتيس 85%. زد التهوية وتحقق من رطوبة موضعية قرب المستشعر.`});
+    if(ghHum>90)alerts.push({tag:'CRITICAL',en:`Greenhouse air humidity ${ghHum.toFixed(0)}% — CRITICAL Botrytis pressure. Ventilate/dehumidify now and stop evening misting.`,ar:`رطوبة هواء البيت ${ghHum.toFixed(0)}% — ضغط بوتريتيس حرج. شغّل التهوية/إزالة الرطوبة فوراً وأوقف الرذاذ المسائي.`});
+    else if(ghHum>85)alerts.push({tag:'URGENT',en:`Greenhouse air humidity ${ghHum.toFixed(0)}% — above the 85% Botrytis risk zone. Increase ventilation; check for a damp pocket near the wet wall.`,ar:`رطوبة هواء البيت ${ghHum.toFixed(0)}% — فوق نطاق خطر البوتريتيس 85%. زد التهوية وتحقق من رطوبة موضعية قرب الجدار الرطب.`});
   }
   box.innerHTML=alerts.map(a=>`<div class="dec-item"><span class="ptag ph">${a.tag}</span><div><div class="dec-en">${a.en}</div><div class="dec-ar">${a.ar}</div></div></div>`).join('');
 }
@@ -1573,28 +1579,6 @@ function renderCoolingScore(){
     }
   }
   renderTempVerdict();
-  renderAmbientCompare();
-}
-// Show the two outdoor sensors side by side so the ~4°C gap (placement / sun
-// exposure) is a comparison, not a mystery. SwitchBot is the canonical ambient.
-function renderAmbientCompare(){
-  const box=$('ambientCompare');if(!box)return;
-  const sb=S.live.outsideTemp, tu=(S.tuya&&S.tuya.out)?S.tuya.out.temp:null;
-  if(sb==null&&tu==null){box.innerHTML='';return;}
-  const ar=siteLang==='ar';
-  const fmt=v=>v==null?'—':v.toFixed(1)+'°C';
-  const delta=(sb!=null&&tu!=null)?Math.abs(sb-tu).toFixed(1):null;
-  const cell=(name,val,primary)=>`<div style="flex:1;text-align:center;padding:6px 4px;background:${primary?'rgba(6,68,46,.06)':'rgba(6,68,46,.03)'};border-radius:8px">`
-    +`<div style="font-size:.52rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)">${name}</div>`
-    +`<div style="font-family:var(--mono);font-size:1rem;font-weight:900;color:var(--deep)">${fmt(val)}</div></div>`;
-  box.innerHTML=`<div style="border:1px solid rgba(6,68,46,.1);border-radius:9px;padding:7px 8px;background:#fff">`
-    +`<div style="font-size:.52rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:5px">${ar?'مقارنة حساسات الخارج':'Outdoor sensors — compare'}</div>`
-    +`<div style="display:flex;gap:6px;align-items:stretch">`
-    +cell(ar?'سويتش بوت ★':'SwitchBot ★',sb,true)
-    +cell(ar?'تويا':'Tuya',tu,false)
-    +(delta!=null?`<div style="flex:0 0 auto;text-align:center;padding:6px 8px;background:rgba(196,154,58,.12);border-radius:8px"><div style="font-size:.52rem;font-weight:800;text-transform:uppercase;color:var(--muted)">${ar?'الفرق':'Δ'}</div><div style="font-family:var(--mono);font-size:1rem;font-weight:900;color:#8B5E00">${delta}°C</div></div>`:'')
-    +`</div>`
-    +`<div style="font-size:.54rem;color:var(--muted);margin-top:5px;line-height:1.4">${ar?'★ سويتش بوت هو المرجع للتبريد. الفرق غالباً بسبب موقع الحساس (شمس مقابل ظل).':'★ SwitchBot is the canonical ambient. The gap is usually sensor placement (sun vs shade).'}</div></div>`;
 }
 const STRESS={date:null,t:0,h:0,v:0};
 function updateStressTracker(){
@@ -2352,8 +2336,6 @@ async function askCouncil(){
     const H=(typeof thermalHealth==='function')?thermalHealth():null;
     const irr=S.water&&S.water.irrigation!=null?S.water.irrigation+'C':'unknown';
     const outW=S.water&&S.water.outside!=null?S.water.outside+'C':'unknown';
-    const ghAir=S.tuya&&S.tuya.gh&&(S.tuya.gh.temp!=null||S.tuya.gh.hum!=null)?((S.tuya.gh.temp!=null?S.tuya.gh.temp+'C':'?')+' / '+(S.tuya.gh.hum!=null?S.tuya.gh.hum+'%':'?')):'unknown';
-    const outAir=S.tuya&&S.tuya.out&&(S.tuya.out.temp!=null||S.tuya.out.hum!=null)?((S.tuya.out.temp!=null?S.tuya.out.temp+'C':'?')+' / '+(S.tuya.out.hum!=null?S.tuya.out.hum+'%':'?')):'unknown';
     // Recent engineer field observations (photos + activities + notes) so the
     // council reasons from what's actually happening on the ground, not only sensors.
     let fieldNotes='None logged in the last 7 days.';
@@ -2383,7 +2365,6 @@ async function askCouncil(){
       +', Water leak: '+(live.w1?'LEAK DETECTED':'dry')+'.'
       +' LAST 24H: Avg temp='+avgT+'C, Max='+maxT+', Min='+minT
       +', Avg humidity='+avgH+'%, Avg VPD='+avgV+' kPa, Avg CO2='+avgC+' ppm.'
-      +' Greenhouse air sensor (Tuya, temp/humidity)='+ghAir+', Outside air sensor (Tuya)='+outAir+'.'
       +' RECENT FIELD LOG (engineer Mohammed — work done & observations):\n'+fieldNotes+'\n'
       +' FARM: 6-line vertical hydroponic tower system, 30x9m greenhouse, 2000L drinking water tank.'
       +' Owner: Khalid AlHakbani. Engineer Mohammed on site.';
