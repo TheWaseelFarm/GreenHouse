@@ -332,6 +332,16 @@ img,svg,canvas{max-width:100%}
   <div class="status-left"><div id="statusDot"></div><div id="statusEn">Initializing sensor network...</div><div id="statusAr">&#x62C;&#x627;&#x631;&#x64A; &#x62A;&#x647;&#x64A;&#x626;&#x629; &#x634;&#x628;&#x643;&#x629; &#x627;&#x644;&#x627;&#x633;&#x62A;&#x634;&#x639;&#x627;&#x631;...</div></div>
   <div id="lastSaved">&mdash;</div>
 </div>
+<section id="sensorHealthBanner" aria-live="polite" style="display:none;margin:0 0 10px;padding:11px 14px;border-radius:12px;background:rgba(196,57,43,.08);border:1px solid rgba(196,57,43,.28)">
+  <div style="display:flex;align-items:flex-start;gap:10px">
+    <span style="font-size:1.1rem;line-height:1.2">📡</span>
+    <div style="flex:1">
+      <div style="font-weight:900;font-size:.82rem;color:#8B2A1E"><span id="shbTitle">Sensor offline</span></div>
+      <div id="shbList" style="font-size:.72rem;color:#8B2A1E;margin-top:3px;line-height:1.55;font-weight:600"></div>
+      <div id="shbHint" style="font-size:.62rem;color:var(--muted);margin-top:4px;line-height:1.5"></div>
+    </div>
+  </div>
+</section>
 <section id="alertBanner" aria-live="polite">
   <div class="alert-main"><i class="ti ti-alert-triangle"></i>
     <div><div class="alert-title">Environment Alert — Action Required</div><div class="alert-ar">&#x62A;&#x646;&#x628;&#x64A;&#x647; &#x628;&#x64A;&#x626;&#x64A; &mdash; &#x64A;&#x633;&#x62A;&#x644;&#x632;&#x645; &#x62A;&#x62F;&#x62E;&#x644;</div></div>
@@ -726,7 +736,7 @@ body.lang-ar #chartTitle{display:none}
 const HUB_ID='FDD0AE072D7C',WATER1_ID='E7760186472B';
 const W_CANOPY=0.70,W_WETWALL=0.30,ALERT_TEMP=26,ALERT_VPD=1.3;
 const T={co2:{ok:[350,500],warn:[300,800]},temp:{ok:[16,22],warn:[14,26]},hum:{ok:[60,75],warn:[50,85]},vpd:{ok:[0.5,1.0],warn:[0,1.3]}};
-const S={live:{co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,tempW:null,humW:null,outsideTemp:null},water:{irrigation:null,outside:null},metric:'all',subView:{temp:'weighted',hum:'weighted'},range:1,lastAlert:0,localHist:[],chart:null,lastWeatherFetch:0};
+const S={live:{co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,tempW:null,humW:null,outsideTemp:null},water:{irrigation:null,outside:null},health:{},metric:'all',subView:{temp:'weighted',hum:'weighted'},range:1,lastAlert:0,localHist:[],chart:null,lastWeatherFetch:0};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Global language switch (Arabic/English) for the dashboard chrome. Bilingual
@@ -760,6 +770,7 @@ function applySiteLang(){
   // updates them immediately instead of waiting for the next data refresh.
   try{if(typeof S!=='undefined'&&S.live&&S.live.co2!=null&&typeof renderMetrics==='function')renderMetrics();}catch(_){}
   try{if(typeof renderFreshness==='function')renderFreshness();}catch(_){}
+  try{if(typeof renderSensorHealth==='function')renderSensorHealth();}catch(_){}
 }
 function setSiteLang(l){siteLang=l;try{localStorage.setItem('wf_lang',l);}catch(_){}applySiteLang();}
 function toggleSiteLang(){setSiteLang(siteLang==='ar'?'en':'ar');}
@@ -815,6 +826,43 @@ function renderFreshness(){
   if(dot)dot.style.background=fresh?'#16894E':'var(--danger)';
   if(txt)txt.textContent=fresh?(ar?'متصل — البيانات حديثة':'Live — data fresh'):(ar?'⚠️ البيانات متأخرة':'⚠️ Data delayed');
   if(sub)sub.textContent=ago;
+}
+// --- Sensor health ------------------------------------------------------
+// Flags a meter as "offline" on the dashboard when it stops returning valid
+// data, so a silent sensor dropout (the wet-wall Hub reading 0/0, a battery
+// dying, Wi-Fi lost) is caught immediately instead of showing up as a weird
+// number. A sensor is only flagged after 2 consecutive failed reads, which
+// rides out transient SwitchBot rate-limit blips.
+const SENSORS={
+  canopy:{en:'Canopy Meter Pro',ar:'حساس المجسّة (المحصول)'},
+  wetwall:{en:'Wet Wall Hub 2',ar:'حساس الجدار الرطب'},
+  outdoor:{en:'Outdoor Meter',ar:'حساس الخارج'},
+  farend:{en:'Far-End Meter',ar:'حساس الطرف البعيد'},
+  water:{en:'Water Temp Probes',ar:'حساسات حرارة الماء'}
+};
+function markSensor(key,ok){
+  const h=S.health[key]||(S.health[key]={ok:true,fails:0,lastGood:0});
+  if(ok){h.ok=true;h.fails=0;h.lastGood=Date.now();}
+  else{h.fails=(h.fails||0)+1;if(h.fails>=2)h.ok=false;}
+  renderSensorHealth();
+}
+function agoText(ts,ar){
+  if(!ts)return ar?'لا توجد قراءة بعد':'no reading yet';
+  const m=Math.max(0,Math.round((Date.now()-ts)/60000));
+  const t=m<60?(ar?`قبل ${m} دقيقة`:`${m} min ago`):m<1440?(ar?`قبل ${Math.round(m/60)} ساعة`:`${Math.round(m/60)} h ago`):(ar?`قبل ${Math.round(m/1440)} يوم`:`${Math.round(m/1440)} d ago`);
+  return t;
+}
+function renderSensorHealth(){
+  const box=$('sensorHealthBanner');if(!box)return;
+  const ar=(typeof siteLang!=='undefined'&&siteLang==='ar');
+  const down=Object.keys(SENSORS).filter(k=>S.health[k]&&S.health[k].ok===false);
+  if(!down.length){box.style.display='none';return;}
+  box.style.display='block';
+  const t=$('shbTitle');if(t)t.textContent=ar?`⚠️ ${down.length} حساس غير متصل`:`⚠️ ${down.length} sensor${down.length>1?'s':''} offline`;
+  const list=$('shbList');
+  if(list)list.innerHTML=down.map(k=>{const s=SENSORS[k],h=S.health[k];const last=ar?` — آخر قراءة ${agoText(h.lastGood,ar)}`:` — last reading ${agoText(h.lastGood,ar)}`;return `• ${ar?s.ar:s.en}${last}`;}).join('<br>');
+  const hint=$('shbHint');
+  if(hint)hint.textContent=ar?'القراءات المتأثرة تُستبعد من المتوسط تلقائياً. تحقق من الطاقة/الواي فاي أو أعد تشغيل الجهاز.':'Affected readings are excluded from the average automatically. Check power/Wi-Fi or power-cycle the device.';
 }
 // Day vs night by APPROXIMATE Riyadh daylight, seasonally, plus greenhouse
 // thermal lag in the evening (the house stays warm well past sunset in summer).
@@ -1330,8 +1378,10 @@ async function fetchLive(){
     if(!b||b.temperature===undefined||b.temperature===null){
       const sEn=$('statusEn');
       if(sEn)sEn.textContent='Sensor data unavailable — SwitchBot rate limit active. Retrying in 60s.';
+      markSensor('canopy',false);
       return;
     }
+    markSensor('canopy',true);
     const co2=b.CO2??b.co2??0,temp=parseFloat(b.temperature??0),hum=parseFloat(b.humidity??0),vpd=calcVPD(temp,hum);
     const [hubRes,w1Res]=await Promise.all([fetch(`/api/status?id=${HUB_ID}`).then(r=>r.json()),fetch(`/api/status?id=${WATER1_ID}`).then(r=>r.json())]);
     const hub=hubRes.body??{};
@@ -1344,6 +1394,7 @@ async function fetchLive(){
     const validTemp=v=>{const n=parseFloat(v);return(!isNaN(n)&&n>5&&n<60)?n:null;};
     const validHum=v=>{const n=parseFloat(v);return(!isNaN(n)&&n>0&&n<=100)?n:null;};
     const hubTemp=validTemp(hub.temperature),hubHum=validHum(hub.humidity);
+    markSensor('wetwall',hubTemp!=null);
     const w1=w1Res.body?.status==='leak_detected'||w1Res.body?.detectionState==='detected';
     const tempW=hubTemp!=null?weighted(temp,hubTemp):parseFloat(temp.toFixed(1));
     const humW=hubHum!=null?weighted(hum,hubHum):parseFloat(hum.toFixed(1));
@@ -1375,9 +1426,11 @@ async function fetchOutsideTemp(){
     S.live.outsideHumidity=num(outdoor.humidity);
     S.live.farEndTemp=num(farEnd.temperature);
     S.live.farEndHumidity=num(farEnd.humidity);
+    markSensor('outdoor',S.live.outsideTemp!=null);
+    markSensor('farend',S.live.farEndTemp!=null);
     renderCoolingScore();
     renderFarEnd();
-  }catch(e){console.warn('Outdoor sensor:',e.message);}
+  }catch(e){console.warn('Outdoor sensor:',e.message);markSensor('outdoor',false);markSensor('farend',false);}
 }
 function renderFarEnd(){
   const t=$('farTemp'), h=$('farHum');
@@ -1402,9 +1455,10 @@ async function fetchTuyaWater(){
     // truly outdoors — both give misleading air readings. We deliberately use
     // ONLY the external water probes from these sensors. Air temp/humidity come
     // from the SwitchBot meters (canopy, wet-wall, far-end, outdoor).
+    markSensor('water',S.water.irrigation!=null);
     renderWaterAlerts();
     renderWaterCooling();
-  }catch(e){console.warn('Tuya water:',e.message);}
+  }catch(e){console.warn('Tuya water:',e.message);markSensor('water',false);}
 }
 // Reference captured on 11 Jul: raw supply 41.5°C cooled to 26.2°C at the roots.
 const WATER_BASELINE={date:'Jul 11',supply:41.5,irrigation:26.2};
