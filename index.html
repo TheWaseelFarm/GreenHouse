@@ -1335,11 +1335,14 @@ async function fetchLive(){
     const co2=b.CO2??b.co2??0,temp=parseFloat(b.temperature??0),hum=parseFloat(b.humidity??0),vpd=calcVPD(temp,hum);
     const [hubRes,w1Res]=await Promise.all([fetch(`/api/status?id=${HUB_ID}`).then(r=>r.json()),fetch(`/api/status?id=${WATER1_ID}`).then(r=>r.json())]);
     const hub=hubRes.body??{};
-    // Reject implausible sensor readings (e.g. a faulty wet-wall hub reporting
-    // -45C) so one bad sensor can't corrupt the weighted average, the cooling
-    // gradient, or the logged history.
-    const validTemp=v=>{const n=parseFloat(v);return(!isNaN(n)&&n>-5&&n<65)?n:null;};
-    const validHum=v=>{const n=parseFloat(v);return(!isNaN(n)&&n>=0&&n<=100)?n:null;};
+    // Reject implausible wet-wall hub readings so one bad sensor can't corrupt
+    // the weighted average, the cooling gradient, or the logged history. Two
+    // known fault modes: a faulted probe reporting -45C, and a DISCONNECTED
+    // sub-sensor reporting exactly 0C / 0% (a running greenhouse is never at 0°C
+    // or 0% humidity). Both must be treated as "no reading" → fall back to the
+    // canopy-only value, never averaged in as if real.
+    const validTemp=v=>{const n=parseFloat(v);return(!isNaN(n)&&n>5&&n<60)?n:null;};
+    const validHum=v=>{const n=parseFloat(v);return(!isNaN(n)&&n>0&&n<=100)?n:null;};
     const hubTemp=validTemp(hub.temperature),hubHum=validHum(hub.humidity);
     const w1=w1Res.body?.status==='leak_detected'||w1Res.body?.detectionState==='detected';
     const tempW=hubTemp!=null?weighted(temp,hubTemp):parseFloat(temp.toFixed(1));
