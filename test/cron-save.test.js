@@ -181,6 +181,28 @@ describe('api/cron-save', () => {
     expect(res.body.hum_weighted).toBe(56.7); // 60*0.7 + 49*0.3
   });
 
+  it('falls back to canopy-only when the wet-wall Hub 2 is disconnected (0/0)', async () => {
+    mockDevice(METER, { temperature: 24.8, humidity: 60, CO2: 800 });
+    mockDevice(HUB, { temperature: 0, humidity: 0 }); // disconnected sub-sensor
+    mockDevice(WATER, {});
+    mockDevice(OUTDOOR, { temperature: 40, humidity: 12 });
+    mockDevice(FAR_END, { temperature: 27, humidity: 63 });
+
+    let saved;
+    nock(SUPA).post('/rest/v1/readings', (b) => { saved = b; return true; }).reply(201, '');
+
+    const res = makeRes();
+    await cronSave(makeReq({ headers: authHeaders }), res);
+
+    expect(res.statusCode).toBe(200);
+    // Must NOT be 24.8*0.7 + 0*0.3 = 17.36 — a dead 0 can't drag the average.
+    expect(res.body.temp_weighted).toBe(24.8);
+    expect(res.body.hum_weighted).toBe(60);
+    expect(res.body.cooling_delta).toBeNull();
+    expect(saved.hub_temp).toBeNull();
+    expect(saved.hub_humidity).toBeNull();
+  });
+
   it('detects a leak via the detectionState field as well', async () => {
     mockDevice(METER, { temperature: 24, humidity: 55, CO2: 700 });
     mockDevice(HUB, { temperature: 23, humidity: 70 });

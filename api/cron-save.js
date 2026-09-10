@@ -36,11 +36,13 @@ module.exports = async (req, res) => {
       fetchDevice(TOKEN, SECRET, FAR_END_ID)
     ]);
  
-    // Reject implausible sensor readings (e.g. a faulted wet-wall Hub 2
-    // reporting -45C) so one bad sensor can't corrupt the weighted average,
-    // the cooling gradient, or the logged history. Mirrors the live dashboard.
-    const validTemp = (v) => { const n = parseFloat(v); return (!isNaN(n) && n > -5 && n < 65) ? n : null; };
-    const validHum  = (v) => { const n = parseFloat(v); return (!isNaN(n) && n >= 0 && n <= 100) ? n : null; };
+    // Reject implausible wet-wall Hub 2 readings so one bad sensor can't corrupt
+    // the weighted average, the cooling gradient, or the logged history. Mirrors
+    // the live dashboard. Two known fault modes: a faulted probe reporting -45C,
+    // and a DISCONNECTED sub-sensor reporting exactly 0C / 0% (a running
+    // greenhouse is never at 0°C or 0% humidity). Both → null (canopy-only).
+    const validTemp = (v) => { const n = parseFloat(v); return (!isNaN(n) && n > 5 && n < 60) ? n : null; };
+    const validHum  = (v) => { const n = parseFloat(v); return (!isNaN(n) && n > 0 && n <= 100) ? n : null; };
 
     // Meter Pro — canopy zone
     const co2      = meterData.CO2 ?? meterData.co2 ?? 0;
