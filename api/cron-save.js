@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
   const SUPA_KEY = process.env.SUPABASE_KEY;
  
   const METER_PRO_ID = 'B0E9FED4881C';
-  const HUB_ID       = 'FDD0AE072D7C';
+  const HUB_ID       = 'E85505462A46';   // Meter at the wet wall (replaced Hub 2 FDD0AE072D7C, Sep 2026)
   const WATER1_ID    = 'E7760186472B';
   const OUTDOOR_ID   = 'E7764046575F';   // Meter — outdoor (ambient)
   const FAR_END_ID   = 'E77646060A5C';   // Meter — far end of the house
