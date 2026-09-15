@@ -23,7 +23,7 @@ const TUYA = 'https://openapi.tuyatest.com';
 
 // Device ids are hard-coded in the handler.
 const METER = 'B0E9FED4881C';
-const HUB = 'FDD0AE072D7C';
+const HUB = 'E85505462A46';
 const WATER = 'E7760186472B';
 const OUTDOOR = 'E7764046575F';
 const FAR_END = 'E77646060A5C';
