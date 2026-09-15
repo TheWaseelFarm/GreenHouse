@@ -897,13 +897,18 @@ function renderMetrics(){
   if(tempW!==null)updateCard('temp',tempW);
   if(humW!==null)updateCard('hum',humW);
   const gp=$('gaugePanel');
-  const vs=getStatus('vpd',vpd);const vc=col(vs);
+  const vs=getBadge('vpd',vpd).s;const vc=col(vs);
   if(gp){const pct=clamp(vpd/3,0,1);const rot=-90+(pct*180);gp.style.setProperty('--needle-rotation',rot+'deg');gp.style.setProperty('--vpd-color',vc);}
   $('vpdGaugeNumber').textContent=Number(vpd).toFixed(2);
   const adv={good:{en:`VPD ${Number(vpd).toFixed(2)} kPa — within operational range. Stomata active, photosynthesis and sugar development proceeding normally.`,ar:`عجز ضغط البخار مثالي. الثغور مفتوحة وتطور السكر في ذروته.`},warn:{en:`VPD ${Number(vpd).toFixed(2)} kPa — mild transpiration stress. Directive: increase humidity 5-10% or reduce canopy temperature by 2°C.`,ar:`إجهاد نتح خفيف. التوجيه: ارفع الرطوبة 5-10% أو اخفض الحرارة 2°م.`},danger:{en:`VPD ${Number(vpd).toFixed(2)} kPa — CRITICAL. Stomata closing, fruit quality at risk. Activate misting system immediately.`,ar:`عجز ضغط البخار حرج. الثغور تنغلق وجودة الثمار في خطر. شغّل نظام الرذاذ فوراً.`}};
   $('adviceEn').textContent=adv[vs].en;$('adviceAr').textContent=adv[vs].ar;
   const tw=tempW??temp,hw=humW??hum;
-  const checks=[getStatus('co2',co2),getStatus('temp',tw),getHumBadge(hw).s,vs];
+  // The headline status must use the SAME calibrated bands as the gauge cards
+  // (seasonal temp + day/night VPD/humidity via getBadge), NOT the old fixed T
+  // thresholds — otherwise the banner says "Critical" while the temp card says
+  // "Optimal". getBadge routes temp→seasonal, vpd/hum→day-night, co2→range.
+  const norm=s=>s==='warning'?'warn':s;
+  const checks=[getBadge('co2',co2).s,getBadge('temp',tw).s,getBadge('hum',hw).s,getBadge('vpd',vpd).s].map(norm);
   const overall=checks.includes('danger')?'danger':checks.includes('warn')?'warn':'good';
   $('statusDot').style.background=col(overall);
   const sm={good:{en:'All parameters within operational range — no intervention required',ar:'جميع المعايير ضمن النطاق التشغيلي — لا يلزم تدخل'},warn:{en:`Suboptimal conditions detected — weighted temp ${tw.toFixed(1)}°C, humidity ${hw.toFixed(0)}%, VPD ${Number(vpd).toFixed(2)} kPa`,ar:'ظروف دون المثالية — راجع التوجيهات التشغيلية'},danger:{en:'Critical deviation detected — immediate intervention required',ar:'انحراف حرج — تدخل فوري مطلوب'}};
@@ -1135,7 +1140,7 @@ function renderZones(){
   if(temp===null||temp===undefined)return;
   $('hubTemp').textContent=hubTemp!=null?Number(hubTemp).toFixed(1):'—';$('hubHum').textContent=hubHum!=null?hubHum:'—';
   $('canTemp').textContent=Number(temp).toFixed(1);$('canHum').textContent=hum;
-  $('canTemp').style.color=col(getStatus('temp',temp));$('canHum').style.color=col(getHumBadge(hum).s);
+  $('canTemp').style.color=col(getBadge('temp',temp).s);$('canHum').style.color=col(getBadge('hum',hum).s);
   $('wtTemp').textContent=tempW!==null?tempW.toFixed(1)+'°C':'--°C';
   $('wtHum').textContent=humW!==null?'Humidity: '+humW.toFixed(0)+'%':'Humidity: --%';
   const cv=$('clVal');
