@@ -19,6 +19,7 @@ test/
   auth.test.js          # session guard + login/logout/check
   page.test.js          # HTML auth gate (api/page.js)
   cron-save.test.js     # scheduled data-collection pipeline
+  alerts.test.js        # critical-alert engine (bands + WhatsApp state machine)
   incidents.test.js     # incident CRUD + resolve
   council.test.js       # council decision log
   ask-council.test.js   # Anthropic proxy + prompt selection

@@ -5,6 +5,7 @@ const {
   calcVPD, calcDewPoint, calcHeatIndex, calcAbsHumidity, calcPSI
 } = require('../_lib/metrics');
 const { api: tuyaApi, parseSensor } = require('../_lib/tuya');
+const { evaluateCriticals, processAlerts } = require('../_lib/alerts');
 
 module.exports = async (req, res) => {
   const authHeader = req.headers['authorization'];
@@ -148,7 +149,28 @@ module.exports = async (req, res) => {
         'Prefer':        'return=minimal'
       }
     );
- 
+
+    // Critical-alert engine (WhatsApp to the on-site engineer). Non-fatal: an
+    // alerting failure must never break logging. The temperature checks only
+    // run when the canopy reading is plausible (>5°C), so a failed meter reading
+    // 0°C is not mistaken for frost. No-op until the Twilio env vars are set.
+    let alerts = { skipped: 'not-run' };
+    try {
+      // temp_valid = the canopy meter actually returned a temperature field.
+      // A dead meter leaves it absent (temp then defaults to 0 above), so this
+      // is false and no frost/heat alert fires on phantom data — while a genuine
+      // low reading (real winter frost) is present and still alerts.
+      const temp_valid = meterData.temperature != null && isFinite(parseFloat(meterData.temperature));
+      const criticals = evaluateCriticals(
+        { temp_weighted, vpd, water_temp_irrigation, water_leak_1, temp_valid },
+        new Date()
+      );
+      alerts = await processAlerts({ criticals, env: process.env, now: new Date() });
+    } catch (e) {
+      console.warn('Alert engine failed (non-fatal):', e.message);
+      alerts = { error: e.message };
+    }
+
     res.status(200).json({
       success: true,
       co2, temp, humidity, vpd,
@@ -161,6 +183,7 @@ module.exports = async (req, res) => {
       tuya_gh_temp, tuya_gh_humidity,
       tuya_out_temp, tuya_out_humidity,
       water_temp_irrigation, water_temp_outside,
+      alerts,
       saved: new Date().toISOString()
     });
  
