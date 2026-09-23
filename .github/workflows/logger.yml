@@ -1,0 +1,55 @@
+name: Greenhouse logger
+
+# Reliable, in-repo replacement for the external cron-job.org trigger. Calls
+# /api/cron-save every ~15 min, which reads every sensor, saves a reading, and
+# runs the WhatsApp critical-alert engine. Failures show up in the Actions tab
+# and GitHub emails the repo owner — no more silent outages.
+#
+# Setup (one time):
+#   Repo → Settings → Secrets and variables → Actions
+#     • Secret  CRON_SECRET      = the same value set in Vercel (required)
+#     • Secret  HEALTHCHECK_URL  = a healthchecks.io ping URL (optional watchdog)
+#     • Variable CRON_TARGET_URL = override the endpoint if the domain changes
+#   Then disable the old cron-job.org job so readings aren't logged twice.
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # every 15 min (GitHub may delay a few minutes under load)
+  workflow_dispatch: {}        # lets you trigger a run by hand from the Actions tab
+
+concurrency:
+  group: greenhouse-logger
+  cancel-in-progress: false
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger cron-save
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TARGET_URL: ${{ vars.CRON_TARGET_URL || 'https://green-house-iota.vercel.app/api/cron-save' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET secret is not set. Add it in repo Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          code=$(curl -sS -m 60 -o /tmp/body -w '%{http_code}' \
+            -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "$TARGET_URL")
+          echo "HTTP $code"
+          echo "Response:"; cat /tmp/body; echo
+          if [ "$code" != "200" ]; then
+            echo "::error::cron-save returned HTTP $code (expected 200)."
+            exit 1
+          fi
+
+      - name: Ping dead-man's-switch (optional)
+        if: success()
+        env:
+          HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
+        run: |
+          if [ -n "$HEALTHCHECK_URL" ]; then
+            curl -fsS -m 10 "$HEALTHCHECK_URL" > /dev/null || echo "healthcheck ping failed (non-fatal)"
+          fi
