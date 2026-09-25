@@ -6,6 +6,7 @@
 <title>Al-Waseel Farm — Operations Platform</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
 :root{
   --deep:#06442E;--forest:#032D21;--sage:#8FAF7A;--soft-sage:#E8F0E2;
@@ -301,6 +302,7 @@ img,svg,canvas{max-width:100%}
     <a onclick="navClick(this,'alerts')"><i class="ti ti-bell"></i><span data-i18n="nav_alerts">Alerts</span></a>
     <a onclick="navClick(this,null);openReports()"><i class="ti ti-file-analytics"></i><span data-i18n="nav_reports">Operations Report</span></a>
     <a onclick="navClick(this,null);openFieldLog()"><i class="ti ti-camera"></i><span data-i18n="nav_plantlog">Daily Plant Log</span></a>
+    <a onclick="navClick(this,null);openQrLabels()"><i class="ti ti-qrcode"></i><span data-i18n="nav_qrlabels">QR Plant Labels</span></a>
     <a onclick="navClick(this,null);openCouncil()"><i class="ti ti-brain"></i><span data-i18n="nav_council">Expert Council</span></a>
     <a onclick="navClick(this,null);openAccessRequests()"><i class="ti ti-user-plus"></i><span data-i18n="nav_access">Access Requests</span></a>
     <a onclick="navClick(this,null);openChangePassword()"><i class="ti ti-key"></i><span data-i18n="nav_password">Change Password</span></a>
@@ -634,6 +636,28 @@ img,svg,canvas{max-width:100%}
 <style>
 .fl-form{background:var(--card,#fff);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:22px}
 .fl-row{margin-bottom:14px}
+.fl-typebar{display:flex;gap:8px;margin-bottom:14px}
+.fl-type{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;font-size:.82rem;font-weight:800;border:1px solid var(--border);border-radius:11px;background:#fff;color:#33413a;cursor:pointer;transition:all .12s}
+.fl-type.on{background:#06442E;color:#fff;border-color:#06442E}
+.fl-locgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.fl-scanrow{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.fl-scan{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;font-size:.78rem;font-weight:800;border:1px solid var(--deep);border-radius:10px;background:var(--soft-sage,#eef3ee);color:var(--deep);cursor:pointer}
+.fl-code{font-family:var(--mono);font-size:.82rem;font-weight:900;color:var(--deep);letter-spacing:.02em}
+.fl-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.fl-grid2 .fl-row{margin-bottom:0}
+.fl-safety{font-size:.7rem;font-weight:800;margin-top:8px;line-height:1.5}
+.qr-sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:16px}
+.qr-cell{border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center;background:#fff;break-inside:avoid}
+.qr-cell svg,.qr-cell img{width:100%;height:auto;max-width:120px;display:block;margin:0 auto}
+.qr-code{font-family:var(--mono);font-size:.72rem;font-weight:900;margin-top:5px;color:#06442E;letter-spacing:.02em}
+@media print{
+  body *{visibility:hidden}
+  #qrOverlay,#qrOverlay *{visibility:visible}
+  #qrOverlay{position:absolute;inset:0;background:#fff;overflow:visible}
+  #qrOverlay .rep-header,#qrControls,.rep-close{display:none!important}
+  .qr-sheet{grid-template-columns:repeat(4,1fr);gap:6px}
+  .qr-cell{border:1px solid #ccc}
+}
 .fl-lbl{display:block;font-size:.72rem;font-weight:800;color:var(--deep);margin-bottom:6px}
 .fl-input{width:100%;box-sizing:border-box;padding:11px 12px;font-size:15px;border:1px solid var(--border);border-radius:10px;background:#fff;color:#1c2a22;font-family:inherit}
 .fl-input:focus{outline:none;border-color:var(--deep)}
@@ -686,17 +710,56 @@ body.lang-ar #chartTitle{display:none}
     </div>
     <div class="rep-body">
       <form id="flForm" onsubmit="submitFieldLog(event)" class="fl-form">
+        <div class="fl-typebar">
+          <button type="button" id="flTypeMon" class="fl-type on" onclick="flSetType('monitoring')">🌱 <span>المراقبة</span></button>
+          <button type="button" id="flTypeTrt" class="fl-type" onclick="flSetType('treatment')">🧴 <span>المكافحة</span></button>
+        </div>
         <div class="fl-row">
           <label class="fl-lbl" id="flLblDate">التاريخ</label>
           <input type="date" id="flDate" class="fl-input">
         </div>
         <div class="fl-row">
           <label class="fl-lbl" id="flLblLoc">الموقع</label>
-          <div style="display:flex;gap:8px">
-            <select id="flLine" class="fl-input"></select>
-            <select id="flTower" class="fl-input"></select>
+          <div class="fl-locgrid">
+            <select id="flLine" class="fl-input" onchange="flSyncCode()"></select>
+            <select id="flTower" class="fl-input" onchange="flSyncCode()"></select>
+            <select id="flLevel" class="fl-input" onchange="flSyncCode()"></select>
+            <select id="flOutlet" class="fl-input" onchange="flSyncCode()"></select>
+          </div>
+          <div class="fl-scanrow">
+            <button type="button" id="flScanBtn" class="fl-scan" onclick="flScan()">🔎 <span id="flScanLbl">مسح الباركود</span></button>
+            <span id="flCode" class="fl-code"></span>
           </div>
         </div>
+
+        <div id="flMonFields">
+          <div class="fl-grid2">
+            <div class="fl-row"><label class="fl-lbl" id="flLblStage">مرحلة النمو</label><select id="flStage" class="fl-input"></select></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblVigor">حيوية النبات</label><select id="flVigor" class="fl-input"></select></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblFeedEc">EC تغذية</label><input type="number" step="0.1" inputmode="decimal" id="flFeedEc" class="fl-input" placeholder="1.0–1.4"></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblFeedPh">pH تغذية</label><input type="number" step="0.1" inputmode="decimal" id="flFeedPh" class="fl-input" placeholder="5.5–6.2"></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblDrainEc">EC تصريف</label><input type="number" step="0.1" inputmode="decimal" id="flDrainEc" class="fl-input"></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblDrainPh">pH تصريف</label><input type="number" step="0.1" inputmode="decimal" id="flDrainPh" class="fl-input"></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblWtemp">حرارة الماء °م</label><input type="number" step="0.1" inputmode="decimal" id="flWtemp" class="fl-input"></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblVariety">الصنف</label><input type="text" id="flVariety" class="fl-input" placeholder="Albion"></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblIrrig">الري</label><input type="text" id="flIrrig" class="fl-input"></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblFert">التسميد</label><input type="text" id="flFert" class="fl-input"></div>
+          </div>
+        </div>
+
+        <div id="flTrtFields" style="display:none">
+          <div class="fl-grid2">
+            <div class="fl-row"><label class="fl-lbl" id="flLblPest">الآفة / السبب</label><input type="text" id="flPest" class="fl-input"></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblPesticide">اسم المبيد</label><input type="text" id="flPesticide" class="fl-input"></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblAI">المادة الفعالة</label><input type="text" id="flAI" class="fl-input"></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblDose">الجرعة</label><input type="text" id="flDose" class="fl-input" placeholder="2 g/L"></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblMethod">طريقة الاستخدام</label><select id="flMethod" class="fl-input"></select></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblPhi">فترة الأمان (أيام)</label><input type="number" inputmode="numeric" id="flPhi" class="fl-input" oninput="flUpdateSafety()"></div>
+            <div class="fl-row"><label class="fl-lbl" id="flLblOperator">المنفذ</label><input type="text" id="flOperator" class="fl-input"></div>
+          </div>
+          <div id="flSafetyMsg" class="fl-safety"></div>
+        </div>
+
         <div class="fl-row">
           <label class="fl-lbl" id="flLblPhotos">الصور</label>
           <input type="file" id="flPhotos" class="fl-input" accept="image/*" capture="environment" multiple onchange="flPreview()">
@@ -722,12 +785,46 @@ body.lang-ar #chartTitle{display:none}
           <div id="flJournalSub" style="font-family:var(--ar);font-size:.72rem;color:var(--muted);margin-top:2px">صور وملاحظات حقيقية &middot; الأحدث أولاً</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select id="flTypeFilter" class="rep-select" onchange="renderJournal()" aria-label="Filter by log type"><option value="">🌱🧴 الكل</option><option value="monitoring">🌱 مراقبة</option><option value="treatment">🧴 مكافحة</option></select>
           <select id="flMonth" class="rep-select" onchange="renderJournal()" aria-label="Filter by month"><option value="">كل الشهور</option></select>
           <select id="flFilter" class="rep-select" onchange="renderJournal()" aria-label="Filter journal"><option value="">كل الأنشطة</option></select>
         </div>
       </div>
       <div id="flJournalCount" style="font-size:.68rem;color:var(--muted);margin:-4px 2px 8px;font-weight:700"></div>
       <div id="flJournal"><div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- QR Plant Labels — generate a printable sheet of deep-link QR codes, one per
+     tower/level/outlet, that Mohammed sticks on the towers and scans to log. -->
+<div class="reports-overlay" id="qrOverlay">
+  <div class="reports-panel">
+    <div class="rep-header">
+      <div><h2><i class="ti ti-qrcode" style="margin-right:8px"></i><span id="qrTitle">باركود المواقع</span></h2><div class="rep-header-ar" id="qrSub">اطبع والصق على الأبراج — امسح للتسجيل</div></div>
+      <button class="rep-close" onclick="closeQrLabels()" aria-label="Close"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rep-body">
+      <div class="qr-controls" id="qrControls">
+        <label class="fl-lbl" id="qrLblGran">مستوى الباركود</label>
+        <select id="qrGran" class="fl-input" onchange="qrCount()">
+          <option value="tower">لكل برج · per Tower</option>
+          <option value="level">لكل مستوى · per Level</option>
+          <option value="outlet">لكل مخرج (نبتة) · per Outlet (plant)</option>
+        </select>
+        <div class="fl-grid2" style="margin-top:10px">
+          <div class="fl-row"><label class="fl-lbl" id="qrLblLines">عدد الخطوط</label><input type="number" id="qrLines" class="fl-input" value="6" min="1" max="20" oninput="qrCount()"></div>
+          <div class="fl-row"><label class="fl-lbl" id="qrLblTowers">أبراج لكل خط</label><input type="number" id="qrTowers" class="fl-input" value="10" min="1" max="60" oninput="qrCount()"></div>
+          <div class="fl-row"><label class="fl-lbl" id="qrLblLevels">مستويات لكل برج</label><input type="number" id="qrLevels" class="fl-input" value="8" min="1" max="30" oninput="qrCount()"></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px">
+          <button type="button" class="fl-submit" style="width:auto" onclick="qrGenerate()"><span id="qrGenBtn">توليد الباركود</span></button>
+          <button type="button" class="fl-scan" onclick="qrPrint()">🖨️ <span id="qrPrintBtn">طباعة</span></button>
+          <span id="qrCountMsg" style="font-size:.72rem;font-weight:800;color:var(--muted)"></span>
+        </div>
+        <div class="fl-hint" id="qrHint">كل ملصق رابط ذكي: امسحه بكاميرا الجوال ليفتح السجل على موقع النبتة مباشرة.</div>
+      </div>
+      <div id="qrSheet" class="qr-sheet"></div>
     </div>
   </div>
 </div>
@@ -749,6 +846,7 @@ const I18N={
   nav_overview:{en:'Overview',ar:'الرئيسية'},nav_environment:{en:'Environment',ar:'البيئة'},
   nav_trends:{en:'Climate Trends',ar:'اتجاهات المناخ'},nav_alerts:{en:'Alerts',ar:'التنبيهات'},
   nav_reports:{en:'Operations Report',ar:'تقرير العمليات'},nav_plantlog:{en:'Daily Plant Log',ar:'سجل النباتات اليومي'},
+  nav_qrlabels:{en:'QR Plant Labels',ar:'باركود المواقع'},
   nav_council:{en:'Expert Council',ar:'المجلس الاستشاري'},nav_access:{en:'Access Requests',ar:'طلبات الوصول'},
   nav_password:{en:'Change Password',ar:'تغيير كلمة المرور'},nav_settings:{en:'Settings',ar:'الإعدادات'},
   nav_signout:{en:'Sign Out',ar:'تسجيل الخروج'},hdr_title:{en:'Farm Environment Monitor',ar:'مراقبة بيئة المزرعة'},
@@ -775,6 +873,7 @@ function applySiteLang(){
   try{if(typeof S!=='undefined'&&S.live&&S.live.co2!=null&&typeof renderMetrics==='function')renderMetrics();}catch(_){}
   try{if(typeof renderFreshness==='function')renderFreshness();}catch(_){}
   try{if(typeof renderSensorHealth==='function')renderSensorHealth();}catch(_){}
+  try{if(typeof qrApplyLang==='function'&&$('qrOverlay')&&$('qrOverlay').classList.contains('open'))qrApplyLang();}catch(_){}
 }
 function setSiteLang(l){siteLang=l;try{localStorage.setItem('wf_lang',l);}catch(_){}applySiteLang();}
 function toggleSiteLang(){setSiteLang(siteLang==='ar'?'en':'ar');}
@@ -1720,15 +1819,20 @@ const FL_ACTS=[
   {en:'Water tank refill',ar:'تعبئة خزان الماء'}
 ];
 const FL_OTHER={en:'Other',ar:'أخرى'};
+const FL_STAGES=[
+  {en:'Establishment',ar:'التأسيس'},{en:'Vegetative',ar:'النمو الخضري'},
+  {en:'Flowering',ar:'الإزهار'},{en:'Fruiting',ar:'الإثمار'},{en:'Runners',ar:'المدادات'}
+];
+const FL_METHODS=[{en:'Spray',ar:'رش'},{en:'Drench',ar:'سقي'}];
 const FL_T={
-  ar:{title:'سجل النباتات اليومي',sub:'صور وملاحظات ميدانية',date:'التاريخ',location:'الموقع',line:'الخط',tower:'البرج',photos:'الصور',photoHint:'اضغط لفتح الكاميرا · حتى ٦ صور',activities:'ماذا عملت اليوم؟',otherPh:'اكتب النشاط الآخر هنا',notes:'ملاحظات',notesPh:'أي شيء لاحظته — آفات، أزهار جديدة، تغيّر لون…',save:'📷 حفظ الإدخال',saving:'جارٍ الرفع…',journal:'أرشيف الصور',journalSub:'صور وملاحظات حقيقية · الأحدث أولاً',allActs:'كل الأنشطة',empty:'لا توجد إدخالات بعد. أضف أول واحدة أعلاه.',needOne:'أضف صورة أو ملاحظة على الأقل.',saved:'✓ تم الحفظ — الإدخال في الأرشيف بالأسفل.',langBtn:'EN'},
-  en:{title:'Daily Plant Log',sub:'field photos & notes',date:'Date',location:'Location',line:'Line',tower:'Tower',photos:'Photos',photoHint:'Tap to open the camera · up to 6 photos',activities:'What did you do today?',otherPh:'Type the other activity here',notes:'Notes / observations',notesPh:'Anything you noticed — pests, new flowers, discoloration…',save:'📷 Save entry',saving:'Uploading…',journal:'Field Journal',journalSub:'real photos & notes · newest first',allActs:'All activities',empty:'No entries yet. Add the first one above.',needOne:'Add at least a photo or a note.',saved:'✓ Saved — the entry is in the Field Journal below.',langBtn:'عربي'}
+  ar:{title:'سجل النباتات اليومي',sub:'صور وملاحظات ميدانية',date:'التاريخ',location:'الموقع',line:'الخط',tower:'البرج',level:'المستوى',outlet:'المخرج',scan:'مسح الباركود',typeMon:'🌱 المراقبة',typeTrt:'🧴 المكافحة',stage:'مرحلة النمو',vigor:'حيوية النبات',feedEc:'EC تغذية',feedPh:'pH تغذية',drainEc:'EC تصريف',drainPh:'pH تصريف',wtemp:'حرارة الماء °م',variety:'الصنف',irrig:'الري',fert:'التسميد',pest:'الآفة / السبب',pesticide:'اسم المبيد',ai:'المادة الفعالة',dose:'الجرعة',method:'طريقة الاستخدام',phi:'فترة الأمان (أيام)',operator:'المنفذ',photos:'الصور',photoHint:'اضغط لفتح الكاميرا · حتى ٦ صور',activities:'ماذا عملت اليوم؟',otherPh:'اكتب النشاط الآخر هنا',notes:'ملاحظات',notesPh:'أي شيء لاحظته — آفات، أزهار جديدة، تغيّر لون…',save:'📷 حفظ الإدخال',saving:'جارٍ الرفع…',journal:'أرشيف الصور',journalSub:'صور وملاحظات حقيقية · الأحدث أولاً',allActs:'كل الأنشطة',empty:'لا توجد إدخالات بعد. أضف أول واحدة أعلاه.',needOne:'أضف صورة أو قراءة أو ملاحظة.',needTrt:'أضف اسم المبيد أو الآفة على الأقل.',saved:'✓ تم الحفظ — الإدخال في الأرشيف بالأسفل.',safeUntil:d=>'⚠️ آمن للحصاد بعد '+d,noScan:'الكاميرا لا تدعم المسح — اختر الموقع يدوياً.',langBtn:'EN'},
+  en:{title:'Daily Plant Log',sub:'field photos & notes',date:'Date',location:'Location',line:'Line',tower:'Tower',level:'Level',outlet:'Outlet',scan:'Scan barcode',typeMon:'🌱 Monitoring',typeTrt:'🧴 Treatment',stage:'Growth stage',vigor:'Plant vigor',feedEc:'Feed EC',feedPh:'Feed pH',drainEc:'Drain EC',drainPh:'Drain pH',wtemp:'Water temp °C',variety:'Variety',irrig:'Irrigation',fert:'Fertilizer',pest:'Pest / reason',pesticide:'Pesticide',ai:'Active ingredient',dose:'Dose',method:'Method',phi:'Safety period (days)',operator:'Operator',photos:'Photos',photoHint:'Tap to open the camera · up to 6 photos',activities:'What did you do today?',otherPh:'Type the other activity here',notes:'Notes / observations',notesPh:'Anything you noticed — pests, new flowers, discoloration…',save:'📷 Save entry',saving:'Uploading…',journal:'Field Journal',journalSub:'real photos & notes · newest first',allActs:'All activities',empty:'No entries yet. Add the first one above.',needOne:'Add at least a photo, a reading, or a note.',needTrt:'Add at least the pesticide or the pest/reason.',saved:'✓ Saved — the entry is in the Field Journal below.',safeUntil:d=>'⚠️ Safe to harvest after '+d,noScan:'Camera scanning not supported — pick the location manually.',langBtn:'عربي'}
 };
-let _journal=[], flLang='ar', flSel=new Set(), flOtherOn=false;
+let _journal=[], flLang='ar', flSel=new Set(), flOtherOn=false, flType='monitoring';
 const arNum=s=>String(s).replace(/[0-9]/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
 const flActLabel=v=>{const a=FL_ACTS.find(x=>x.en===v);return a?(flLang==='ar'?a.ar:a.en):v;};
 const flLocLabel=loc=>{if(!loc)return '';return flLang==='ar'?arNum(loc.replace(/Line/g,'خط').replace(/Tower/g,'برج')):loc;};
-function openFieldLog(){
+function openFieldLog(preset){
   const ov=$('fieldLogOverlay');ov.classList.add('open');
   if(!ov._init){
     ov._init=true;
@@ -1736,8 +1840,61 @@ function openFieldLog(){
     ov.addEventListener('click',e=>{if(e.target===ov)closeFieldLog();});
   }
   applyFlLang();
+  flSetType(flType);
+  if(preset)flApplyCode(preset);
   loadJournal();
 }
+// A QR label deep-links to …/?loc=CODE. On load, open the log pre-filled to that
+// plant so scanning a tower sticker jumps straight to logging it.
+function flCheckDeepLink(){
+  try{
+    const m=(location.search+location.hash).match(/[?&#]loc=([A-Za-z0-9-]+)/i);
+    if(m){openFieldLog(m[1]);}
+  }catch(_){}
+}
+// ---- QR Plant Labels: printable deep-link stickers ----
+const QR_T={
+  ar:{title:'باركود المواقع',sub:'اطبع والصق على الأبراج — امسح للتسجيل',gran:'مستوى الباركود',lines:'عدد الخطوط',towers:'أبراج لكل خط',levels:'مستويات لكل برج',gen:'توليد الباركود',print:'طباعة',hint:'كل ملصق رابط ذكي: امسحه بكاميرا الجوال ليفتح السجل على موقع النبتة مباشرة.'},
+  en:{title:'QR Plant Labels',sub:'print, stick on the towers, scan to log',gran:'Label granularity',lines:'Number of lines',towers:'Towers per line',levels:'Levels per tower',gen:'Generate',print:'Print',hint:'Each label is a smart link: scan it with any phone camera to open the log at that plant.'}
+};
+function openQrLabels(){const ov=$('qrOverlay');ov.classList.add('open');if(!ov._init){ov._init=true;ov.addEventListener('click',e=>{if(e.target===ov)closeQrLabels();});}qrApplyLang();qrCount();}
+function closeQrLabels(){$('qrOverlay').classList.remove('open');}
+function qrApplyLang(){
+  const ar=(typeof siteLang!=='undefined'&&siteLang==='ar'),t=QR_T[ar?'ar':'en'];
+  const ov=$('qrOverlay');if(ov)ov.style.direction=ar?'rtl':'ltr';
+  const set=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
+  set('qrTitle',t.title);set('qrSub',t.sub);set('qrLblGran',t.gran);set('qrLblLines',t.lines);
+  set('qrLblTowers',t.towers);set('qrLblLevels',t.levels);set('qrGenBtn',t.gen);set('qrPrintBtn',t.print);
+  const h=$('qrHint');if(h)h.textContent=t.hint;
+}
+function qrCodesList(){
+  const gran=$('qrGran').value;
+  const lines=Math.min(20,Math.max(1,parseInt($('qrLines').value)||6));
+  const towers=Math.min(60,Math.max(1,parseInt($('qrTowers').value)||10));
+  const levels=Math.min(30,Math.max(1,parseInt($('qrLevels').value)||8));
+  const codes=[];
+  for(let l=1;l<=lines;l++)for(let t=1;t<=towers;t++){
+    if(gran==='tower'){codes.push('L'+l+'-T'+t);continue;}
+    for(let v=1;v<=levels;v++){
+      if(gran==='level'){codes.push('L'+l+'-T'+t+'-Lv'+v);continue;}
+      for(let o=1;o<=4;o++)codes.push('L'+l+'-T'+t+'-Lv'+v+'-O'+o);
+    }
+  }
+  return codes;
+}
+function qrCount(){const n=qrCodesList().length;const el=$('qrCountMsg');if(el)el.textContent=(siteLang==='ar'?arNum(n)+' ملصق':n+' labels')+(n>1500?' ⚠️':'');}
+function qrGenerate(){
+  const sheet=$('qrSheet');const codes=qrCodesList();
+  if(typeof qrcode==='undefined'){sheet.innerHTML='<div style="padding:16px;color:var(--danger)">QR library not loaded — check the connection and reopen.</div>';return;}
+  if(codes.length>2000){sheet.innerHTML='<div style="padding:16px;color:var(--danger)">Too many labels ('+codes.length+'). Reduce the counts or use a coarser granularity.</div>';return;}
+  const origin=location.origin;
+  sheet.innerHTML=codes.map(code=>{
+    const qr=qrcode(0,'M');qr.addData(origin+'/?loc='+code);qr.make();
+    let img;try{img=qr.createSvgTag({cellSize:4,margin:1,scalable:true});}catch(_){img=qr.createImgTag(4,1);}
+    return '<div class="qr-cell">'+img+'<div class="qr-code">'+code+'</div></div>';
+  }).join('');
+}
+function qrPrint(){if(!$('qrSheet').innerHTML.trim())qrGenerate();setTimeout(()=>window.print(),150);}
 function closeFieldLog(){$('fieldLogOverlay').classList.remove('open');}
 function toggleFlLang(){flLang=flLang==='ar'?'en':'ar';applyFlLang();}
 function applyFlLang(){
@@ -1749,18 +1906,90 @@ function applyFlLang(){
   $('flLblPhotos').textContent=t.photos;$('flHint').textContent=t.photoHint;
   $('flLblActs').textContent=t.activities;$('flLblNotes').textContent=t.notes;
   $('flOther').placeholder=t.otherPh;$('flNote').placeholder=t.notesPh;
+  $('flTypeMon').querySelector('span').textContent=flLang==='ar'?'المراقبة':'Monitoring';
+  $('flTypeTrt').querySelector('span').textContent=flLang==='ar'?'المكافحة':'Treatment';
+  $('flScanLbl').textContent=t.scan;
+  // monitoring labels
+  const set=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
+  set('flLblStage',t.stage);set('flLblVigor',t.vigor);set('flLblFeedEc',t.feedEc);set('flLblFeedPh',t.feedPh);
+  set('flLblDrainEc',t.drainEc);set('flLblDrainPh',t.drainPh);set('flLblWtemp',t.wtemp);set('flLblVariety',t.variety);
+  set('flLblIrrig',t.irrig);set('flLblFert',t.fert);
+  // treatment labels
+  set('flLblPest',t.pest);set('flLblPesticide',t.pesticide);set('flLblAI',t.ai);set('flLblDose',t.dose);
+  set('flLblMethod',t.method);set('flLblPhi',t.phi);set('flLblOperator',t.operator);
   const btn=$('flSubmit');if(!btn.disabled)btn.textContent=t.save;
   $('flJournalTitle').innerHTML='<i class="ti ti-photo"></i>'+t.journal;
   $('flJournalSub').textContent=t.journalSub;
-  flBuildLoc();flBuildChips();flBuildFilter();flBuildMonths();renderJournal();
+  flBuildLoc();flBuildChips();flBuildFilter();flBuildMonths();flUpdateSafety();renderJournal();
 }
+function flSetType(type){
+  flType=type;
+  $('flTypeMon').classList.toggle('on',type==='monitoring');
+  $('flTypeTrt').classList.toggle('on',type==='treatment');
+  $('flMonFields').style.display=type==='monitoring'?'':'none';
+  $('flTrtFields').style.display=type==='treatment'?'':'none';
+}
+// Build the Line/Tower/Level/Outlet index selects + the monitoring/treatment
+// dropdowns (growth stage, vigor 1-5, application method).
 function flBuildLoc(){
-  const t=FL_T[flLang],line=$('flLine'),tower=$('flTower'),cl=line.value,ct=tower.value;
-  line.innerHTML='<option value="">'+t.line+'</option>';
-  for(let i=1;i<=6;i++){const o=document.createElement('option');o.value=i;o.textContent=flLang==='ar'?'خط '+arNum(i):'Line '+i;line.appendChild(o);}
-  tower.innerHTML='<option value="">'+t.tower+'</option>';
-  for(let i=1;i<=24;i++){const o=document.createElement('option');o.value=i;o.textContent=flLang==='ar'?'برج '+arNum(i):'Tower '+i;tower.appendChild(o);}
-  line.value=cl;tower.value=ct;
+  const t=FL_T[flLang],ar=flLang==='ar';
+  const fill=(el,count,label,valFn,txtFn)=>{if(!el)return;const cur=el.value;el.innerHTML='<option value="">'+label+'</option>';for(let i=1;i<=count;i++){const o=document.createElement('option');o.value=valFn?valFn(i):i;o.textContent=txtFn(i);el.appendChild(o);}el.value=cur;};
+  fill($('flLine'),6,t.line,null,i=>ar?'خط '+arNum(i):'Line '+i);
+  fill($('flTower'),24,t.tower,null,i=>ar?'برج '+arNum(i):'Tower '+i);
+  fill($('flLevel'),12,t.level,null,i=>ar?'مستوى '+arNum(i):'Level '+i);
+  fill($('flOutlet'),4,t.outlet,null,i=>ar?'مخرج '+arNum(i):'Outlet '+i);
+  // growth stage
+  const st=$('flStage');if(st){const cur=st.value;st.innerHTML='<option value="">—</option>';FL_STAGES.forEach(s=>{const o=document.createElement('option');o.value=s.en;o.textContent=ar?s.ar:s.en;st.appendChild(o);});st.value=cur;}
+  // vigor 1-5
+  const vg=$('flVigor');if(vg){const cur=vg.value;vg.innerHTML='<option value="">—</option>';for(let i=1;i<=5;i++){const o=document.createElement('option');o.value=i;o.textContent=(ar?arNum(i):i)+' / 5';vg.appendChild(o);}vg.value=cur;}
+  // method
+  const md=$('flMethod');if(md){const cur=md.value;md.innerHTML='<option value="">—</option>';FL_METHODS.forEach(m=>{const o=document.createElement('option');o.value=m.en;o.textContent=ar?m.ar:m.en;md.appendChild(o);});md.value=cur;}
+  flSyncCode();
+}
+// Compose the plant_code from the selects and show it (also the QR payload).
+function flPlantCode(){
+  const l=$('flLine').value,tw=$('flTower').value,lv=$('flLevel').value,o=$('flOutlet').value;
+  if(!l||!tw)return '';
+  let c='L'+l+'-T'+tw;if(lv)c+='-Lv'+lv;if(o)c+='-O'+o;return c;
+}
+function flSyncCode(){const c=flPlantCode();const e=$('flCode');if(e)e.textContent=c;}
+// Parse a scanned/deep-linked code (or URL containing ?loc=CODE) and fill the selects.
+function flApplyCode(raw){
+  if(!raw)return false;
+  let code=String(raw).trim();
+  const m=code.match(/[?&#]loc=([A-Za-z0-9-]+)/i);if(m)code=m[1];
+  const p=code.match(/^L(\d+)-T(\d+)(?:-Lv(\d+))?(?:-O(\d+))?$/i);
+  if(!p)return false;
+  $('flLine').value=p[1];$('flTower').value=p[2];$('flLevel').value=p[3]||'';$('flOutlet').value=p[4]||'';
+  flSyncCode();return true;
+}
+// Native barcode/QR scan (BarcodeDetector). Falls back to a hint if unsupported.
+async function flScan(){
+  const msg=$('flMsg');
+  if(!('BarcodeDetector'in window)){msg.style.display='block';msg.style.color='var(--gold)';msg.textContent=FL_T[flLang].noScan;return;}
+  let stream;
+  try{
+    const det=new window.BarcodeDetector({formats:['qr_code','code_128','ean_13']});
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    const v=document.createElement('video');v.srcObject=stream;v.setAttribute('playsinline','');await v.play();
+    const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:#000;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center';
+    v.style.cssText='max-width:100%;max-height:80vh';const close=document.createElement('button');close.textContent='✕';close.style.cssText='position:absolute;top:16px;right:16px;font-size:1.4rem;background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:10px;padding:6px 14px;cursor:pointer';
+    ov.appendChild(v);ov.appendChild(close);document.body.appendChild(ov);
+    let done=false;const stop=()=>{done=true;stream.getTracks().forEach(t=>t.stop());ov.remove();};
+    close.onclick=stop;
+    const tick=async()=>{if(done)return;try{const codes=await det.detect(v);if(codes&&codes.length){if(flApplyCode(codes[0].rawValue)){stop();msg.style.display='block';msg.style.color='#16894E';msg.textContent=flPlantCode();return;}}}catch(_){}
+      requestAnimationFrame(tick);};
+    tick();
+  }catch(e){if(stream)stream.getTracks().forEach(t=>t.stop());msg.style.display='block';msg.style.color='var(--gold)';msg.textContent=FL_T[flLang].noScan;}
+}
+// Show the computed pre-harvest safe date as the operator types the PHI days.
+function flUpdateSafety(){
+  const box=$('flSafetyMsg');if(!box)return;
+  const phi=parseInt($('flPhi').value,10),date=$('flDate').value;
+  if(!phi||!/^\d{4}-\d{2}-\d{2}$/.test(date)){box.textContent='';return;}
+  const d=new Date(date+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+phi);
+  const ds=d.toISOString().slice(0,10);
+  box.style.color='#8B5E00';box.textContent=FL_T[flLang].safeUntil(ds);
 }
 function flBuildFilter(){
   const f=$('flFilter'),cur=f.value;
@@ -1811,20 +2040,33 @@ async function submitFieldLog(e){
   const acts=Array.from(flSel);
   const other=flOtherOn?($('flOther').value||'').trim():'';
   const note=($('flNote').value||'').trim();
-  const ln=$('flLine').value,tw=$('flTower').value;
-  const location=ln&&tw?('Line '+ln+' · Tower '+tw):(ln?'Line '+ln:'');
+  const gv=id=>{const el=$(id);return el&&el.value!==''?el.value:undefined;};
   const files=Array.from($('flPhotos').files||[]).slice(0,6);
-  if(!files.length&&!acts.length&&!other&&!note){msg.style.display='block';msg.style.color='var(--danger)';msg.textContent=t.needOne;return;}
+  // Attach the live greenhouse climate as context (no extra typing).
+  const climate=(S.live&&S.live.temp!=null)?{temp:S.live.tempW??S.live.temp,humidity:S.live.humW??S.live.hum,vpd:S.live.vpd,co2:S.live.co2,water_temp:S.water&&S.water.irrigation,recorded_at:new Date().toISOString()}:undefined;
+  const payload={log_type:flType,log_date:$('flDate').value,activities:acts,other,note,photos:[],climate,
+    line:gv('flLine'),tower:gv('flTower'),level:gv('flLevel'),outlet:gv('flOutlet')};
+  if(flType==='monitoring'){
+    Object.assign(payload,{variety:gv('flVariety'),growth_stage:gv('flStage'),vigor:gv('flVigor'),
+      feed_ec:gv('flFeedEc'),feed_ph:gv('flFeedPh'),drain_ec:gv('flDrainEc'),drain_ph:gv('flDrainPh'),
+      water_temp:gv('flWtemp'),irrigation:gv('flIrrig'),fertilizer:gv('flFert')});
+    const hasReading=['flVigor','flStage','flFeedEc','flFeedPh','flDrainEc','flDrainPh','flWtemp','flIrrig','flFert'].some(id=>gv(id)!=null);
+    if(!files.length&&!acts.length&&!other&&!note&&!hasReading){msg.style.display='block';msg.style.color='var(--danger)';msg.textContent=t.needOne;return;}
+  }else{
+    Object.assign(payload,{pesticide:gv('flPesticide'),active_ingredient:gv('flAI'),dose:gv('flDose'),
+      method:gv('flMethod'),pest:gv('flPest'),phi_days:gv('flPhi'),operator:gv('flOperator')});
+    if(!gv('flPesticide')&&!gv('flPest')&&!gv('flAI')){msg.style.display='block';msg.style.color='var(--danger)';msg.textContent=t.needTrt;return;}
+  }
   btn.disabled=true;btn.textContent=t.saving;msg.style.display='none';
   try{
-    const photos=[];for(const f of files){try{photos.push(await flCompress(f));}catch(_){}}
-    const res=await fetch('/api/field-log-save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({log_date:$('flDate').value,location,activities:acts,other,note,photos})});
+    for(const f of files){try{payload.photos.push(await flCompress(f));}catch(_){}}
+    const res=await fetch('/api/field-log-save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'Save failed');
     msg.style.display='block';msg.style.color='#16894E';msg.textContent=t.saved;
-    // reset
     flSel.clear();flOtherOn=false;flBuildChips();
-    $('flNote').value='';$('flOther').value='';$('flPhotos').value='';$('flPreview').innerHTML='';$('flLine').value='';$('flTower').value='';
+    ['flNote','flOther','flVariety','flStage','flVigor','flFeedEc','flFeedPh','flDrainEc','flDrainPh','flWtemp','flIrrig','flFert','flPest','flPesticide','flAI','flDose','flMethod','flPhi','flOperator'].forEach(id=>{const el=$(id);if(el)el.value='';});
+    $('flPhotos').value='';$('flPreview').innerHTML='';$('flSafetyMsg').textContent='';
     loadJournal();
   }catch(err){msg.style.display='block';msg.style.color='var(--danger)';msg.textContent='✕ '+err.message;}
   finally{btn.disabled=false;btn.textContent=FL_T[flLang].save;}
@@ -1845,22 +2087,45 @@ function flBuildMonths(){
 }
 function renderJournal(){
   const box=$('flJournal');if(!box)return;const filter=$('flFilter').value;const month=$('flMonth')?$('flMonth').value:'';
+  const typeF=$('flTypeFilter')?$('flTypeFilter').value:'';
+  const ar=flLang==='ar';
   let rows=_journal;
+  if(typeF)rows=rows.filter(r=>(r.log_type||'monitoring')===typeF);
   if(filter)rows=rows.filter(r=>(Array.isArray(r.activities)&&r.activities.includes(filter))||(filter==='__other'&&r.other_note));
   if(month)rows=rows.filter(r=>{const d=new Date(r.log_date||r.created_at);return !isNaN(d)&&(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'))===month;});
-  const cEl=$('flJournalCount');if(cEl)cEl.textContent=_journal.length?(flLang==='ar'?arNum(rows.length)+' من '+arNum(_journal.length)+' إدخال':rows.length+' of '+_journal.length+' entries'):'';
+  const cEl=$('flJournalCount');if(cEl)cEl.textContent=_journal.length?(ar?arNum(rows.length)+' من '+arNum(_journal.length)+' إدخال':rows.length+' of '+_journal.length+' entries'):'';
   if(!rows.length){box.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">${FL_T[flLang].empty}</div>`;return;}
+  const chip=(label,val)=>val==null||val===''?'':`<span class="fl-tag"><b>${esc(label)}</b> ${esc(val)}</span>`;
+  const todayStr=new Date().toISOString().slice(0,10);
   box.innerHTML=rows.map(r=>{
+    const type=r.log_type||'monitoring';
+    const isTrt=type==='treatment';
     const acts=(Array.isArray(r.activities)?r.activities:[]).map(flActLabel);if(r.other_note)acts.push(r.other_note);
     const tags=acts.map(a=>`<span class="fl-tag">${esc(a)}</span>`).join('');
     const photos=(Array.isArray(r.photo_urls)?r.photo_urls:[]).map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" loading="lazy" alt="plant photo"></a>`).join('');
-    const d=new Date(r.log_date||r.created_at);const dateStr=isNaN(d)?esc(r.log_date||''):d.toLocaleDateString(flLang==='ar'?'ar':'en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
-    const loc=r.location?' · '+esc(flLocLabel(r.location)):'';
-    return `<div class="fl-entry" style="direction:${flLang==='ar'?'rtl':'ltr'}">
-      <div class="fl-entry-top"><div class="fl-entry-date">${dateStr}${loc}</div><div class="fl-entry-meta">${esc(r.author||'')}</div></div>
+    const d=new Date(r.log_date||r.created_at);const dateStr=isNaN(d)?esc(r.log_date||''):d.toLocaleDateString(ar?'ar':'en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+    const code=r.plant_code?`<span class="fl-code" style="font-size:.7rem">📍 ${esc(r.plant_code)}</span>`:(r.location?' · '+esc(flLocLabel(r.location)):'');
+    const badge=isTrt?`<span class="fl-tag" style="background:#8B2A1E;color:#fff">🧴 ${ar?'مكافحة':'Treatment'}</span>`:`<span class="fl-tag" style="background:#16894E;color:#fff">🌱 ${ar?'مراقبة':'Monitoring'}</span>`;
+    let fields='';
+    if(isTrt){
+      const method=r.method?(ar?(r.method==='Spray'?'رش':'سقي'):r.method):'';
+      fields=[chip(FL_T[flLang].pest,r.pest),chip(FL_T[flLang].pesticide,r.pesticide),chip(FL_T[flLang].ai,r.active_ingredient),chip(FL_T[flLang].dose,r.dose),chip(FL_T[flLang].method,method),chip(FL_T[flLang].operator,r.operator)].join('');
+      if(r.safety_end){
+        const open=r.safety_end>=todayStr;
+        fields+=`<div class="fl-safety" style="color:${open?'#8B2A1E':'#16894E'}">${open?'⛔ '+(ar?'ممنوع الحصاد حتى ':'No harvest until ')+esc(r.safety_end):'✅ '+(ar?'انتهت فترة الأمان':'Safety period ended')+' ('+esc(r.safety_end)+')'}</div>`;
+      }
+    }else{
+      const stage=r.growth_stage?(FL_STAGES.find(s=>s.en===r.growth_stage)||{})[ar?'ar':'en']||r.growth_stage:'';
+      fields=[chip(FL_T[flLang].stage,stage),chip(FL_T[flLang].vigor,r.vigor!=null?r.vigor+'/5':''),chip('EC',r.feed_ec),chip('pH',r.feed_ph),chip(ar?'EC تصريف':'Drain EC',r.drain_ec),chip(FL_T[flLang].wtemp,r.water_temp!=null?r.water_temp+'°':''),chip(FL_T[flLang].variety,r.variety),chip(FL_T[flLang].irrig,r.irrigation),chip(FL_T[flLang].fert,r.fertilizer)].join('');
+    }
+    const clim=r.climate&&r.climate.temp!=null?`<div style="font-size:.6rem;color:var(--muted);margin-top:4px">🌡️ ${Number(r.climate.temp).toFixed(1)}°C · ${r.climate.humidity!=null?Number(r.climate.humidity).toFixed(0)+'% · ':''}${r.climate.vpd!=null?'VPD '+Number(r.climate.vpd).toFixed(2):''}</div>`:'';
+    return `<div class="fl-entry" style="direction:${ar?'rtl':'ltr'}">
+      <div class="fl-entry-top"><div class="fl-entry-date">${badge} ${dateStr} ${code}</div><div class="fl-entry-meta">${esc(r.author||'')}</div></div>
+      ${fields?`<div class="fl-entry-acts">${fields}</div>`:''}
       ${tags?`<div class="fl-entry-acts">${tags}</div>`:''}
       ${r.note?`<div class="fl-note">${esc(r.note)}</div>`:''}
       ${photos?`<div class="fl-photos">${photos}</div>`:''}
+      ${clim}
     </div>`;
   }).join('');
 }
@@ -2341,6 +2606,7 @@ document.addEventListener('DOMContentLoaded',async function(){
   setInterval(renderHeatHours,600000);
   setInterval(pollLastReading,60000);
   setInterval(renderFreshness,15000);
+  flCheckDeepLink();
   const ov=$('reportsOverlay');
   if(ov)ov.addEventListener('click',function(e){if(e.target===this)closeReports();});
 });
