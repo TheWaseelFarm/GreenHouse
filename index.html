@@ -650,6 +650,7 @@ img,svg,canvas{max-width:100%}
 .qr-cell{border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center;background:#fff;break-inside:avoid}
 .qr-cell svg,.qr-cell img{width:100%;height:auto;max-width:120px;display:block;margin:0 auto}
 .qr-code{font-family:var(--mono);font-size:.72rem;font-weight:900;margin-top:5px;color:#06442E;letter-spacing:.02em}
+.qr-full{font-size:.6rem;font-weight:700;color:#33413a;margin-top:2px;line-height:1.3}
 @media print{
   body *{visibility:hidden}
   #qrOverlay,#qrOverlay *{visibility:visible}
@@ -1883,6 +1884,18 @@ function qrCodesList(){
   return codes;
 }
 function qrCount(){const n=qrCodesList().length;const el=$('qrCountMsg');if(el)el.textContent=(siteLang==='ar'?arNum(n)+' ملصق':n+' labels')+(n>1500?' ⚠️':'');}
+// Expand a code (L3-T12-Lv4-O2) to a full human-readable label, so a sticker is
+// still usable if the QR itself won't scan.
+function qrHumanLabel(code){
+  const ar=(typeof siteLang!=='undefined'&&siteLang==='ar');
+  const p=code.match(/^L(\d+)-T(\d+)(?:-Lv(\d+))?(?:-O(\d+))?$/i);if(!p)return code;
+  const parts=[];
+  const w=(en,arb,n)=>parts.push((ar?arb+' '+arNum(n):en+' '+n));
+  w('Line','خط',p[1]);w('Tower','برج',p[2]);
+  if(p[3])w('Level','مستوى',p[3]);
+  if(p[4])w('Outlet','مخرج',p[4]);
+  return parts.join(' · ');
+}
 function qrGenerate(){
   const sheet=$('qrSheet');const codes=qrCodesList();
   if(typeof qrcode==='undefined'){sheet.innerHTML='<div style="padding:16px;color:var(--danger)">QR library not loaded — check the connection and reopen.</div>';return;}
@@ -1891,7 +1904,7 @@ function qrGenerate(){
   sheet.innerHTML=codes.map(code=>{
     const qr=qrcode(0,'M');qr.addData(origin+'/?loc='+code);qr.make();
     let img;try{img=qr.createSvgTag({cellSize:4,margin:1,scalable:true});}catch(_){img=qr.createImgTag(4,1);}
-    return '<div class="qr-cell">'+img+'<div class="qr-code">'+code+'</div></div>';
+    return '<div class="qr-cell">'+img+'<div class="qr-code">'+code+'</div><div class="qr-full">'+esc(qrHumanLabel(code))+'</div></div>';
   }).join('');
 }
 function qrPrint(){if(!$('qrSheet').innerHTML.trim())qrGenerate();setTimeout(()=>window.print(),150);}
