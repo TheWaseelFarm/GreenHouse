@@ -20,12 +20,24 @@ module.exports = async (req, res) => {
 
   const limit = Math.min(parseInt(req.query && req.query.limit, 10) || 200, 500);
   const days = parseInt(req.query && req.query.days, 10);
+  const q = req.query || {};
 
-  let path = `/rest/v1/field_logs?select=id,created_at,log_date,author,location,activities,other_note,note,photo_urls&order=created_at.desc&limit=${limit}`;
+  const cols = 'id,created_at,log_date,log_type,author,location,line,tower,level,outlet,plant_code,'
+    + 'activities,other_note,note,photo_urls,climate,'
+    + 'variety,growth_stage,vigor,feed_ec,feed_ph,drain_ec,drain_ph,water_temp,irrigation,fertilizer,'
+    + 'pesticide,active_ingredient,dose,method,pest,phi_days,safety_end,operator';
+  let path = `/rest/v1/field_logs?select=${cols}&order=created_at.desc&limit=${limit}`;
   if (days > 0) {
     const since = new Date(Date.now() - days * 86400000).toISOString();
     path += `&created_at=gte.${since}`;
   }
+  // Optional filters. `type` = monitoring|treatment; `plant_code` exact; `line`
+  // exact; `safety=open` = pre-harvest windows that have not yet expired.
+  if (q.type === 'monitoring' || q.type === 'treatment') path += `&log_type=eq.${q.type}`;
+  if (typeof q.plant_code === 'string' && /^[A-Za-z0-9-]{1,40}$/.test(q.plant_code)) path += `&plant_code=eq.${q.plant_code}`;
+  if (/^\d{1,3}$/.test(String(q.line || ''))) path += `&line=eq.${q.line}`;
+  if (q.safety === 'open') path += `&safety_end=gte.${new Date().toISOString().slice(0, 10)}`;
+
 
   try {
     const r = await supaGet(path);
