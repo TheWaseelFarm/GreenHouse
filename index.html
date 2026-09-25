@@ -725,7 +725,7 @@ body.lang-ar #chartTitle{display:none}
           <label class="fl-lbl" id="flLblDate">التاريخ</label>
           <input type="date" id="flDate" class="fl-input">
         </div>
-        <div class="fl-row">
+        <div class="fl-row" id="flLocRow">
           <label class="fl-lbl" id="flLblLoc">الموقع</label>
           <div class="fl-locgrid">
             <select id="flLine" class="fl-input" onchange="flSyncCode()"></select>
@@ -745,12 +745,7 @@ body.lang-ar #chartTitle{display:none}
             <div class="fl-row"><label class="fl-lbl" id="flLblVigor">حيوية النبات</label><select id="flVigor" class="fl-input"></select></div>
             <div class="fl-row"><label class="fl-lbl" id="flLblFeedEc">EC تغذية</label><input type="number" step="0.1" inputmode="decimal" id="flFeedEc" class="fl-input" placeholder="1.0–1.4"></div>
             <div class="fl-row"><label class="fl-lbl" id="flLblFeedPh">pH تغذية</label><input type="number" step="0.1" inputmode="decimal" id="flFeedPh" class="fl-input" placeholder="5.5–6.2"></div>
-            <div class="fl-row"><label class="fl-lbl" id="flLblDrainEc">EC تصريف</label><input type="number" step="0.1" inputmode="decimal" id="flDrainEc" class="fl-input"></div>
-            <div class="fl-row"><label class="fl-lbl" id="flLblDrainPh">pH تصريف</label><input type="number" step="0.1" inputmode="decimal" id="flDrainPh" class="fl-input"></div>
-            <div class="fl-row"><label class="fl-lbl" id="flLblWtemp">حرارة الماء °م</label><input type="number" step="0.1" inputmode="decimal" id="flWtemp" class="fl-input"></div>
             <div class="fl-row"><label class="fl-lbl" id="flLblVariety">الصنف</label><input type="text" id="flVariety" class="fl-input" placeholder="Albion"></div>
-            <div class="fl-row"><label class="fl-lbl" id="flLblIrrig">الري</label><input type="text" id="flIrrig" class="fl-input"></div>
-            <div class="fl-row"><label class="fl-lbl" id="flLblFert">التسميد</label><input type="text" id="flFert" class="fl-input"></div>
           </div>
         </div>
 
@@ -1951,8 +1946,7 @@ function applyFlLang(){
   // monitoring labels
   const set=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
   set('flLblStage',t.stage);set('flLblVigor',t.vigor);set('flLblFeedEc',t.feedEc);set('flLblFeedPh',t.feedPh);
-  set('flLblDrainEc',t.drainEc);set('flLblDrainPh',t.drainPh);set('flLblWtemp',t.wtemp);set('flLblVariety',t.variety);
-  set('flLblIrrig',t.irrig);set('flLblFert',t.fert);
+  set('flLblVariety',t.variety);
   // treatment labels
   set('flLblPest',t.pest);set('flLblPesticide',t.pesticide);set('flLblAI',t.ai);set('flLblDose',t.dose);
   set('flLblMethod',t.method);set('flLblPhi',t.phi);set('flLblOperator',t.operator);
@@ -1967,6 +1961,8 @@ function flSetType(type){
   $('flTypeTrt').classList.toggle('on',type==='treatment');
   $('flMonFields').style.display=type==='monitoring'?'':'none';
   $('flTrtFields').style.display=type==='treatment'?'':'none';
+  // Treatment is applied to ALL plants, so it carries no per-plant location.
+  const loc=$('flLocRow');if(loc)loc.style.display=type==='treatment'?'none':'';
 }
 // Build the Line/Tower/Level/Outlet index selects + the monitoring/treatment
 // dropdowns (growth stage, vigor 1-5, application method).
@@ -2083,16 +2079,16 @@ async function submitFieldLog(e){
   const files=Array.from($('flPhotos').files||[]).slice(0,6);
   // Attach the live greenhouse climate as context (no extra typing).
   const climate=(S.live&&S.live.temp!=null)?{temp:S.live.tempW??S.live.temp,humidity:S.live.humW??S.live.hum,vpd:S.live.vpd,co2:S.live.co2,water_temp:S.water&&S.water.irrigation,recorded_at:new Date().toISOString()}:undefined;
-  const payload={log_type:flType,log_date:$('flDate').value,activities:acts,other,note,photos:[],climate,
-    line:gv('flLine'),tower:gv('flTower'),level:gv('flLevel'),outlet:gv('flOutlet')};
+  const payload={log_type:flType,log_date:$('flDate').value,activities:acts,other,note,photos:[],climate};
   if(flType==='monitoring'){
-    Object.assign(payload,{variety:gv('flVariety'),growth_stage:gv('flStage'),vigor:gv('flVigor'),
-      feed_ec:gv('flFeedEc'),feed_ph:gv('flFeedPh'),drain_ec:gv('flDrainEc'),drain_ph:gv('flDrainPh'),
-      water_temp:gv('flWtemp'),irrigation:gv('flIrrig'),fertilizer:gv('flFert')});
-    const hasReading=['flVigor','flStage','flFeedEc','flFeedPh','flDrainEc','flDrainPh','flWtemp','flIrrig','flFert'].some(id=>gv(id)!=null);
+    Object.assign(payload,{line:gv('flLine'),tower:gv('flTower'),level:gv('flLevel'),outlet:gv('flOutlet'),
+      variety:gv('flVariety'),growth_stage:gv('flStage'),vigor:gv('flVigor'),feed_ec:gv('flFeedEc'),feed_ph:gv('flFeedPh')});
+    const hasReading=['flVigor','flStage','flFeedEc','flFeedPh'].some(id=>gv(id)!=null);
     if(!files.length&&!acts.length&&!other&&!note&&!hasReading){msg.style.display='block';msg.style.color='var(--danger)';msg.textContent=t.needOne;return;}
   }else{
-    Object.assign(payload,{pesticide:gv('flPesticide'),active_ingredient:gv('flAI'),dose:gv('flDose'),
+    // Treatment is greenhouse-wide (all plants) — no per-plant location.
+    Object.assign(payload,{location:flLang==='ar'?'جميع النبات':'All plants',
+      pesticide:gv('flPesticide'),active_ingredient:gv('flAI'),dose:gv('flDose'),
       method:gv('flMethod'),pest:gv('flPest'),phi_days:gv('flPhi'),operator:gv('flOperator')});
     if(!gv('flPesticide')&&!gv('flPest')&&!gv('flAI')){msg.style.display='block';msg.style.color='var(--danger)';msg.textContent=t.needTrt;return;}
   }
@@ -2104,7 +2100,7 @@ async function submitFieldLog(e){
     if(!res.ok)throw new Error(data.error||'Save failed');
     msg.style.display='block';msg.style.color='#16894E';msg.textContent=t.saved;
     flSel.clear();flOtherOn=false;flBuildChips();
-    ['flNote','flOther','flVariety','flStage','flVigor','flFeedEc','flFeedPh','flDrainEc','flDrainPh','flWtemp','flIrrig','flFert','flPest','flPesticide','flAI','flDose','flMethod','flPhi','flOperator'].forEach(id=>{const el=$(id);if(el)el.value='';});
+    ['flNote','flOther','flVariety','flStage','flVigor','flFeedEc','flFeedPh','flPest','flPesticide','flAI','flDose','flMethod','flPhi','flOperator'].forEach(id=>{const el=$(id);if(el)el.value='';});
     $('flPhotos').value='';$('flPreview').innerHTML='';$('flSafetyMsg').textContent='';
     loadJournal();
   }catch(err){msg.style.display='block';msg.style.color='var(--danger)';msg.textContent='✕ '+err.message;}
@@ -2143,7 +2139,7 @@ function renderJournal(){
     const tags=acts.map(a=>`<span class="fl-tag">${esc(a)}</span>`).join('');
     const photos=(Array.isArray(r.photo_urls)?r.photo_urls:[]).map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" loading="lazy" alt="plant photo"></a>`).join('');
     const d=new Date(r.log_date||r.created_at);const dateStr=isNaN(d)?esc(r.log_date||''):d.toLocaleDateString(ar?'ar':'en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
-    const code=r.plant_code?`<span class="fl-code" style="font-size:.7rem">📍 ${esc(r.plant_code)}</span>`:(r.location?' · '+esc(flLocLabel(r.location)):'');
+    const code=isTrt?`<span class="fl-tag" style="background:#eef3ee;color:#06442E">${ar?'جميع النبات':'All plants'}</span>`:(r.plant_code?`<span class="fl-code" style="font-size:.7rem">📍 ${esc(r.plant_code)}</span>`:(r.location?' · '+esc(flLocLabel(r.location)):''));
     const badge=isTrt?`<span class="fl-tag" style="background:#8B2A1E;color:#fff">🧴 ${ar?'مكافحة':'Treatment'}</span>`:`<span class="fl-tag" style="background:#16894E;color:#fff">🌱 ${ar?'مراقبة':'Monitoring'}</span>`;
     let fields='';
     if(isTrt){
@@ -2155,7 +2151,7 @@ function renderJournal(){
       }
     }else{
       const stage=r.growth_stage?(FL_STAGES.find(s=>s.en===r.growth_stage)||{})[ar?'ar':'en']||r.growth_stage:'';
-      fields=[chip(FL_T[flLang].stage,stage),chip(FL_T[flLang].vigor,r.vigor!=null?r.vigor+'/5':''),chip('EC',r.feed_ec),chip('pH',r.feed_ph),chip(ar?'EC تصريف':'Drain EC',r.drain_ec),chip(FL_T[flLang].wtemp,r.water_temp!=null?r.water_temp+'°':''),chip(FL_T[flLang].variety,r.variety),chip(FL_T[flLang].irrig,r.irrigation),chip(FL_T[flLang].fert,r.fertilizer)].join('');
+      fields=[chip(FL_T[flLang].stage,stage),chip(FL_T[flLang].vigor,r.vigor!=null?r.vigor+'/5':''),chip('EC',r.feed_ec),chip('pH',r.feed_ph),chip(FL_T[flLang].variety,r.variety)].join('');
     }
     const clim=r.climate&&r.climate.temp!=null?`<div style="font-size:.6rem;color:var(--muted);margin-top:4px">🌡️ ${Number(r.climate.temp).toFixed(1)}°C · ${r.climate.humidity!=null?Number(r.climate.humidity).toFixed(0)+'% · ':''}${r.climate.vpd!=null?'VPD '+Number(r.climate.vpd).toFixed(2):''}</div>`:'';
     return `<div class="fl-entry" style="direction:${ar?'rtl':'ltr'}">
