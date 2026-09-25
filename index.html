@@ -651,6 +651,11 @@ img,svg,canvas{max-width:100%}
 .qr-cell svg,.qr-cell img{width:100%;height:auto;max-width:120px;display:block;margin:0 auto}
 .qr-code{font-family:var(--mono);font-size:.72rem;font-weight:900;margin-top:5px;color:#06442E;letter-spacing:.02em}
 .qr-full{font-size:.6rem;font-weight:700;color:#33413a;margin-top:2px;line-height:1.3}
+.qr-legend{margin-top:16px;border:1.5px solid #06442E;border-radius:10px;padding:12px 14px;background:var(--soft-sage,#eef3ee)}
+.qr-leg-head{font-size:.82rem;font-weight:900;color:#06442E;margin-bottom:2px}
+.qr-leg-meta{font-size:.66rem;font-weight:700;color:var(--muted);margin-bottom:8px}
+.qr-leg-rules{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:.66rem;line-height:1.45;color:#22302a}
+.qr-leg-rules b{color:#06442E}
 @media print{
   body *{visibility:hidden}
   #qrOverlay,#qrOverlay *{visibility:visible}
@@ -658,6 +663,7 @@ img,svg,canvas{max-width:100%}
   #qrOverlay .rep-header,#qrControls,.rep-close{display:none!important}
   .qr-sheet{grid-template-columns:repeat(4,1fr);gap:6px}
   .qr-cell{border:1px solid #ccc}
+  .qr-legend{break-inside:avoid;margin-top:0}
 }
 .fl-lbl{display:block;font-size:.72rem;font-weight:800;color:var(--deep);margin-bottom:6px}
 .fl-input{width:100%;box-sizing:border-box;padding:11px 12px;font-size:15px;border:1px solid var(--border);border-radius:10px;background:#fff;color:#1c2a22;font-family:inherit}
@@ -825,6 +831,7 @@ body.lang-ar #chartTitle{display:none}
         </div>
         <div class="fl-hint" id="qrHint">كل ملصق رابط ذكي: امسحه بكاميرا الجوال ليفتح السجل على موقع النبتة مباشرة.</div>
       </div>
+      <div id="qrLegend" class="qr-legend" style="display:none"></div>
       <div id="qrSheet" class="qr-sheet"></div>
     </div>
   </div>
@@ -1900,12 +1907,31 @@ function qrGenerate(){
   const sheet=$('qrSheet');const codes=qrCodesList();
   if(typeof qrcode==='undefined'){sheet.innerHTML='<div style="padding:16px;color:var(--danger)">QR library not loaded — check the connection and reopen.</div>';return;}
   if(codes.length>6000){sheet.innerHTML='<div style="padding:16px;color:var(--danger)">Too many labels ('+codes.length+'). Reduce the counts or use a coarser granularity.</div>';return;}
+  qrRenderLegend(codes.length);
   const origin=location.origin;
   sheet.innerHTML=codes.map(code=>{
     const qr=qrcode(0,'M');qr.addData(origin+'/?loc='+code);qr.make();
     let img;try{img=qr.createSvgTag({cellSize:4,margin:1,scalable:true});}catch(_){img=qr.createImgTag(4,1);}
     return '<div class="qr-cell">'+img+'<div class="qr-code">'+code+'</div><div class="qr-full">'+esc(qrHumanLabel(code))+'</div></div>';
   }).join('');
+}
+// Numbering-convention legend printed at the top of the sheet, so whoever sticks
+// the labels applies them in one consistent direction. Bilingual (AR + EN).
+function qrRenderLegend(count){
+  const box=$('qrLegend');if(!box)return;
+  const gran=$('qrGran').value;
+  const granTxt={tower:'برج · Tower',level:'مستوى · Level',outlet:'مخرج · Outlet'}[gran]||gran;
+  const date=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  box.style.display='block';
+  box.innerHTML=
+    '<div class="qr-leg-head">مزرعة الوصيل · Al-Waseel Farm — نظام ترقيم المواقع · Plant Location Numbering</div>'
+   +'<div class="qr-leg-meta">'+count+' labels · '+granTxt+' · '+esc(date)+'</div>'
+   +'<div class="qr-leg-rules">'
+   +'<div><b>Line 1 · خط ١</b> — nearest the wet wall / door, counting across · الأقرب للجدار الرطب</div>'
+   +'<div><b>Tower 1 · برج ١</b> — front of the line (aisle entrance), toward the back · من مدخل الممر للخلف</div>'
+   +'<div><b>Level 1 · مستوى ١</b> — the bottom cone, counting up · المخروط السفلي صعوداً</div>'
+   +'<div><b>Outlet 1 · مخرج ١</b> — the pocket facing the aisle, then clockwise · الجيب المواجه للممر ثم باتجاه عقارب الساعة</div>'
+   +'</div>';
 }
 function qrPrint(){if(!$('qrSheet').innerHTML.trim())qrGenerate();setTimeout(()=>window.print(),150);}
 function closeFieldLog(){$('fieldLogOverlay').classList.remove('open');}
