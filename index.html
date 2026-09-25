@@ -648,6 +648,23 @@ img,svg,canvas{max-width:100%}
 .fl-safety{font-size:.7rem;font-weight:800;margin-top:8px;line-height:1.5}
 .fl-histbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:rgba(6,68,46,.07);border:1px solid rgba(6,68,46,.18);border-radius:9px;padding:7px 11px;margin-bottom:10px;font-size:.72rem;font-weight:700;color:#06442E}
 .fl-histbar a{color:#8B2A1E;cursor:pointer;font-weight:800;margin-inline-start:auto}
+.pr-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.pr-card{border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px;background:#fff}
+.pr-h{font-size:.66rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.pr-chips{display:flex;flex-wrap:wrap;gap:7px}
+.pr-chip{font-size:.74rem;font-weight:700;color:#22302a;background:var(--soft-sage,#eef3ee);border-radius:8px;padding:5px 10px}
+.pr-chip b{color:#06442E;font-weight:900}
+.pr-lock{font-size:.82rem;font-weight:900;color:#8B2A1E;background:rgba(196,57,43,.08);border:1px solid rgba(196,57,43,.25);border-radius:9px;padding:8px 11px;margin-bottom:9px}
+.pr-safe{font-size:.8rem;font-weight:800;color:#16894E;margin-bottom:9px}
+.pr-meta{font-size:.66rem;color:var(--muted);font-weight:700;margin-top:8px}
+.pr-trow{font-size:.74rem;color:#22302a;padding:5px 0;border-top:1px solid rgba(6,68,46,.06)}
+.pr-photos{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.pr-photos a{flex:0 0 auto;text-align:center;text-decoration:none}
+.pr-photos img{width:110px;height:110px;object-fit:cover;border-radius:10px;border:1px solid var(--border);display:block}
+.pr-photos span{font-size:.58rem;color:var(--muted);font-weight:700;display:block;margin-top:3px}
+.pr-entry{display:flex;gap:12px;padding:7px 0;border-top:1px solid rgba(6,68,46,.06)}
+.pr-entry-d{flex:0 0 auto;font-size:.7rem;font-weight:800;color:#06442E;min-width:88px}
+.pr-entry-b{font-size:.74rem;color:#33413a;line-height:1.5}
 .qr-sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:16px}
 .qr-cell{border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center;background:#fff;break-inside:avoid}
 .qr-cell svg,.qr-cell img{width:100%;height:auto;max-width:120px;display:block;margin:0 auto}
@@ -832,6 +849,19 @@ body.lang-ar #chartTitle{display:none}
       <div id="qrLegend" class="qr-legend" style="display:none"></div>
       <div id="qrSheet" class="qr-sheet"></div>
     </div>
+  </div>
+</div>
+
+<!-- Plant Report — the dossier that opens when a plant's QR is scanned:
+     identity, harvest-safety status, live greenhouse environment, and the
+     plant's growth timeline + photos. Read-first, with an Add-reading button. -->
+<div class="reports-overlay" id="prOverlay">
+  <div class="reports-panel">
+    <div class="rep-header">
+      <div><h2><i class="ti ti-plant-2" style="margin-right:8px"></i><span id="prTitle">تقرير النبتة</span></h2><div class="rep-header-ar" id="prCode"></div></div>
+      <button class="rep-close" onclick="closePlantReport()" aria-label="Close"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rep-body" id="prBody"></div>
   </div>
 </div>
 
@@ -1855,8 +1885,73 @@ function openFieldLog(preset){
 function flCheckDeepLink(){
   try{
     const m=(location.search+location.hash).match(/[?&#]loc=([A-Za-z0-9-]+)/i);
-    if(m){openFieldLog(m[1]);}
+    if(m){openPlantReport(m[1]);}
   }catch(_){}
+}
+// ---- Plant Report: the dossier shown when a plant's QR is scanned ----
+async function openPlantReport(code){
+  code=(code||'').toUpperCase();
+  const ov=$('prOverlay');ov.classList.add('open');
+  if(!ov._init){ov._init=true;ov.addEventListener('click',e=>{if(e.target===ov)closePlantReport();});}
+  $('prBody').innerHTML='<div style="text-align:center;padding:34px;color:var(--muted)">…</div>';
+  try{const r=await fetch('/api/field-log-list?limit=500');const j=await r.json();if(Array.isArray(j))_journal=j;}catch(_){}
+  renderPlantReport(code);
+}
+function closePlantReport(){$('prOverlay').classList.remove('open');}
+function prAddReading(code){closePlantReport();openFieldLog(code);}
+function prFullJournal(code){closePlantReport();openFieldLog();const el=$('flPlantFilter');if(el)el.value=code;if(typeof renderJournal==='function')renderJournal();}
+function renderPlantReport(code){
+  const ar=(typeof siteLang!=='undefined'&&siteLang==='ar');
+  const box=$('prBody');if(!box)return;
+  box.style.direction=ar?'rtl':'ltr';
+  $('prTitle').textContent=ar?'تقرير النبتة':'Plant Report';
+  $('prCode').textContent='📍 '+qrHumanLabel(code)+' · '+code;
+  const mine=_journal.filter(r=>r.plant_code&&r.plant_code.toUpperCase().startsWith(code)&&(r.log_type||'monitoring')!=='treatment');
+  const treatments=_journal.filter(r=>r.log_type==='treatment');
+  const latest=mine[0];
+  const today=new Date().toISOString().slice(0,10);
+  let lock=null;treatments.forEach(tr=>{if(tr.safety_end&&tr.safety_end>=today&&(!lock||tr.safety_end>lock))lock=tr.safety_end;});
+  const stageLabel=s=>s?((FL_STAGES.find(x=>x.en===s)||{})[ar?'ar':'en']||s):'—';
+  const fmtDate=d=>{const x=new Date(d);return isNaN(x)?'':x.toLocaleDateString(ar?'ar':'en-GB',{day:'2-digit',month:'short',year:'numeric'});};
+  const chip=(l,v)=>v==null||v===''?'':`<span class="pr-chip"><b>${esc(l)}</b> ${esc(v)}</span>`;
+  const L=S.live;
+  let html=`<div class="pr-actions">`
+    +`<button class="fl-submit" style="width:auto" onclick="prAddReading('${esc(code)}')">➕ ${ar?'إضافة قراءة':'Add reading'}</button>`
+    +`<button class="fl-scan" onclick="prFullJournal('${esc(code)}')">📖 ${ar?'كل السجل':'Full journal'}</button></div>`;
+  // Status
+  html+=`<div class="pr-card"><div class="pr-h">${ar?'الحالة':'Status'}</div>`;
+  if(lock)html+=`<div class="pr-lock">⛔ ${ar?'ممنوع الحصاد حتى ':'No harvest until '}${esc(lock)}</div>`;
+  else if(treatments.some(t=>t.safety_end))html+=`<div class="pr-safe">✅ ${ar?'آمن للحصاد':'Safe to harvest'}</div>`;
+  html+=`<div class="pr-chips">${chip(ar?'المرحلة':'Stage',latest?stageLabel(latest.growth_stage):'—')}${chip(ar?'الحيوية':'Vigor',latest&&latest.vigor!=null?latest.vigor+'/5':'')}${chip('EC',latest?latest.feed_ec:'')}${chip('pH',latest?latest.feed_ph:'')}${chip(ar?'الصنف':'Variety',latest?latest.variety:'')}</div>`;
+  html+=`<div class="pr-meta">${mine.length?(ar?'آخر قراءة: ':'Last reading: ')+fmtDate(latest.log_date||latest.created_at):(ar?'لا توجد قراءات بعد':'No readings yet')} · ${ar?arNum(mine.length)+' قراءة':mine.length+' readings'}</div></div>`;
+  // Environment (greenhouse-level)
+  html+=`<div class="pr-card"><div class="pr-h">🏢 ${ar?'البيئة الآن (البيت)':'Environment now (greenhouse)'}</div><div class="pr-chips">`
+    +chip(ar?'الحرارة':'Temp',L.tempW!=null?L.tempW.toFixed(1)+'°C':(L.temp!=null?L.temp.toFixed(1)+'°C':''))
+    +chip(ar?'الرطوبة':'Humidity',L.humW!=null?L.humW.toFixed(0)+'%':'')
+    +chip('VPD',L.vpd!=null?Number(L.vpd).toFixed(2):'')
+    +chip('CO₂',L.co2!=null?L.co2+' ppm':'')
+    +chip(ar?'ماء الري':'Irrig. water',S.water&&S.water.irrigation!=null?S.water.irrigation.toFixed(1)+'°C':'')
+    +`</div></div>`;
+  // Treatments (all plants)
+  if(treatments.length){
+    html+=`<div class="pr-card"><div class="pr-h">🧴 ${ar?'المكافحة (جميع النبات)':'Treatments (all plants)'}</div>`;
+    html+=treatments.slice(0,6).map(tr=>`<div class="pr-trow">${fmtDate(tr.log_date||tr.created_at)} — <b>${esc(tr.pesticide||tr.pest||'')}</b>${tr.dose?' · '+esc(tr.dose):''}${tr.safety_end?' · '+(tr.safety_end>=today?'⛔ '+(ar?'حتى ':'until ')+esc(tr.safety_end):'✅'):''}</div>`).join('');
+    html+=`</div>`;
+  }
+  // Photo timeline
+  const photos=mine.flatMap(r=>Array.isArray(r.photo_urls)?r.photo_urls.map(u=>({u,d:r.log_date||r.created_at})):[]);
+  if(photos.length){
+    html+=`<div class="pr-card"><div class="pr-h">📷 ${ar?'تطور النبتة بالصور':'Growth timeline'}</div><div class="pr-photos">`
+      +photos.map(p=>`<a href="${esc(p.u)}" target="_blank" rel="noopener"><img src="${esc(p.u)}" loading="lazy" alt="plant photo"><span>${fmtDate(p.d)}</span></a>`).join('')+`</div></div>`;
+  }
+  // History
+  html+=`<div class="pr-card"><div class="pr-h">${ar?'السجل':'History'}</div>`;
+  html+=mine.length?mine.map(r=>{
+    const bits=[stageLabel(r.growth_stage)!=='—'?stageLabel(r.growth_stage):'',r.vigor!=null?(ar?'حيوية ':'vigor ')+r.vigor+'/5':'',r.feed_ec!=null?'EC '+r.feed_ec:'',r.feed_ph!=null?'pH '+r.feed_ph:'',r.note?'"'+r.note+'"':''].filter(Boolean);
+    return `<div class="pr-entry"><div class="pr-entry-d">${fmtDate(r.log_date||r.created_at)}</div><div class="pr-entry-b">${bits.map(esc).join(' · ')||'—'}</div></div>`;
+  }).join(''):`<div class="pr-meta">${ar?'ابدأ بإضافة أول قراءة لهذه النبتة.':'Start by adding the first reading for this plant.'}</div>`;
+  html+=`</div>`;
+  box.innerHTML=html;
 }
 // ---- QR Plant Labels: printable deep-link stickers ----
 const QR_T={
