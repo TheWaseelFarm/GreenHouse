@@ -814,8 +814,8 @@ body.lang-ar #chartTitle{display:none}
         </select>
         <div class="fl-grid2" style="margin-top:10px">
           <div class="fl-row"><label class="fl-lbl" id="qrLblLines">عدد الخطوط</label><input type="number" id="qrLines" class="fl-input" value="6" min="1" max="20" oninput="qrCount()"></div>
-          <div class="fl-row"><label class="fl-lbl" id="qrLblTowers">أبراج لكل خط</label><input type="number" id="qrTowers" class="fl-input" value="10" min="1" max="60" oninput="qrCount()"></div>
-          <div class="fl-row"><label class="fl-lbl" id="qrLblLevels">مستويات لكل برج</label><input type="number" id="qrLevels" class="fl-input" value="8" min="1" max="30" oninput="qrCount()"></div>
+          <div class="fl-row"><label class="fl-lbl" id="qrLblTowers">أبراج لكل خط</label><input type="number" id="qrTowers" class="fl-input" value="24" min="1" max="60" oninput="qrCount()"></div>
+          <div class="fl-row"><label class="fl-lbl" id="qrLblLevels">مستويات لكل برج</label><input type="number" id="qrLevels" class="fl-input" value="10" min="1" max="30" oninput="qrCount()"></div>
         </div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px">
           <button type="button" class="fl-submit" style="width:auto" onclick="qrGenerate()"><span id="qrGenBtn">توليد الباركود</span></button>
@@ -1886,7 +1886,7 @@ function qrCount(){const n=qrCodesList().length;const el=$('qrCountMsg');if(el)e
 function qrGenerate(){
   const sheet=$('qrSheet');const codes=qrCodesList();
   if(typeof qrcode==='undefined'){sheet.innerHTML='<div style="padding:16px;color:var(--danger)">QR library not loaded — check the connection and reopen.</div>';return;}
-  if(codes.length>2000){sheet.innerHTML='<div style="padding:16px;color:var(--danger)">Too many labels ('+codes.length+'). Reduce the counts or use a coarser granularity.</div>';return;}
+  if(codes.length>6000){sheet.innerHTML='<div style="padding:16px;color:var(--danger)">Too many labels ('+codes.length+'). Reduce the counts or use a coarser granularity.</div>';return;}
   const origin=location.origin;
   sheet.innerHTML=codes.map(code=>{
     const qr=qrcode(0,'M');qr.addData(origin+'/?loc='+code);qr.make();
@@ -1936,7 +1936,7 @@ function flBuildLoc(){
   const fill=(el,count,label,valFn,txtFn)=>{if(!el)return;const cur=el.value;el.innerHTML='<option value="">'+label+'</option>';for(let i=1;i<=count;i++){const o=document.createElement('option');o.value=valFn?valFn(i):i;o.textContent=txtFn(i);el.appendChild(o);}el.value=cur;};
   fill($('flLine'),6,t.line,null,i=>ar?'خط '+arNum(i):'Line '+i);
   fill($('flTower'),24,t.tower,null,i=>ar?'برج '+arNum(i):'Tower '+i);
-  fill($('flLevel'),12,t.level,null,i=>ar?'مستوى '+arNum(i):'Level '+i);
+  fill($('flLevel'),10,t.level,null,i=>ar?'مستوى '+arNum(i):'Level '+i);
   fill($('flOutlet'),4,t.outlet,null,i=>ar?'مخرج '+arNum(i):'Outlet '+i);
   // growth stage
   const st=$('flStage');if(st){const cur=st.value;st.innerHTML='<option value="">—</option>';FL_STAGES.forEach(s=>{const o=document.createElement('option');o.value=s.en;o.textContent=ar?s.ar:s.en;st.appendChild(o);});st.value=cur;}
