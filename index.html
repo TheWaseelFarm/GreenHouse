@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <style>
 :root{
   --deep:#06442E;--forest:#032D21;--sage:#8FAF7A;--soft-sage:#E8F0E2;
@@ -228,8 +229,12 @@ img,svg,canvas{max-width:100%}
 #loadingBar.running{transform:scaleX(0.85);animation:loadpulse 1.2s ease-in-out infinite alternate}
 #loadingBar.done{transform:scaleX(1);transition:transform 0.2s ease}
 @keyframes loadpulse{from{background-position:0% 0%}to{background-position:100% 0%}}
-.reports-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(3,45,33,0.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+.reports-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(3,45,33,0.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .reports-overlay.open{display:flex}
+body.noscroll{overflow:hidden}
+.gh-tbl{width:100%;border-collapse:collapse;font-size:.72rem}
+.gh-tbl th{text-align:start;font-weight:800;color:var(--muted);padding:4px 8px;border-bottom:1px solid var(--border)}
+.gh-tbl td{padding:5px 8px;border-bottom:1px solid rgba(6,68,46,.06);font-family:var(--mono);color:#22302a}
 .reports-panel{background:var(--cream);border-radius:28px;width:min(1100px,100%);box-shadow:0 32px 80px rgba(3,45,33,0.3);border:1px solid var(--border);overflow:hidden}
 .rep-header{background:linear-gradient(135deg,var(--forest),var(--deep));padding:22px 28px;display:flex;align-items:center;justify-content:space-between}
 .rep-header h2{margin:0;color:var(--light-gold);font-size:1.1rem;font-weight:950;text-transform:uppercase;letter-spacing:0.08em}
@@ -301,7 +306,8 @@ img,svg,canvas{max-width:100%}
     <a onclick="navClick(this,'chart')"><i class="ti ti-chart-line"></i><span data-i18n="nav_trends">Climate Trends</span></a>
     <a onclick="navClick(this,'alerts')"><i class="ti ti-bell"></i><span data-i18n="nav_alerts">Alerts</span></a>
     <a onclick="navClick(this,null);openReports()"><i class="ti ti-file-analytics"></i><span data-i18n="nav_reports">Operations Report</span></a>
-    <a onclick="navClick(this,null);openFieldLog()"><i class="ti ti-camera"></i><span data-i18n="nav_plantlog">Daily Plant Log</span></a>
+    <a onclick="navClick(this,null);openGreenhouseJournal()"><i class="ti ti-building-warehouse"></i><span data-i18n="nav_ghjournal">Greenhouse Journal</span></a>
+    <a onclick="navClick(this,null);openPlantJournal()"><i class="ti ti-plant-2"></i><span data-i18n="nav_plantlog">Plant Journal</span></a>
     <a onclick="navClick(this,null);openQrLabels()"><i class="ti ti-qrcode"></i><span data-i18n="nav_qrlabels">QR Plant Labels</span></a>
     <a onclick="navClick(this,null);openCouncil()"><i class="ti ti-brain"></i><span data-i18n="nav_council">Expert Council</span></a>
     <a onclick="navClick(this,null);openAccessRequests()"><i class="ti ti-user-plus"></i><span data-i18n="nav_access">Access Requests</span></a>
@@ -865,6 +871,18 @@ body.lang-ar #chartTitle{display:none}
   </div>
 </div>
 
+<!-- Greenhouse Journal (Level 1) — the house: environment from the sensors +
+     the all-plants treatment log. Separate from the per-plant Plant Journal. -->
+<div class="reports-overlay" id="ghOverlay">
+  <div class="reports-panel">
+    <div class="rep-header">
+      <div><h2><i class="ti ti-building-warehouse" style="margin-right:8px"></i><span id="ghTitle">سجل البيت المحمي</span></h2><div class="rep-header-ar" id="ghSub">البيئة من الحساسات · المكافحة</div></div>
+      <button class="rep-close" onclick="closeGreenhouseJournal()" aria-label="Close"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rep-body" id="ghBody"></div>
+  </div>
+</div>
+
 <script>
 // Wet-wall zone sensor. Was the Hub 2 (FDD0AE072D7C); replaced Sep 2026 with a
 // SwitchBot Meter mounted at the same wet-wall location (BLE MAC E8:55:05:46:2A:46
@@ -875,13 +893,19 @@ const W_CANOPY=0.70,W_WETWALL=0.30,ALERT_TEMP=26,ALERT_VPD=1.3;
 const T={co2:{ok:[350,500],warn:[300,800]},temp:{ok:[16,22],warn:[14,26]},hum:{ok:[60,75],warn:[50,85]},vpd:{ok:[0.5,1.0],warn:[0,1.3]}};
 const S={live:{co2:null,temp:null,hum:null,vpd:null,hubTemp:null,hubHum:null,w1:false,tempW:null,humW:null,outsideTemp:null},water:{irrigation:null,outside:null},health:{},metric:'all',subView:{temp:'weighted',hum:'weighted'},range:1,lastAlert:0,localHist:[],chart:null,lastWeatherFetch:0};
 const $=id=>document.getElementById(id);
+// Lock background page scroll while a full-screen overlay is open (fixes iOS
+// scrolling the page behind the modal). Ref-counted so nested/closed overlays
+// don't unlock too early.
+let _scrollLocks=0;
+function lockScroll(on){try{_scrollLocks=Math.max(0,_scrollLocks+(on?1:-1));document.body.classList.toggle('noscroll',_scrollLocks>0);}catch(_){}}
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Global language switch (Arabic/English) for the dashboard chrome. Bilingual
 // metric cards flip via CSS (body.lang-ar); text-only chrome flips via this map.
 const I18N={
   nav_overview:{en:'Overview',ar:'الرئيسية'},nav_environment:{en:'Environment',ar:'البيئة'},
   nav_trends:{en:'Climate Trends',ar:'اتجاهات المناخ'},nav_alerts:{en:'Alerts',ar:'التنبيهات'},
-  nav_reports:{en:'Operations Report',ar:'تقرير العمليات'},nav_plantlog:{en:'Daily Plant Log',ar:'سجل النباتات اليومي'},
+  nav_reports:{en:'Operations Report',ar:'تقرير العمليات'},nav_plantlog:{en:'Plant Journal',ar:'سجل النبات'},
+  nav_ghjournal:{en:'Greenhouse Journal',ar:'سجل البيت المحمي'},
   nav_qrlabels:{en:'QR Plant Labels',ar:'باركود المواقع'},
   nav_council:{en:'Expert Council',ar:'المجلس الاستشاري'},nav_access:{en:'Access Requests',ar:'طلبات الوصول'},
   nav_password:{en:'Change Password',ar:'تغيير كلمة المرور'},nav_settings:{en:'Settings',ar:'الإعدادات'},
@@ -1864,21 +1888,45 @@ const FL_T={
   ar:{title:'سجل النباتات اليومي',sub:'صور وملاحظات ميدانية',date:'التاريخ',location:'الموقع',line:'الخط',tower:'البرج',level:'المستوى',outlet:'المخرج',scan:'مسح الباركود',typeMon:'🌱 المراقبة',typeTrt:'🧴 المكافحة',stage:'مرحلة النمو',vigor:'حيوية النبات',feedEc:'EC تغذية',feedPh:'pH تغذية',drainEc:'EC تصريف',drainPh:'pH تصريف',wtemp:'حرارة الماء °م',variety:'الصنف',irrig:'الري',fert:'التسميد',pest:'الآفة / السبب',pesticide:'اسم المبيد',ai:'المادة الفعالة',dose:'الجرعة',method:'طريقة الاستخدام',phi:'فترة الأمان (أيام)',operator:'المنفذ',photos:'الصور',photoHint:'اضغط لفتح الكاميرا · حتى ٦ صور',activities:'ماذا عملت اليوم؟',otherPh:'اكتب النشاط الآخر هنا',notes:'ملاحظات',notesPh:'أي شيء لاحظته — آفات، أزهار جديدة، تغيّر لون…',save:'📷 حفظ الإدخال',saving:'جارٍ الرفع…',journal:'أرشيف الصور',journalSub:'صور وملاحظات حقيقية · الأحدث أولاً',allActs:'كل الأنشطة',empty:'لا توجد إدخالات بعد. أضف أول واحدة أعلاه.',needOne:'أضف صورة أو قراءة أو ملاحظة.',needTrt:'أضف اسم المبيد أو الآفة على الأقل.',saved:'✓ تم الحفظ — الإدخال في الأرشيف بالأسفل.',safeUntil:d=>'⚠️ آمن للحصاد بعد '+d,noScan:'الكاميرا لا تدعم المسح — اختر الموقع يدوياً.',langBtn:'EN'},
   en:{title:'Daily Plant Log',sub:'field photos & notes',date:'Date',location:'Location',line:'Line',tower:'Tower',level:'Level',outlet:'Outlet',scan:'Scan barcode',typeMon:'🌱 Monitoring',typeTrt:'🧴 Treatment',stage:'Growth stage',vigor:'Plant vigor',feedEc:'Feed EC',feedPh:'Feed pH',drainEc:'Drain EC',drainPh:'Drain pH',wtemp:'Water temp °C',variety:'Variety',irrig:'Irrigation',fert:'Fertilizer',pest:'Pest / reason',pesticide:'Pesticide',ai:'Active ingredient',dose:'Dose',method:'Method',phi:'Safety period (days)',operator:'Operator',photos:'Photos',photoHint:'Tap to open the camera · up to 6 photos',activities:'What did you do today?',otherPh:'Type the other activity here',notes:'Notes / observations',notesPh:'Anything you noticed — pests, new flowers, discoloration…',save:'📷 Save entry',saving:'Uploading…',journal:'Field Journal',journalSub:'real photos & notes · newest first',allActs:'All activities',empty:'No entries yet. Add the first one above.',needOne:'Add at least a photo, a reading, or a note.',needTrt:'Add at least the pesticide or the pest/reason.',saved:'✓ Saved — the entry is in the Field Journal below.',safeUntil:d=>'⚠️ Safe to harvest after '+d,noScan:'Camera scanning not supported — pick the location manually.',langBtn:'عربي'}
 };
-let _journal=[], flLang='ar', flSel=new Set(), flOtherOn=false, flType='monitoring';
+let _journal=[], flLang='ar', flSel=new Set(), flOtherOn=false, flType='monitoring', flMode='plant';
 const arNum=s=>String(s).replace(/[0-9]/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
 const flActLabel=v=>{const a=FL_ACTS.find(x=>x.en===v);return a?(flLang==='ar'?a.ar:a.en):v;};
 const flLocLabel=loc=>{if(!loc)return '';return flLang==='ar'?arNum(loc.replace(/Line/g,'خط').replace(/Tower/g,'برج')):loc;};
-function openFieldLog(preset){
-  const ov=$('fieldLogOverlay');ov.classList.add('open');
+// Two entry points → two single-purpose journals (Level 2 plant, Level 1 house).
+function openPlantJournal(){openFieldLog(null,'plant');}
+function openTreatmentEntry(){if(typeof closeGreenhouseJournal==='function')closeGreenhouseJournal();openFieldLog(null,'treat');}
+function openFieldLog(preset,mode){
+  if(mode)flMode=mode;
+  const ov=$('fieldLogOverlay');ov.classList.add('open');lockScroll(true);
   if(!ov._init){
     ov._init=true;
-    $('flDate').value=new Date().toISOString().slice(0,10);
     ov.addEventListener('click',e=>{if(e.target===ov)closeFieldLog();});
   }
+  flResetForm();          // start clean every open — never carry the last plant
   applyFlLang();
-  flSetType(flType);
-  if(preset)flApplyCode(preset);
+  // Each journal is single-purpose: Plant = monitoring, Treatment = greenhouse
+  // wide. Hide the type toggle and lock the journal filter to that type.
+  const treat=flMode==='treat';
+  flSetType(treat?'treatment':'monitoring');
+  const tb=$('flTypebar');if(tb)tb.style.display='none';
+  const tf=$('flTypeFilter');if(tf)tf.value=treat?'treatment':'monitoring';
+  const ar=flLang==='ar';
+  $('flTitle').textContent=treat?(ar?'سجل المكافحة والوقاية':'Treatment & Prevention'):(ar?'سجل النبات':'Plant Journal');
+  if(preset)flApplyCode(preset);   // a scan/deep-link fills the location after the reset
   loadJournal();
+}
+function closeFieldLog(){$('fieldLogOverlay').classList.remove('open');lockScroll(false);}
+// Clear every input so reopening the log never shows the previously scanned plant.
+function flResetForm(){
+  const d=$('flDate');if(d)d.value=new Date().toISOString().slice(0,10);
+  ['flLine','flTower','flLevel','flOutlet','flVariety','flStage','flVigor','flFeedEc','flFeedPh','flNote','flOther','flPest','flPesticide','flAI','flDose','flMethod','flPhi','flOperator'].forEach(id=>{const el=$(id);if(el)el.value='';});
+  flSel.clear();flOtherOn=false;
+  const p=$('flPhotos');if(p)p.value='';
+  const pv=$('flPreview');if(pv)pv.innerHTML='';
+  const sm=$('flSafetyMsg');if(sm)sm.textContent='';
+  const cc=$('flCode');if(cc)cc.textContent='';
+  const pf=$('flPlantFilter');if(pf)pf.value='';
+  const mg=$('flMsg');if(mg){mg.style.display='none';mg.textContent='';}
 }
 // A QR label deep-links to …/?loc=CODE. On load, open the log pre-filled to that
 // plant so scanning a tower sticker jumps straight to logging it.
@@ -1891,15 +1939,15 @@ function flCheckDeepLink(){
 // ---- Plant Report: the dossier shown when a plant's QR is scanned ----
 async function openPlantReport(code){
   code=(code||'').toUpperCase();
-  const ov=$('prOverlay');ov.classList.add('open');
+  const ov=$('prOverlay');ov.classList.add('open');lockScroll(true);
   if(!ov._init){ov._init=true;ov.addEventListener('click',e=>{if(e.target===ov)closePlantReport();});}
   $('prBody').innerHTML='<div style="text-align:center;padding:34px;color:var(--muted)">…</div>';
   try{const r=await fetch('/api/field-log-list?limit=500');const j=await r.json();if(Array.isArray(j))_journal=j;}catch(_){}
   renderPlantReport(code);
 }
-function closePlantReport(){$('prOverlay').classList.remove('open');}
-function prAddReading(code){closePlantReport();openFieldLog(code);}
-function prFullJournal(code){closePlantReport();openFieldLog();const el=$('flPlantFilter');if(el)el.value=code;if(typeof renderJournal==='function')renderJournal();}
+function closePlantReport(){$('prOverlay').classList.remove('open');lockScroll(false);}
+function prAddReading(code){closePlantReport();openFieldLog(code,'plant');}
+function prFullJournal(code){closePlantReport();openFieldLog(null,'plant');const el=$('flPlantFilter');if(el)el.value=code;if(typeof renderJournal==='function')renderJournal();setTimeout(()=>{const j=$('flJournal');if(j)j.scrollIntoView({behavior:'smooth',block:'start'});},350);}
 function renderPlantReport(code){
   const ar=(typeof siteLang!=='undefined'&&siteLang==='ar');
   const box=$('prBody');if(!box)return;
@@ -1922,7 +1970,7 @@ function renderPlantReport(code){
   html+=`<div class="pr-card"><div class="pr-h">${ar?'الحالة':'Status'}</div>`;
   if(lock)html+=`<div class="pr-lock">⛔ ${ar?'ممنوع الحصاد حتى ':'No harvest until '}${esc(lock)}</div>`;
   else if(treatments.some(t=>t.safety_end))html+=`<div class="pr-safe">✅ ${ar?'آمن للحصاد':'Safe to harvest'}</div>`;
-  html+=`<div class="pr-chips">${chip(ar?'المرحلة':'Stage',latest?stageLabel(latest.growth_stage):'—')}${chip(ar?'الحيوية':'Vigor',latest&&latest.vigor!=null?latest.vigor+'/5':'')}${chip('EC',latest?latest.feed_ec:'')}${chip('pH',latest?latest.feed_ph:'')}${chip(ar?'الصنف':'Variety',latest?latest.variety:'')}</div>`;
+  html+=`<div class="pr-chips">${chip(ar?'المرحلة':'Stage',latest?stageLabel(latest.growth_stage):'—')}${chip(ar?'الحيوية':'Vigor',latest&&latest.vigor!=null?(ar?arNum(latest.vigor)+'/'+arNum(5):latest.vigor+'/5'):'')}${chip('EC',latest?latest.feed_ec:'')}${chip('pH',latest?latest.feed_ph:'')}${chip(ar?'الصنف':'Variety',latest?latest.variety:'')}</div>`;
   html+=`<div class="pr-meta">${mine.length?(ar?'آخر قراءة: ':'Last reading: ')+fmtDate(latest.log_date||latest.created_at):(ar?'لا توجد قراءات بعد':'No readings yet')} · ${ar?arNum(mine.length)+' قراءة':mine.length+' readings'}</div></div>`;
   // Environment (greenhouse-level)
   html+=`<div class="pr-card"><div class="pr-h">🏢 ${ar?'البيئة الآن (البيت)':'Environment now (greenhouse)'}</div><div class="pr-chips">`
@@ -1953,13 +2001,61 @@ function renderPlantReport(code){
   html+=`</div>`;
   box.innerHTML=html;
 }
+// ---- Greenhouse Journal (Level 1): sensor environment + all-plants treatments ----
+async function openGreenhouseJournal(){
+  const ov=$('ghOverlay');ov.classList.add('open');
+  if(!ov._init){ov._init=true;ov.addEventListener('click',e=>{if(e.target===ov)closeGreenhouseJournal();});}
+  lockScroll(true);
+  $('ghBody').innerHTML='<div style="text-align:center;padding:34px;color:var(--muted)">…</div>';
+  let hist=[],logs=[];
+  try{
+    const [h,l]=await Promise.all([
+      fetch('/api/history?hours=168&limit=4000').then(r=>r.json()),
+      fetch('/api/field-log-list?type=treatment&limit=200').then(r=>r.json())
+    ]);
+    if(Array.isArray(h))hist=h;if(Array.isArray(l))logs=l;
+  }catch(_){}
+  renderGreenhouseJournal(hist,logs);
+}
+function closeGreenhouseJournal(){$('ghOverlay').classList.remove('open');lockScroll(false);}
+function renderGreenhouseJournal(hist,treatments){
+  const ar=(typeof siteLang!=='undefined'&&siteLang==='ar');
+  const box=$('ghBody');if(!box)return;box.style.direction=ar?'rtl':'ltr';
+  $('ghTitle').textContent=ar?'سجل البيت المحمي':'Greenhouse Journal';
+  const chip=(l,v)=>v==null||v===''?'':`<span class="pr-chip"><b>${esc(l)}</b> ${esc(v)}</span>`;
+  const L=S.live;
+  let html=`<div class="pr-card"><div class="pr-h">🌡️ ${ar?'البيئة الآن':'Environment now'}</div><div class="pr-chips">`
+    +chip(ar?'الحرارة':'Temp',L.tempW!=null?L.tempW.toFixed(1)+'°C':(L.temp!=null?L.temp.toFixed(1)+'°C':''))
+    +chip(ar?'الرطوبة':'Humidity',L.humW!=null?L.humW.toFixed(0)+'%':'')
+    +chip('VPD',L.vpd!=null?Number(L.vpd).toFixed(2):'')
+    +chip('CO₂',L.co2!=null?L.co2+' ppm':'')
+    +chip(ar?'ماء الري':'Irrig. water',S.water&&S.water.irrigation!=null?S.water.irrigation.toFixed(1)+'°C':'')
+    +`</div></div>`;
+  const days={};
+  (hist||[]).forEach(r=>{const d=new Date(r.recorded_at||r.time);if(isNaN(d))return;const key=d.toLocaleDateString('en-CA',{timeZone:'Asia/Riyadh'});const t=r.temp_weighted!=null?+r.temp_weighted:(r.temperature!=null?+r.temperature:null);const h=r.hum_weighted!=null?+r.hum_weighted:(r.humidity!=null?+r.humidity:null);const v=r.vpd!=null?+r.vpd:null;const D=(days[key]=days[key]||{t:[],h:[],v:[]});if(t!=null&&t>5&&t<60)D.t.push(t);if(h!=null&&h>0)D.h.push(h);if(v!=null&&v>0)D.v.push(v);});
+  const dayKeys=Object.keys(days).sort().reverse();
+  const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;const mx=a=>a.length?Math.max(...a):null;
+  html+=`<div class="pr-card"><div class="pr-h">${ar?'ملخص المناخ — ٧ أيام':'Climate summary — 7 days'}</div>`;
+  if(dayKeys.length){
+    html+=`<div style="overflow-x:auto"><table class="gh-tbl"><thead><tr><th>${ar?'اليوم':'Day'}</th><th>${ar?'متوسط':'Avg °C'}</th><th>${ar?'أعلى':'Max °C'}</th><th>${ar?'رطوبة':'Hum'}</th><th>VPD</th></tr></thead><tbody>`
+      +dayKeys.slice(0,7).map(k=>{const D=days[k],ta=avg(D.t),tm=mx(D.t),ha=avg(D.h),va=avg(D.v);const dd=new Date(k+'T00:00:00');return `<tr><td>${dd.toLocaleDateString(ar?'ar':'en-GB',{weekday:'short',day:'2-digit',month:'short'})}</td><td>${ta!=null?ta.toFixed(1):'—'}</td><td>${tm!=null?tm.toFixed(1):'—'}</td><td>${ha!=null?ha.toFixed(0)+'%':'—'}</td><td>${va!=null?va.toFixed(2):'—'}</td></tr>`;}).join('')
+      +`</tbody></table></div>`;
+  }else html+=`<div class="pr-meta">${ar?'لا توجد بيانات حساسات كافية بعد (التسجيل التلقائي متوقف).':'Not enough sensor data yet (automated logging is paused).'}</div>`;
+  html+=`<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="fl-scan" onclick="closeGreenhouseJournal();if(typeof openReports==='function')openReports()">📊 ${ar?'تقرير العمليات':'Operations Report'}</button></div></div>`;
+  const today=new Date().toISOString().slice(0,10);
+  html+=`<div class="pr-card"><div class="pr-h">🧴 ${ar?'سجل المكافحة (جميع النبات)':'Treatments (all plants)'}</div>`
+    +`<button class="fl-submit" style="width:auto;margin-bottom:10px" onclick="openTreatmentEntry()">➕ ${ar?'إضافة مكافحة':'Add treatment'}</button>`;
+  html+=(treatments&&treatments.length)?treatments.map(tr=>{const d=new Date(tr.log_date||tr.created_at);const ds=isNaN(d)?'':d.toLocaleDateString(ar?'ar':'en-GB',{day:'2-digit',month:'short',year:'numeric'});const method=tr.method?(ar?(tr.method==='Spray'?'رش':'سقي'):tr.method):'';return `<div class="pr-entry"><div class="pr-entry-d">${ds}</div><div class="pr-entry-b"><b>${esc(tr.pesticide||tr.pest||'')}</b>${tr.active_ingredient?' · '+esc(tr.active_ingredient):''}${tr.dose?' · '+esc(tr.dose):''}${method?' · '+esc(method):''}${tr.safety_end?' · '+(tr.safety_end>=today?'⛔ '+(ar?'أمان حتى ':'safe after ')+esc(tr.safety_end):'✅'):''}${tr.operator?' · '+esc(tr.operator):''}</div></div>`;}).join(''):`<div class="pr-meta">${ar?'لا توجد عمليات مكافحة مسجلة.':'No treatments logged yet.'}</div>`;
+  html+=`</div>`;
+  box.innerHTML=html;
+}
 // ---- QR Plant Labels: printable deep-link stickers ----
 const QR_T={
   ar:{title:'باركود المواقع',sub:'اطبع والصق على الأبراج — امسح للتسجيل',gran:'مستوى الباركود',lines:'عدد الخطوط',towers:'أبراج لكل خط',levels:'مستويات لكل برج',gen:'توليد الباركود',print:'طباعة',hint:'كل ملصق رابط ذكي: امسحه بكاميرا الجوال ليفتح السجل على موقع النبتة مباشرة.'},
   en:{title:'QR Plant Labels',sub:'print, stick on the towers, scan to log',gran:'Label granularity',lines:'Number of lines',towers:'Towers per line',levels:'Levels per tower',gen:'Generate',print:'Print',hint:'Each label is a smart link: scan it with any phone camera to open the log at that plant.'}
 };
-function openQrLabels(){const ov=$('qrOverlay');ov.classList.add('open');if(!ov._init){ov._init=true;ov.addEventListener('click',e=>{if(e.target===ov)closeQrLabels();});}qrApplyLang();qrCount();}
-function closeQrLabels(){$('qrOverlay').classList.remove('open');}
+function openQrLabels(){const ov=$('qrOverlay');ov.classList.add('open');lockScroll(true);if(!ov._init){ov._init=true;ov.addEventListener('click',e=>{if(e.target===ov)closeQrLabels();});}qrApplyLang();qrCount();}
+function closeQrLabels(){$('qrOverlay').classList.remove('open');lockScroll(false);}
 function qrApplyLang(){
   const ar=(typeof siteLang!=='undefined'&&siteLang==='ar'),t=QR_T[ar?'ar':'en'];
   const ov=$('qrOverlay');if(ov)ov.style.direction=ar?'rtl':'ltr';
@@ -2027,7 +2123,6 @@ function qrRenderLegend(count){
    +'</div>';
 }
 function qrPrint(){if(!$('qrSheet').innerHTML.trim())qrGenerate();setTimeout(()=>window.print(),150);}
-function closeFieldLog(){$('fieldLogOverlay').classList.remove('open');}
 function toggleFlLang(){flLang=flLang==='ar'?'en':'ar';applyFlLang();}
 function applyFlLang(){
   const t=FL_T[flLang],rtl=flLang==='ar';
@@ -2074,7 +2169,7 @@ function flBuildLoc(){
   // growth stage
   const st=$('flStage');if(st){const cur=st.value;st.innerHTML='<option value="">—</option>';FL_STAGES.forEach(s=>{const o=document.createElement('option');o.value=s.en;o.textContent=ar?s.ar:s.en;st.appendChild(o);});st.value=cur;}
   // vigor 1-5
-  const vg=$('flVigor');if(vg){const cur=vg.value;vg.innerHTML='<option value="">—</option>';for(let i=1;i<=5;i++){const o=document.createElement('option');o.value=i;o.textContent=(ar?arNum(i):i)+' / 5';vg.appendChild(o);}vg.value=cur;}
+  const vg=$('flVigor');if(vg){const cur=vg.value;vg.innerHTML='<option value="">—</option>';for(let i=1;i<=5;i++){const o=document.createElement('option');o.value=i;o.textContent=(ar?arNum(i)+' / '+arNum(5):i+' / 5');vg.appendChild(o);}vg.value=cur;}
   // method
   const md=$('flMethod');if(md){const cur=md.value;md.innerHTML='<option value="">—</option>';FL_METHODS.forEach(m=>{const o=document.createElement('option');o.value=m.en;o.textContent=ar?m.ar:m.en;md.appendChild(o);});md.value=cur;}
   flSyncCode();
@@ -2105,21 +2200,33 @@ function flClearPlant(){const el=$('flPlantFilter');if(el)el.value='';renderJour
 // Native barcode/QR scan (BarcodeDetector). Falls back to a hint if unsupported.
 async function flScan(){
   const msg=$('flMsg');
-  if(!('BarcodeDetector'in window)){msg.style.display='block';msg.style.color='var(--gold)';msg.textContent=FL_T[flLang].noScan;return;}
+  const hasBD=('BarcodeDetector'in window);        // Android Chrome
+  const hasJsQR=(typeof jsQR!=='undefined');        // iOS Safari fallback
+  if(!hasBD&&!hasJsQR){msg.style.display='block';msg.style.color='var(--gold)';msg.textContent=FL_T[flLang].noScan;return;}
   let stream;
-  try{
-    const det=new window.BarcodeDetector({formats:['qr_code','code_128','ean_13']});
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-    const v=document.createElement('video');v.srcObject=stream;v.setAttribute('playsinline','');await v.play();
-    const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:#000;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center';
-    v.style.cssText='max-width:100%;max-height:80vh';const close=document.createElement('button');close.textContent='✕';close.style.cssText='position:absolute;top:16px;right:16px;font-size:1.4rem;background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:10px;padding:6px 14px;cursor:pointer';
-    ov.appendChild(v);ov.appendChild(close);document.body.appendChild(ov);
-    let done=false;const stop=()=>{done=true;stream.getTracks().forEach(t=>t.stop());ov.remove();};
-    close.onclick=stop;
-    const tick=async()=>{if(done)return;try{const codes=await det.detect(v);if(codes&&codes.length){if(flApplyCode(codes[0].rawValue)){stop();msg.style.display='block';msg.style.color='#16894E';msg.textContent=flPlantCode();return;}}}catch(_){}
-      requestAnimationFrame(tick);};
-    tick();
-  }catch(e){if(stream)stream.getTracks().forEach(t=>t.stop());msg.style.display='block';msg.style.color='var(--gold)';msg.textContent=FL_T[flLang].noScan;}
+  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});}
+  catch(e){msg.style.display='block';msg.style.color='var(--danger)';msg.textContent=(flLang==='ar'?'تعذّر فتح الكاميرا: ':'Camera error: ')+e.message;return;}
+  const v=document.createElement('video');v.srcObject=stream;v.setAttribute('playsinline','');v.muted=true;
+  try{await v.play();}catch(_){}
+  const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:#000;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center';
+  v.style.cssText='max-width:100%;max-height:76vh';
+  const hint=document.createElement('div');hint.textContent=flLang==='ar'?'وجّه الكاميرا نحو الباركود':'Point the camera at the QR code';hint.style.cssText='color:#fff;margin-top:14px;font-size:.92rem;font-weight:700';
+  const close=document.createElement('button');close.textContent='✕';close.style.cssText='position:absolute;top:16px;right:16px;font-size:1.4rem;background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:10px;padding:6px 14px;cursor:pointer';
+  ov.appendChild(v);ov.appendChild(hint);ov.appendChild(close);document.body.appendChild(ov);
+  let done=false;const stop=()=>{done=true;try{stream.getTracks().forEach(t=>t.stop());}catch(_){}ov.remove();};
+  close.onclick=stop;
+  const det=hasBD?new window.BarcodeDetector({formats:['qr_code']}):null;
+  const canvas=document.createElement('canvas');const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  const found=raw=>{if(flApplyCode(raw)){stop();msg.style.display='block';msg.style.color='#16894E';msg.textContent=flPlantCode();return true;}return false;};
+  const tick=async()=>{
+    if(done)return;
+    try{
+      if(det){const codes=await det.detect(v);if(codes&&codes.length&&found(codes[0].rawValue))return;}
+      else if(v.videoWidth){canvas.width=v.videoWidth;canvas.height=v.videoHeight;ctx.drawImage(v,0,0);const im=ctx.getImageData(0,0,canvas.width,canvas.height);const r=jsQR(im.data,im.width,im.height);if(r&&r.data&&found(r.data))return;}
+    }catch(_){}
+    requestAnimationFrame(tick);
+  };
+  tick();
 }
 // Show the computed pre-harvest safe date as the operator types the PHI days.
 function flUpdateSafety(){
@@ -2261,7 +2368,7 @@ function renderJournal(){
       }
     }else{
       const stage=r.growth_stage?(FL_STAGES.find(s=>s.en===r.growth_stage)||{})[ar?'ar':'en']||r.growth_stage:'';
-      fields=[chip(FL_T[flLang].stage,stage),chip(FL_T[flLang].vigor,r.vigor!=null?r.vigor+'/5':''),chip('EC',r.feed_ec),chip('pH',r.feed_ph),chip(FL_T[flLang].variety,r.variety)].join('');
+      fields=[chip(FL_T[flLang].stage,stage),chip(FL_T[flLang].vigor,r.vigor!=null?(ar?arNum(r.vigor)+'/'+arNum(5):r.vigor+'/5'):''),chip('EC',r.feed_ec),chip('pH',r.feed_ph),chip(FL_T[flLang].variety,r.variety)].join('');
     }
     const clim=r.climate&&r.climate.temp!=null?`<div style="font-size:.6rem;color:var(--muted);margin-top:4px">🌡️ ${Number(r.climate.temp).toFixed(1)}°C · ${r.climate.humidity!=null?Number(r.climate.humidity).toFixed(0)+'% · ':''}${r.climate.vpd!=null?'VPD '+Number(r.climate.vpd).toFixed(2):''}</div>`:'';
     return `<div class="fl-entry" style="direction:${ar?'rtl':'ltr'}">
