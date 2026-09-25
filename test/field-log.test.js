@@ -87,6 +87,69 @@ describe('api/data/field-log-save', () => {
       body: { activities: ['Harvesting'], photos: ['data:image/gif;base64,not-a-supported-type'] } }), res);
     expect(res.statusCode).toBe(400);
   });
+
+  it('builds the plant_code from the location index and attaches the climate snapshot', async () => {
+    let inserted;
+    nock(SUPA).post('/rest/v1/field_logs', (b) => { inserted = b; return true; }).reply(201, [{ id: 'm1' }]);
+
+    const res = makeRes();
+    await save(makeReq({ method: 'POST', headers: authedHeaders(), body: {
+      log_type: 'monitoring', log_date: '2026-09-25',
+      line: 3, tower: 12, level: 4, outlet: 2,
+      growth_stage: 'flowering', vigor: 4, feed_ec: 1.2, feed_ph: 5.8, water_temp: 21,
+      climate: { temp: 25.8, humidity: 49, vpd: 1.7, co2: 416, water_temp: 25, recorded_at: '2026-09-25T09:00:00Z', junk: 'x' },
+    } }), res);
+    await waitUntilEnded(res);
+
+    expect(res.statusCode).toBe(200);
+    expect(inserted.log_type).toBe('monitoring');
+    expect(inserted.plant_code).toBe('L3-T12-Lv4-O2');
+    expect(inserted.vigor).toBe(4);
+    expect(inserted.feed_ec).toBe(1.2);
+    expect(inserted.climate.temp).toBe(25.8);
+    expect(inserted.climate.junk).toBeUndefined(); // only known keys kept
+  });
+
+  it('clamps an out-of-range outlet/vigor to null', async () => {
+    let inserted;
+    nock(SUPA).post('/rest/v1/field_logs', (b) => { inserted = b; return true; }).reply(201, [{ id: 'm2' }]);
+
+    const res = makeRes();
+    await save(makeReq({ method: 'POST', headers: authedHeaders(), body: {
+      log_type: 'monitoring', line: 1, tower: 2, level: 1, outlet: 9, vigor: 8, note: 'x',
+    } }), res);
+    await waitUntilEnded(res);
+
+    expect(inserted.outlet).toBeNull();        // only 1..4 valid
+    expect(inserted.plant_code).toBe('L1-T2-Lv1'); // outlet dropped, rest kept
+    expect(inserted.vigor).toBeNull();         // only 1..5 valid
+  });
+
+  it('computes the pre-harvest safety_end date for a treatment entry', async () => {
+    let inserted;
+    nock(SUPA).post('/rest/v1/field_logs', (b) => { inserted = b; return true; }).reply(201, [{ id: 't1' }]);
+
+    const res = makeRes();
+    await save(makeReq({ method: 'POST', headers: authedHeaders(), body: {
+      log_type: 'treatment', log_date: '2026-09-25', line: 2, tower: 5,
+      pesticide: 'Sulfur WG', active_ingredient: 'Sulfur 80%', dose: '2 g/L',
+      method: 'spray', pest: 'Powdery mildew', phi_days: 3, operator: 'Mohammed',
+    } }), res);
+    await waitUntilEnded(res);
+
+    expect(res.statusCode).toBe(200);
+    expect(inserted.log_type).toBe('treatment');
+    expect(inserted.pesticide).toBe('Sulfur WG');
+    expect(inserted.safety_end).toBe('2026-09-28'); // 25 Sep + 3 days
+    expect(inserted.plant_code).toBe('L2-T5');
+  });
+
+  it('rejects an empty treatment entry (400)', async () => {
+    const res = makeRes();
+    await save(makeReq({ method: 'POST', headers: authedHeaders(),
+      body: { log_type: 'treatment', line: 1, tower: 1 } }), res);
+    expect(res.statusCode).toBe(400);
+  });
 });
 
 describe('api/data/field-log-list', () => {
