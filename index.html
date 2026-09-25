@@ -646,6 +646,8 @@ img,svg,canvas{max-width:100%}
 .fl-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
 .fl-grid2 .fl-row{margin-bottom:0}
 .fl-safety{font-size:.7rem;font-weight:800;margin-top:8px;line-height:1.5}
+.fl-histbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:rgba(6,68,46,.07);border:1px solid rgba(6,68,46,.18);border-radius:9px;padding:7px 11px;margin-bottom:10px;font-size:.72rem;font-weight:700;color:#06442E}
+.fl-histbar a{color:#8B2A1E;cursor:pointer;font-weight:800;margin-inline-start:auto}
 .qr-sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:16px}
 .qr-cell{border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center;background:#fff;break-inside:avoid}
 .qr-cell svg,.qr-cell img{width:100%;height:auto;max-width:120px;display:block;margin:0 auto}
@@ -787,6 +789,7 @@ body.lang-ar #chartTitle{display:none}
           <div id="flJournalSub" style="font-family:var(--ar);font-size:.72rem;color:var(--muted);margin-top:2px">صور وملاحظات حقيقية &middot; الأحدث أولاً</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="flPlantFilter" class="rep-select" placeholder="📍 L3-T12" oninput="renderJournal()" aria-label="Filter by plant/tower" style="max-width:130px;font-family:var(--mono);text-transform:uppercase">
           <select id="flTypeFilter" class="rep-select" onchange="renderJournal()" aria-label="Filter by log type"><option value="">🌱🧴 الكل</option><option value="monitoring">🌱 مراقبة</option><option value="treatment">🧴 مكافحة</option></select>
           <select id="flMonth" class="rep-select" onchange="renderJournal()" aria-label="Filter by month"><option value="">كل الشهور</option></select>
           <select id="flFilter" class="rep-select" onchange="renderJournal()" aria-label="Filter journal"><option value="">كل الأنشطة</option></select>
@@ -1996,8 +1999,14 @@ function flApplyCode(raw){
   const p=code.match(/^L(\d+)-T(\d+)(?:-Lv(\d+))?(?:-O(\d+))?$/i);
   if(!p)return false;
   $('flLine').value=p[1];$('flTower').value=p[2];$('flLevel').value=p[3]||'';$('flOutlet').value=p[4]||'';
-  flSyncCode();return true;
+  flSyncCode();
+  // Scanning a plant is a per-plant (monitoring) action, and shows its history.
+  const pfEl=$('flPlantFilter');if(pfEl)pfEl.value=code.toUpperCase();
+  if(typeof flSetType==='function')flSetType('monitoring');
+  if(typeof renderJournal==='function')renderJournal();
+  return true;
 }
+function flClearPlant(){const el=$('flPlantFilter');if(el)el.value='';renderJournal();}
 // Native barcode/QR scan (BarcodeDetector). Falls back to a hint if unsupported.
 async function flScan(){
   const msg=$('flMsg');
@@ -2123,16 +2132,22 @@ function flBuildMonths(){
 function renderJournal(){
   const box=$('flJournal');if(!box)return;const filter=$('flFilter').value;const month=$('flMonth')?$('flMonth').value:'';
   const typeF=$('flTypeFilter')?$('flTypeFilter').value:'';
+  const pf=($('flPlantFilter')?$('flPlantFilter').value:'').trim().toUpperCase().replace(/\s+/g,'');
   const ar=flLang==='ar';
   let rows=_journal;
   if(typeF)rows=rows.filter(r=>(r.log_type||'monitoring')===typeF);
+  // Per-plant history: match the plant_code by prefix (so "L3-T12" shows every
+  // level/outlet of that tower). Farm-wide treatments apply to the plant too, so
+  // include them unless the type filter excludes them.
+  if(pf)rows=rows.filter(r=>(r.plant_code&&r.plant_code.toUpperCase().startsWith(pf))||((r.log_type==='treatment')&&typeF!=='monitoring'));
   if(filter)rows=rows.filter(r=>(Array.isArray(r.activities)&&r.activities.includes(filter))||(filter==='__other'&&r.other_note));
   if(month)rows=rows.filter(r=>{const d=new Date(r.log_date||r.created_at);return !isNaN(d)&&(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'))===month;});
   const cEl=$('flJournalCount');if(cEl)cEl.textContent=_journal.length?(ar?arNum(rows.length)+' من '+arNum(_journal.length)+' إدخال':rows.length+' of '+_journal.length+' entries'):'';
-  if(!rows.length){box.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">${FL_T[flLang].empty}</div>`;return;}
+  const banner=pf?`<div class="fl-histbar">📍 <b>${esc(pf)}</b> — ${ar?'سجل هذه النبتة/البرج':'this plant/tower history'} <a onclick="flClearPlant()">✕ ${ar?'إلغاء':'clear'}</a></div>`:'';
+  if(!rows.length){box.innerHTML=banner+`<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">${FL_T[flLang].empty}</div>`;return;}
   const chip=(label,val)=>val==null||val===''?'':`<span class="fl-tag"><b>${esc(label)}</b> ${esc(val)}</span>`;
   const todayStr=new Date().toISOString().slice(0,10);
-  box.innerHTML=rows.map(r=>{
+  box.innerHTML=banner+rows.map(r=>{
     const type=r.log_type||'monitoring';
     const isTrt=type==='treatment';
     const acts=(Array.isArray(r.activities)?r.activities:[]).map(flActLabel);if(r.other_note)acts.push(r.other_note);
