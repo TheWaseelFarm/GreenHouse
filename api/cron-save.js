@@ -5,7 +5,7 @@ const {
   calcVPD, calcDewPoint, calcHeatIndex, calcAbsHumidity, calcPSI
 } = require('../_lib/metrics');
 const { api: tuyaApi, parseSensor } = require('../_lib/tuya');
-const { evaluateCriticals, processAlerts } = require('../_lib/alerts');
+const { evaluateCriticals, detectFlatlines, processAlerts } = require('../_lib/alerts');
 
 module.exports = async (req, res) => {
   const authHeader = req.headers['authorization'];
@@ -155,6 +155,7 @@ module.exports = async (req, res) => {
     // run when the canopy reading is plausible (>5°C), so a failed meter reading
     // 0°C is not mistaken for frost. No-op until the Twilio env vars are set.
     let alerts = { skipped: 'not-run' };
+    let flatlines = [];
     try {
       // temp_valid = the canopy meter actually returned a temperature field.
       // A dead meter leaves it absent (temp then defaults to 0 above), so this
@@ -165,7 +166,19 @@ module.exports = async (req, res) => {
         { temp_weighted, vpd, water_temp_irrigation, water_leak_1, temp_valid },
         new Date()
       );
-      alerts = await processAlerts({ criticals, env: process.env, now: new Date() });
+      // Flatline (stuck-sensor) detection over the last ~7h of history — catches a
+      // probe frozen on a plausible value (e.g. the Tuya water probe at 26.0°C).
+      try {
+        const since = new Date(Date.now() - 7 * 3600000).toISOString();
+        const raw = await httpGet(
+          SUPA_URL.replace('https://', ''),
+          `/rest/v1/readings?select=recorded_at,water_temp_irrigation,water_temp_outside,temperature,humidity,hub_temp,co2&recorded_at=gte.${since}&order=recorded_at.desc&limit=120`,
+          { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+        );
+        flatlines = detectFlatlines(JSON.parse(raw || '[]'), { minHours: 6, minCount: 8 });
+      } catch (e) { console.warn('Flatline check failed (non-fatal):', e.message); }
+
+      alerts = await processAlerts({ criticals: [...criticals, ...flatlines], env: process.env, now: new Date() });
     } catch (e) {
       console.warn('Alert engine failed (non-fatal):', e.message);
       alerts = { error: e.message };
@@ -184,6 +197,7 @@ module.exports = async (req, res) => {
       tuya_out_temp, tuya_out_humidity,
       water_temp_irrigation, water_temp_outside,
       alerts,
+      flatlines: flatlines.map(f => f.key),
       saved: new Date().toISOString()
     });
  
