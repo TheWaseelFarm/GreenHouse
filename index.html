@@ -1019,13 +1019,44 @@ function renderSensorHealth(){
   const box=$('sensorHealthBanner');if(!box)return;
   const ar=(typeof siteLang!=='undefined'&&siteLang==='ar');
   const down=Object.keys(SENSORS).filter(k=>S.health[k]&&S.health[k].ok===false);
-  if(!down.length){box.style.display='none';return;}
+  const stuck=Array.isArray(S.stuck)?S.stuck:[];
+  if(!down.length&&!stuck.length){box.style.display='none';return;}
   box.style.display='block';
-  const t=$('shbTitle');if(t)t.textContent=ar?`⚠️ ${down.length} حساس غير متصل`:`⚠️ ${down.length} sensor${down.length>1?'s':''} offline`;
+  const n=down.length+stuck.length;
+  const t=$('shbTitle');if(t)t.textContent=ar?`⚠️ ${n} تنبيه حساسات`:`⚠️ ${n} sensor issue${n>1?'s':''}`;
   const list=$('shbList');
-  if(list)list.innerHTML=down.map(k=>{const s=SENSORS[k],h=S.health[k];const last=ar?` — آخر قراءة ${agoText(h.lastGood,ar)}`:` — last reading ${agoText(h.lastGood,ar)}`;return `• ${ar?s.ar:s.en}${last}`;}).join('<br>');
+  const offLines=down.map(k=>{const s=SENSORS[k],h=S.health[k];const last=ar?` — آخر قراءة ${agoText(h.lastGood,ar)}`:` — last reading ${agoText(h.lastGood,ar)}`;return `• ${ar?s.ar:s.en}${ar?' (غير متصل)':' (offline)'}${last}`;});
+  const stuckLines=stuck.map(s=>`• ${ar?s.ar:s.en}`);
+  if(list)list.innerHTML=offLines.concat(stuckLines).join('<br>');
   const hint=$('shbHint');
-  if(hint)hint.textContent=ar?'القراءات المتأثرة تُستبعد من المتوسط تلقائياً. تحقق من الطاقة/الواي فاي أو أعد تشغيل الجهاز.':'Affected readings are excluded from the average automatically. Check power/Wi-Fi or power-cycle the device.';
+  if(hint)hint.textContent=ar?'حساس عالق = قيمة ثابتة مدة طويلة؛ افحص المجس أو أعد توصيله. غير متصل = تحقق من الطاقة/الواي فاي.':'Stuck = value unchanged for a long time (check / reseat the probe). Offline = check power/Wi-Fi.';
+}
+// Client-side stuck-sensor (flatline) detection — mirrors _lib/alerts.js so the
+// dashboard flags a frozen probe (e.g. Tuya water stuck at 26°C) even before the
+// WhatsApp alerts are enabled.
+const FLATLINE_CLIENT=[
+  {col:'water_temp_irrigation',en:'Irrigation water sensor stuck',ar:'حساس ماء الري عالق'},
+  {col:'water_temp_outside',en:'Supply water sensor stuck',ar:'حساس الماء الخارجي عالق'},
+  {col:'temperature',en:'Canopy temperature sensor stuck',ar:'حساس حرارة المحصول عالق'},
+  {col:'humidity',en:'Canopy humidity sensor stuck',ar:'حساس رطوبة المحصول عالق'},
+  {col:'hub_temp',en:'Wet-wall sensor stuck',ar:'حساس الجدار الرطب عالق'},
+  {col:'co2',en:'CO₂ sensor stuck',ar:'حساس CO₂ عالق'}
+];
+async function checkFlatlines(){
+  try{
+    const res=await fetch('/api/history?hours=8&limit=120');const rows=await res.json();
+    if(!Array.isArray(rows)||rows.length<8){S.stuck=[];renderSensorHealth();return;}
+    const ts=r=>new Date(r.recorded_at||r.time||0).getTime();
+    const stuck=[];
+    for(const f of FLATLINE_CLIENT){
+      const pts=rows.filter(r=>r[f.col]!=null&&isFinite(parseFloat(r[f.col]))).map(r=>({v:parseFloat(r[f.col]),t:ts(r)}));
+      if(pts.length<8)continue;
+      const spanH=(Math.max(...pts.map(p=>p.t))-Math.min(...pts.map(p=>p.t)))/3600000;
+      if(spanH<6)continue;
+      if(pts.every(p=>p.v===pts[0].v)){const h=Math.round(spanH);stuck.push({en:`${f.en} (${pts[0].v}, ~${h}h)`,ar:`${f.ar} (${pts[0].v}، ~${h}س)`});}
+    }
+    S.stuck=stuck;renderSensorHealth();
+  }catch(_){}
 }
 // Day vs night by APPROXIMATE Riyadh daylight, seasonally, plus greenhouse
 // thermal lag in the evening (the house stays warm well past sunset in summer).
@@ -2858,6 +2889,8 @@ document.addEventListener('DOMContentLoaded',async function(){
   setInterval(renderHeatHours,600000);
   setInterval(pollLastReading,60000);
   setInterval(renderFreshness,15000);
+  checkFlatlines();
+  setInterval(checkFlatlines,600000);
   flCheckDeepLink();
   const ov=$('reportsOverlay');
   if(ov)ov.addEventListener('click',function(e){if(e.target===this)closeReports();});

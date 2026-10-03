@@ -120,7 +120,51 @@ function evaluateCriticals(m, date) {
   return out;
 }
 
-// ── WhatsApp (Twilio) ───────────────────────────────────────────────────────
+// ── Flatline (stuck-sensor) detection ───────────────────────────────────────
+// A probe that reports the EXACT same value for hours is almost always stuck
+// (disconnected / cached / default), not a real steady reading — a running
+// greenhouse never holds a sensor byte-identical across a whole day. This
+// catches the silent failure mode that a plausible-looking number hides (e.g.
+// the Tuya water probe frozen at 26.0°C). Pure: give it recent rows, get back
+// the stuck sensors.
+const FLATLINE_FIELDS = [
+  { col: 'water_temp_irrigation', key: 'stuck_water_irrigation', en: 'Irrigation water sensor', ar: 'حساس ماء الري', unit: '°C' },
+  { col: 'water_temp_outside',    key: 'stuck_water_supply',     en: 'Supply water sensor',     ar: 'حساس الماء الخارجي', unit: '°C' },
+  { col: 'temperature',           key: 'stuck_canopy',           en: 'Canopy temperature sensor', ar: 'حساس حرارة المحصول', unit: '°C' },
+  { col: 'humidity',              key: 'stuck_humidity',         en: 'Canopy humidity sensor',  ar: 'حساس رطوبة المحصول', unit: '%' },
+  { col: 'hub_temp',              key: 'stuck_wetwall',          en: 'Wet-wall sensor',         ar: 'حساس الجدار الرطب', unit: '°C' },
+  { col: 'co2',                   key: 'stuck_co2',              en: 'CO₂ sensor',              ar: 'حساس CO₂', unit: ' ppm' },
+];
+
+// rows: recent readings (any order), each with recorded_at + sensor columns.
+// A field is "stuck" when every non-null sample is identical AND they span at
+// least minHours across at least minCount samples.
+function detectFlatlines(rows, opts) {
+  opts = opts || {};
+  const minHours = opts.minHours == null ? 6 : opts.minHours;
+  const minCount = opts.minCount == null ? 8 : opts.minCount;
+  if (!Array.isArray(rows) || rows.length < minCount) return [];
+  const ts = (r) => new Date(r.recorded_at || r.time || 0).getTime();
+  const out = [];
+  for (const f of FLATLINE_FIELDS) {
+    const pts = rows.filter((r) => r[f.col] != null && isFinite(parseFloat(r[f.col]))).map((r) => ({ v: parseFloat(r[f.col]), t: ts(r) }));
+    if (pts.length < minCount) continue;
+    const spanH = (Math.max(...pts.map((p) => p.t)) - Math.min(...pts.map((p) => p.t))) / 3600000;
+    if (spanH < minHours) continue;
+    if (pts.every((p) => p.v === pts[0].v)) {
+      const h = Math.round(spanH);
+      const val = pts[0].v + f.unit;
+      out.push({
+        key: f.key, value: pts[0].v,
+        en: `${f.en} appears STUCK — reading has not changed from ${val} for ~${h}h. Check / reseat the sensor.`,
+        ar: `${f.ar} يبدو عالقاً — القراءة ثابتة على ${val} منذ ~${h} ساعة. افحص الحساس أو أعد توصيله.`,
+      });
+    }
+  }
+  return out;
+}
+
+
 function twilioConfig(env) {
   const sid = env.TWILIO_ACCOUNT_SID;
   const token = env.TWILIO_AUTH_TOKEN;
@@ -222,7 +266,10 @@ async function processAlerts({ criticals, env, now }) {
   // Recovery notice for conditions that were active but have cleared.
   for (const key of Object.keys(state)) {
     if (state[key].active && !activeNow[key]) {
-      const item = RESOLVED[key] || { en: `${key} back to normal.`, ar: `${key} عاد إلى الطبيعي.` };
+      let item = RESOLVED[key];
+      if (!item) item = key.indexOf('stuck_') === 0
+        ? { en: 'Sensor is updating again — readings are changing normally.', ar: 'الحساس عاد يتغيّر — القراءات تتحدّث بشكل طبيعي.' }
+        : { en: `${key} back to normal.`, ar: `${key} عاد إلى الطبيعي.` };
       await sendWhatsApp(cfg, composeMessage('resolved', item, nowDate));
       await upsertState(supaHost, supaKey, { key, active: false, last_notified: nowIso });
       sent.push({ key, kind: 'resolved' });
@@ -250,6 +297,7 @@ function httpRequest(hostname, path, method, headers, body) {
 
 module.exports = {
   evaluateCriticals,
+  detectFlatlines,
   processAlerts,
   // exported for tests
   _internal: { seasonBand, isDay, riyadhParts, composeMessage },
