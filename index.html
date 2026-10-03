@@ -1483,9 +1483,20 @@ function renderChartCoverage(points){
   if(points>=3&&ratio>=0.5){el.style.display='none';return;}
   const ar=(typeof siteLang!=='undefined'&&siteLang==='ar');
   el.style.display='block';
-  el.innerHTML=(ar
-    ?`⚠️ لا يوجد سوى ${points} قراءة في هذه الفترة. التسجيل التلقائي متوقف على ما يبدو — يجب إعادة تفعيل مهمة cron-job.org حتى يمتلئ الرسم البياني.`
-    :`⚠️ Only ${points} reading${points===1?'':'s'} in this window. Automated logging appears to be paused — the cron-job.org task needs re-enabling before this chart can fill in.`);
+  // Distinguish "logging is live, the window is just still filling with new
+  // 15-min readings" from "logging has actually stopped". If the newest reading
+  // is recent, it's the former — don't tell the user to re-enable anything.
+  const ageMin=S.lastReadingAt?Math.round((Date.now()-S.lastReadingAt)/60000):9999;
+  const live=ageMin<=30;
+  if(live){
+    el.innerHTML=(ar
+      ?`⏳ هذه الفترة لا تزال تمتلئ — البيانات القديمة كانت متفرقة. التسجيل التلقائي يعمل الآن (آخر قراءة قبل ${ageMin} دقيقة) وتُضاف قراءة كل ~١٥ دقيقة. جرّب فترة ١ساعة أو ٦ساعات لعرض أحدث البيانات.`
+      :`⏳ This window is still filling in — older data was sparse. Logging is live now (last reading ${ageMin} min ago) and a new point is added every ~15 min. Try the 1H or 6H range to see the latest data.`);
+  }else{
+    el.innerHTML=(ar
+      ?`⚠️ لا يوجد سوى ${points} قراءة، وآخر قراءة قبل ${ageMin} دقيقة — يبدو أن التسجيل التلقائي متوقف. تحقق من مهمة cron-job.org.`
+      :`⚠️ Only ${points} reading${points===1?'':'s'}, and the last one was ${ageMin} min ago — automated logging looks stopped. Check the cron-job.org task.`);
+  }
 }
 function updateChartAxes(metric){
   if(!S.chart)return;
