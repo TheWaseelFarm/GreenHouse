@@ -12,10 +12,16 @@ name: Greenhouse logger
 #     • Variable CRON_TARGET_URL = override the endpoint if the domain changes
 #   Then disable the old cron-job.org job so readings aren't logged twice.
 
+# NOTE: the automatic 15-min schedule is DISABLED — cron-job.org is the reliable
+# primary trigger (GitHub's scheduler throttled this to every few hours and its
+# occasional failures spammed email). This workflow is kept as a MANUAL backup:
+# run it from the Actions tab ("Run workflow") if cron-job.org is ever down.
+# To re-enable automatic runs, uncomment the `schedule:` block below.
+
 on:
-  schedule:
-    - cron: '*/15 * * * *'   # every 15 min (GitHub may delay a few minutes under load)
-  workflow_dispatch: {}        # lets you trigger a run by hand from the Actions tab
+  # schedule:
+  #   - cron: '*/15 * * * *'
+  workflow_dispatch: {}        # manual trigger from the Actions tab (backup)
 
 concurrency:
   group: greenhouse-logger
