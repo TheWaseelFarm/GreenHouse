@@ -1,12 +1,17 @@
-// api/ingest.js — direct push endpoint for an Ecowitt gateway (GW2000 etc.).
+// api/ingest.js — direct push endpoint for the Ecowitt gateway (GW3000, 868MHz).
+//
+// Hardware: GW3000 gateway (SD-card local buffer + Ethernet/Wi-Fi) + 4× WN31
+// interior temp/humidity (channels 1-4) + 1× WN32 outdoor + WH46 CO2 (NDIR) +
+// 2× WN34 waterproof water-temperature probes. All on 868 MHz for the Gulf.
 //
 // The gateway's "Customized" upload (Ecowitt protocol) POSTs a urlencoded
 // key=value body straight to this URL on its own schedule — no SwitchBot /
 // Tuya / vendor cloud in the path. That removes the single points of failure
 // that silently froze the old sensors: if the farm has internet, the reading
-// lands here; if it doesn't, the gateway buffers and the offline banner fires.
+// lands here; if it doesn't, the gateway buffers (SD card) and the offline
+// banner fires.
 //
-// Setup on the gateway (WSView Plus → Customized):
+// Setup on the gateway (Ecowitt app / WSView Plus → Customized):
 //   Protocol: Ecowitt   Server/IP: green-house-iota.vercel.app
 //   Path: /api/ingest?key=<INGEST_SECRET>   Port: 443   Interval: 60s
 //
@@ -15,8 +20,8 @@
 //
 // Ecowitt sends temperatures in °F; everything here is converted to °C to match
 // the rest of the dashboard. Field names follow the Ecowitt custom-server
-// protocol (tempinf/humidityin, tempf/humidity, tempNf/humidityN for extra
-// WN32/WH31 channels, co2 for the WH45, tf_chN for WN34 water/soil probes).
+// protocol (tempinf/humidityin, tempf/humidity for the WH32 outdoor, tempNf/
+// humidityN for the WN31 channels, co2 for the WH46, tf_chN for WN34 probes).
 
 const https = require('https');
 const {
