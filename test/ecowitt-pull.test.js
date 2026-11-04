@@ -108,6 +108,34 @@ describe('api/ecowitt-pull', () => {
     expect(saved.temperature).toBe(0);
   });
 
+  it('uses the WH46 t_rh_aqi_combo for canopy when no WN31 channel is paired', async () => {
+    // Real-world state with only the WH46D (USB) paired: CO2 under
+    // co2_aqi_combo, its temp/humidity under t_rh_aqi_combo, no WN31 channels.
+    const p = {
+      code: 0, msg: 'success', time: '1',
+      data: {
+        indoor: { temperature: m(24.2), humidity: m(66) },
+        co2_aqi_combo: { co2: m(677) },
+        t_rh_aqi_combo: { temperature: m(24.3), humidity: m(67) },
+      },
+    };
+    mockEcowitt(p);
+    let saved;
+    nock(SUPA).post('/rest/v1/readings', (b) => { saved = b; return true; }).reply(201, '');
+    mockHistory();
+
+    const res = makeRes();
+    await pull(makeReq({ headers: authHeaders }), res);
+
+    expect(res.body.co2).toBe(677);
+    expect(res.body.temp).toBe(24.3);
+    expect(res.body.humidity).toBe(67);
+    expect(res.body.zones.canopy.temp).toBe(24.3);
+    expect(res.body.temp_weighted).toBe(24.3); // only canopy present
+    expect(saved.co2).toBe(677);
+    expect(saved.temperature).toBe(24.3);
+  });
+
   it('returns 502 when the Ecowitt API reports an error code', async () => {
     nock(ECO).get('/api/v3/device/real_time').query(true).reply(200, { code: 40010, msg: 'Operation too frequent' });
     const res = makeRes();
