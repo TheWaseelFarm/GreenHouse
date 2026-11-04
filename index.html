@@ -1575,101 +1575,53 @@ async function saveReading(payload){
     const res=await fetch('/api/save-reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(res.ok){const t=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});$('lastSaved').textContent='Saved '+t;$('footerSaved').textContent='Last sync: '+t;}}catch(e){}
 }
 async function fetchLive(){
+  // Single source of truth: the readings table, fed server-side by the Ecowitt
+  // cloud-API pull (/api/ecowitt-pull). The client no longer polls SwitchBot or
+  // Tuya directly — those old connections are retired.
   try{
-    const devRes=await fetch('/api/devices');
-    const devData=await devRes.json();
-    const devices=devData.body?.deviceList||[];
-    let device=devices.find(d=>{const t=(d.deviceType||'').toLowerCase();const n=(d.deviceName||'').toLowerCase();return t.includes('co2')||n.includes('co2')||n.includes('meter pro')||t.includes('meter');});
-    if(!device)device=devices.find(d=>{const t=(d.deviceType||'').toLowerCase();return !t.includes('hub')&&!t.includes('leak')&&!t.includes('remote');});
-    if(!device){const names=devices.map(d=>d.deviceName||d.deviceType).join(', ');$('statusEn').textContent='No sensor detected. Available devices: '+(names||'none');return;}
-    const sRes=await fetch(`/api/status?id=${device.deviceId}`);
-    const sJson=await sRes.json();
-    const b=sJson.body;
-    if(!b||b.temperature===undefined||b.temperature===null){
-      const sEn=$('statusEn');
-      if(sEn)sEn.textContent='Sensor data unavailable — SwitchBot rate limit active. Retrying in 60s.';
-      markSensor('canopy',false);
-      return;
-    }
-    markSensor('canopy',true);
-    const co2=b.CO2??b.co2??0,temp=parseFloat(b.temperature??0),hum=parseFloat(b.humidity??0),vpd=calcVPD(temp,hum);
-    const [hubRes,w1Res]=await Promise.all([fetch(`/api/status?id=${HUB_ID}`).then(r=>r.json()),fetch(`/api/status?id=${WATER1_ID}`).then(r=>r.json())]);
-    const hub=hubRes.body??{};
-    // Reject implausible wet-wall hub readings so one bad sensor can't corrupt
-    // the weighted average, the cooling gradient, or the logged history. Two
-    // known fault modes: a faulted probe reporting -45C, and a DISCONNECTED
-    // sub-sensor reporting exactly 0C / 0% (a running greenhouse is never at 0°C
-    // or 0% humidity). Both must be treated as "no reading" → fall back to the
-    // canopy-only value, never averaged in as if real.
-    const validTemp=v=>{const n=parseFloat(v);return(!isNaN(n)&&n>5&&n<60)?n:null;};
-    const validHum=v=>{const n=parseFloat(v);return(!isNaN(n)&&n>0&&n<=100)?n:null;};
-    const hubTemp=validTemp(hub.temperature),hubHum=validHum(hub.humidity);
-    markSensor('wetwall',hubTemp!=null);
-    const w1=w1Res.body?.status==='leak_detected'||w1Res.body?.detectionState==='detected';
-    const tempW=hubTemp!=null?weighted(temp,hubTemp):parseFloat(temp.toFixed(1));
-    const humW=hubHum!=null?weighted(hum,hubHum):parseFloat(hum.toFixed(1));
-    const coolingDelta=hubTemp!=null?parseFloat((temp-hubTemp).toFixed(1)):null;
-    S.live={co2,temp,hum,vpd,hubTemp,hubHum,w1,tempW,humW,outsideTemp:S.live.outsideTemp};
-    saveReading({co2,temperature:temp,humidity:hum,vpd,hub_temp:hubTemp,hub_humidity:hubHum,temp_weighted:tempW,hum_weighted:humW,cooling_delta:coolingDelta,water_leak_1:w1,heat_index:calcHI(temp,hum),dew_point:calcDP(temp,hum),plant_stress_index:calcPSI(vpd,temp,hum),abs_humidity:parseFloat((0.6108*Math.exp((17.27*temp)/(temp+237.3))*(hum/100)*1000/(0.4615*(273.15+temp))).toFixed(1))});
-    const now=new Date();
-    S.localHist.push({co2,temperature:temp,humidity:hum,vpd,hub_temp:hubTemp,hub_humidity:hubHum,temp_weighted:tempW,hum_weighted:humW,time:now.toISOString()});
-    if(S.localHist.length>72)S.localHist.shift();
-    if(S.range===1)applyChart(S.localHist.map(r=>({...r,recorded_at:r.time})));
-    renderMetrics();renderZones();checkAlerts();renderDecisions();detectIncidents();updateStressTracker();
+    const res=await fetch('/api/history?hours=24&limit=1');
+    const rows=await res.json();
+    if(!Array.isArray(rows)||!rows.length){const sEn=$('statusEn');if(sEn)sEn.textContent='Awaiting data — بانتظار البيانات';return;}
+    const r=rows[0];
+    const num=v=>(v===undefined||v===null||v==='')?null:parseFloat(v);
+    const ts=r.recorded_at?new Date(r.recorded_at).getTime():null;
+    if(ts&&!isNaN(ts))S.lastReadingAt=ts;
+    const fresh=ts?((Date.now()-ts)/60000<=30):false; // "live" only if within 30 min
+    const temp=num(r.temperature),hum=num(r.humidity),co2=num(r.co2)??0;
+    const vpd=num(r.vpd)??((temp!=null&&hum!=null)?calcVPD(temp,hum):null);
+    const hubTemp=num(r.hub_temp),hubHum=num(r.hub_humidity);
+    const tempW=num(r.temp_weighted)??temp,humW=num(r.hum_weighted)??hum;
+    const w1=r.water_leak_1===true||r.water_leak_1==='true';
+    S.live={co2,temp,hum,vpd,hubTemp,hubHum,w1,tempW,humW,
+      outsideTemp:num(r.outdoor_temp),outsideHumidity:num(r.outdoor_humidity),
+      farEndTemp:num(r.far_end_temp),farEndHumidity:num(r.far_end_humidity)};
+    S.water.irrigation=num(r.water_temp_irrigation);
+    S.water.outside=num(r.water_temp_outside);
+    // Sensor health = value present AND fresh; a stale or missing value → offline.
+    markSensor('canopy',fresh&&temp!=null&&temp>5);
+    markSensor('wetwall',fresh&&hubTemp!=null);
+    markSensor('outdoor',fresh&&S.live.outsideTemp!=null);
+    markSensor('farend',fresh&&S.live.farEndTemp!=null);
+    markSensor('water',fresh&&S.water.irrigation!=null);
+    if(S.range===1){S.localHist.push({co2,temperature:temp,humidity:hum,vpd,hub_temp:hubTemp,hub_humidity:hubHum,temp_weighted:tempW,hum_weighted:humW,time:(r.recorded_at||new Date().toISOString())});if(S.localHist.length>72)S.localHist.shift();applyChart(S.localHist.map(x=>({...x,recorded_at:x.time})));}
+    renderMetrics();renderZones();renderFarEnd();renderWaterCooling();renderCoolingScore();renderWaterAlerts();checkAlerts();renderDecisions();detectIncidents();updateStressTracker();
   }catch(e){
     console.error('fetchLive error:',e);
-    const sEn=$('statusEn');if(sEn)sEn.textContent='Sensor network error: '+e.message;
+    const sEn=$('statusEn');if(sEn)sEn.textContent='Network error: '+e.message;
   }
 }
-async function fetchOutsideTemp(){
-  try{
-    const now=Date.now();if(now-S.lastWeatherFetch<5*60*1000)return;S.lastWeatherFetch=now;
-    // Outdoor/ambient + far-end come from the SwitchBot meters via the signed
-    // /api/status proxy. (Tuya sensors are for water temperature, not air.)
-    const [outdoorRes,farEndRes]=await Promise.all([
-      fetch('/api/status?id=E7764046575F',{credentials:'same-origin'}).then(r=>r.json()),
-      fetch('/api/status?id=E77646060A5C',{credentials:'same-origin'}).then(r=>r.json())
-    ]);
-    const outdoor=outdoorRes.body??{}, farEnd=farEndRes.body??{};
-    const num=v=>(v===undefined||v===null||v==='')?null:parseFloat(v);
-    S.live.outsideTemp=num(outdoor.temperature);
-    S.live.outsideHumidity=num(outdoor.humidity);
-    S.live.farEndTemp=num(farEnd.temperature);
-    S.live.farEndHumidity=num(farEnd.humidity);
-    markSensor('outdoor',S.live.outsideTemp!=null);
-    markSensor('farend',S.live.farEndTemp!=null);
-    renderCoolingScore();
-    renderFarEnd();
-  }catch(e){console.warn('Outdoor sensor:',e.message);markSensor('outdoor',false);markSensor('farend',false);}
-}
+// Outdoor, far-end and water temperatures now come from the readings table via
+// fetchLive(). This legacy SwitchBot poller is retired (kept as a no-op so any
+// existing timer call is harmless).
+async function fetchOutsideTemp(){ /* retired: folded into fetchLive() */ }
 function renderFarEnd(){
   const t=$('farTemp'), h=$('farHum');
   if(t)t.textContent=S.live.farEndTemp!=null?Number(S.live.farEndTemp).toFixed(1):'—';
   if(h)h.textContent=S.live.farEndHumidity!=null?Number(S.live.farEndHumidity).toFixed(0):'—';
 }
-// Tuya qxj sensors: the external probe (temp_current_external, ×10) is a water
-// temperature — greenhouse probe = irrigation water, outside probe = outdoor water.
-async function fetchTuyaWater(){
-  try{
-    const [ghRes,outRes]=await Promise.all([
-      fetch('/api/tuya/status?id=bf18b89766f79e361d9trl',{credentials:'same-origin'}).then(r=>r.json()),
-      fetch('/api/tuya/status?id=bfe44012303d94cf4efxp1',{credentials:'same-origin'}).then(r=>r.json())
-    ]);
-    const dp=res=>{const m={};for(const d of (res&&res.status||[]))m[d.code]=d.value;return m;};
-    const gh=dp(ghRes), out=dp(outRes);
-    const t=v=>(v===undefined||v===null)?null:v/10;
-    S.water.irrigation=t(gh.temp_current_external);
-    S.water.outside=t(out.temp_current_external);
-    // NOTE: the Tuya qxj units also report an onboard air temp/humidity, but the
-    // "greenhouse" unit sits inside the canopy and the "outside" unit is not
-    // truly outdoors — both give misleading air readings. We deliberately use
-    // ONLY the external water probes from these sensors. Air temp/humidity come
-    // from the SwitchBot meters (canopy, wet-wall, far-end, outdoor).
-    markSensor('water',S.water.irrigation!=null);
-    renderWaterAlerts();
-    renderWaterCooling();
-  }catch(e){console.warn('Tuya water:',e.message);markSensor('water',false);}
-}
+// Water temperatures (WN34 probes) now come from the readings table via
+// fetchLive(). This legacy Tuya poller is retired (kept as a no-op).
+async function fetchTuyaWater(){ /* retired: folded into fetchLive() */ }
 // Reference captured on 11 Jul: raw supply 41.5°C cooled to 26.2°C at the roots.
 const WATER_BASELINE={date:'Jul 11',supply:41.5,irrigation:26.2};
 function renderWaterCooling(){
