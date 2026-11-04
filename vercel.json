@@ -8,10 +8,11 @@
     { "src": "/api/ask-council",                          "dest": "/api/ask-council.js" },
     { "src": "/api/cron-save",                            "dest": "/api/cron-save.js" },
     { "src": "/api/ingest",                               "dest": "/api/ingest.js" },
+    { "src": "/api/ecowitt-pull",                         "dest": "/api/ecowitt-pull.js" },
     { "src": "/login",                                    "dest": "/login.html", "headers": { "cache-control": "no-cache, must-revalidate" } },
     { "src": "/(.*)",                                     "dest": "/index.html", "headers": { "cache-control": "no-cache, must-revalidate" } }
   ],
   "crons": [
-    { "path": "/api/cron-save", "schedule": "0 2 * * *" }
+    { "path": "/api/ecowitt-pull", "schedule": "0 2 * * *" }
   ]
 }
