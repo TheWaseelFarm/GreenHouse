@@ -73,8 +73,12 @@ module.exports = async (req, res) => {
     // canopy if the dedicated canopy channel is missing.
     const combo = d.co2_aqi_combo || {};
     const co2 = combo.co2 != null ? Math.round(val(combo.co2)) : 0;
-    if (canopy.temp === null) { const t = validTemp(val(combo.temperature)); if (t !== null) canopy.temp = t; }
-    if (canopy.hum === null)  { const h = pct(val(combo.humidity)); if (h !== null) canopy.hum = h; }
+    // The WH46's own temperature/humidity live under t_rh_aqi_combo (not inside
+    // co2_aqi_combo). Use them as a canopy fallback until the WN31 canopy
+    // channel is paired, so the air sensor alone still lights up the dashboard.
+    const airTH = d.t_rh_aqi_combo || {};
+    if (canopy.temp === null) { const t = validTemp(val(airTH.temperature)); if (t !== null) canopy.temp = t; }
+    if (canopy.hum === null)  { const h = pct(val(airTH.humidity)); if (h !== null) canopy.hum = h; }
 
     const temp     = canopy.temp !== null ? canopy.temp : 0;
     const humidity = canopy.hum  !== null ? canopy.hum  : 0;
