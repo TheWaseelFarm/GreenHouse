@@ -1,7 +1,7 @@
 // _lib/alerts.js — Al-Waseel Farm critical-alert engine (server side).
 //
-// Runs inside the scheduled cron (api/cron-save.js) so alerts fire even when
-// nobody has the dashboard open. Two parts:
+// Runs inside the scheduled collector (api/ecowitt-pull.js) so alerts fire even
+// when nobody has the dashboard open. Two parts:
 //   1. evaluateCriticals() — PURE. Mirrors the dashboard's seasonal day/night
 //      quality bands and returns the list of conditions that are critical NOW.
 //   2. processAlerts() — I/O. A per-condition state machine backed by the
@@ -279,7 +279,7 @@ async function processAlerts({ criticals, env, now }) {
   return { sent };
 }
 
-// ── Minimal HTTPS helper (nock-interceptable, like api/cron-save.js) ─────────
+// ── Minimal HTTPS helper (nock-interceptable, like api/ecowitt-pull.js) ──────
 function httpRequest(hostname, path, method, headers, body) {
   return new Promise((resolve, reject) => {
     const opts = { hostname, path, method, headers: { ...headers } };
