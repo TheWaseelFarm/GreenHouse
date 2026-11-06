@@ -106,6 +106,20 @@ module.exports = async (req, res) => {
     const abs_humidity       = calcAbsHumidity(temp, humidity);
     const plant_stress_index = calcPSI(vpd, temp, humidity);
 
+    // If the gateway was offline this cycle, the Ecowitt API returns no channel
+    // data and every mapped field is null/absent. Do NOT write a zero row then —
+    // it pollutes history and makes the dashboard flip to "0 / offline". Skip
+    // the insert; the dashboard keeps the last real reading and the freshness
+    // banner handles the staleness.
+    const hasData = canopy.temp !== null || wet.temp !== null
+      || zones.farend.temp !== null || zones.zone4.temp !== null
+      || (co2 && co2 > 0)
+      || water_temp_irrigation !== null || water_temp_outside !== null
+      || outdoor_temp !== null;
+    if (!hasData) {
+      return res.status(200).json({ success: true, source: 'ecowitt-api', skipped: 'no-sensor-data', saved: null });
+    }
+
     const row = {
       co2,
       temperature: temp,

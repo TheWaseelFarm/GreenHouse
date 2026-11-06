@@ -136,6 +136,17 @@ describe('api/ecowitt-pull', () => {
     expect(saved.temperature).toBe(24.3);
   });
 
+  it('skips the insert when the gateway is offline (indoor-only, no sensor data)', async () => {
+    // Gateway offline: API returns only its built-in indoor sensor, no channels.
+    const p = { code: 0, msg: 'success', time: '1', data: { indoor: { temperature: m(24), humidity: m(50) } } };
+    mockEcowitt(p);
+    // No Supabase POST mock — a write here would throw a disallowed-net-connect error.
+    const res = makeRes();
+    await pull(makeReq({ headers: authHeaders }), res);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.skipped).toBe('no-sensor-data');
+  });
+
   it('returns 502 when the Ecowitt API reports an error code', async () => {
     nock(ECO).get('/api/v3/device/real_time').query(true).reply(200, { code: 40010, msg: 'Operation too frequent' });
     const res = makeRes();
