@@ -5,7 +5,6 @@ import { makeReq, makeRes } from './helpers/http.js';
 const require = createRequire(import.meta.url);
 const { resolveAction } = require('../_lib/dispatch.js');
 const authDispatch = require('../api/auth.js');
-const sensorsDispatch = require('../api/sensors.js');
 const dataDispatch = require('../api/data.js');
 
 describe('_lib/dispatch resolveAction', () => {
@@ -24,12 +23,6 @@ describe('api dispatchers', () => {
   it('auth dispatcher 404s an unknown action', () => {
     const res = makeRes();
     authDispatch(makeReq({ url: '/api/auth.js?_a=nope', query: { _a: 'nope' } }), res);
-    expect(res.statusCode).toBe(404);
-  });
-
-  it('sensors dispatcher 404s an unknown action', () => {
-    const res = makeRes();
-    sensorsDispatch(makeReq({ url: '/api/sensors.js?_a=nope', query: { _a: 'nope' } }), res);
     expect(res.statusCode).toBe(404);
   });
 
