@@ -98,6 +98,9 @@ module.exports = async (req, res) => {
     const water_temp_irrigation = val((d[WATER.irrigation] || {}).temperature);
     const water_temp_outside    = val((d[WATER.outside]    || {}).temperature);
 
+    // Soil moisture (WH51, soil_ch1) as a 0-100% value.
+    const soil_moisture = val((d.soil_ch1 || {}).soilmoisture);
+
     // No WH55 leak sensor in this build.
     const water_leak_1 = false;
 
@@ -115,7 +118,7 @@ module.exports = async (req, res) => {
       || zones.farend.temp !== null || zones.zone4.temp !== null
       || (co2 && co2 > 0)
       || water_temp_irrigation !== null || water_temp_outside !== null
-      || outdoor_temp !== null;
+      || outdoor_temp !== null || soil_moisture !== null;
     if (!hasData) {
       return res.status(200).json({ success: true, source: 'ecowitt-api', skipped: 'no-sensor-data', saved: null });
     }
@@ -143,6 +146,7 @@ module.exports = async (req, res) => {
       tuya_out_temp: null, tuya_out_humidity: null,
       water_temp_irrigation,
       water_temp_outside,
+      soil_moisture,
     };
 
     await httpPost(
@@ -189,6 +193,7 @@ module.exports = async (req, res) => {
       temp_weighted, hum_weighted, cooling_delta,
       outdoor_temp, outdoor_humidity,
       water_temp_irrigation, water_temp_outside,
+      soil_moisture,
       alerts,
       flatlines: flatlines.map(x => x.key),
       saved: new Date().toISOString(),
