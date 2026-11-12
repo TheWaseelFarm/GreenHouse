@@ -456,6 +456,8 @@ body.noscroll{overflow:hidden}
     <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:12px 2px 6px"><span class="i18n-en">💧 Water Temperatures</span><span class="i18n-ar">💧 حرارة المياه</span></div>
     <div id="waterTempStrip" style="display:flex;gap:10px;margin-bottom:10px"></div>
     <div id="waterCooling" style="margin-bottom:12px"></div>
+    <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px"><span class="i18n-en">🌱 Soil Moisture</span><span class="i18n-ar">🌱 رطوبة التربة</span></div>
+    <div id="soilMoisture" style="margin-bottom:12px"></div>
     <div id="heatHours" style="margin-bottom:12px"></div>
     <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px"><span class="i18n-en">❄️ Cooling</span><span class="i18n-ar">❄️ التبريد</span></div>
     <div class="cooling-row">
@@ -1594,7 +1596,8 @@ async function fetchLive(){
     const w1=r.water_leak_1===true||r.water_leak_1==='true';
     S.live={co2,temp,hum,vpd,hubTemp,hubHum,w1,tempW,humW,
       outsideTemp:num(r.outdoor_temp),outsideHumidity:num(r.outdoor_humidity),
-      farEndTemp:num(r.far_end_temp),farEndHumidity:num(r.far_end_humidity)};
+      farEndTemp:num(r.far_end_temp),farEndHumidity:num(r.far_end_humidity),
+      soil:num(r.soil_moisture)};
     S.water.irrigation=num(r.water_temp_irrigation);
     S.water.outside=num(r.water_temp_outside);
     // Sensor health = value present AND fresh; a stale or missing value → offline.
@@ -1604,7 +1607,7 @@ async function fetchLive(){
     markSensor('farend',fresh&&S.live.farEndTemp!=null);
     markSensor('water',fresh&&S.water.irrigation!=null);
     if(S.range===1){S.localHist.push({co2,temperature:temp,humidity:hum,vpd,hub_temp:hubTemp,hub_humidity:hubHum,temp_weighted:tempW,hum_weighted:humW,time:(r.recorded_at||new Date().toISOString())});if(S.localHist.length>72)S.localHist.shift();applyChart(S.localHist.map(x=>({...x,recorded_at:x.time})));}
-    renderMetrics();renderZones();renderFarEnd();renderWaterCooling();renderCoolingScore();renderWaterAlerts();checkAlerts();renderDecisions();detectIncidents();updateStressTracker();
+    renderMetrics();renderZones();renderFarEnd();renderWaterCooling();renderSoil();renderCoolingScore();renderWaterAlerts();checkAlerts();renderDecisions();detectIncidents();updateStressTracker();
   }catch(e){
     console.error('fetchLive error:',e);
     const sEn=$('statusEn');if(sEn)sEn.textContent='Network error: '+e.message;
@@ -1623,6 +1626,18 @@ function renderFarEnd(){
 // fetchLive(). This legacy Tuya poller is retired (kept as a no-op).
 async function fetchTuyaWater(){ /* retired: folded into fetchLive() */ }
 // Reference captured on 11 Jul: raw supply 41.5°C cooled to 26.2°C at the roots.
+function renderSoil(){
+  const box=$('soilMoisture'); if(!box)return;
+  const v=S.live.soil;
+  const shell=(numHtml,sub)=>`<div style="border:1px solid rgba(6,68,46,.12);border-radius:10px;background:rgba(6,68,46,.03);padding:10px 12px;display:flex;align-items:center;justify-content:space-between">`
+    +`<div><div style="font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)">🌱 Soil Moisture &middot; رطوبة التربة</div>`
+    +`<div style="font-size:.56rem;color:var(--muted);margin-top:2px">${sub}</div></div>${numHtml}</div>`;
+  if(v==null){box.innerHTML=shell('<div style="font-family:var(--mono);font-size:1.4rem;font-weight:900;color:var(--muted)">&mdash;</div>','WH51 &middot; بانتظار الحسّاس');return;}
+  let en='Good',ar='مناسبة',color='#16894E';
+  if(v<20){en='Dry';ar='جافة';color='var(--danger)';}
+  else if(v>60){en='Wet';ar='رطبة';color='var(--gold)';}
+  box.innerHTML=shell(`<div style="text-align:right"><div style="font-family:var(--mono);font-size:1.4rem;font-weight:900;color:${color}">${Math.round(v)}%</div><div style="font-size:.58rem;font-weight:800;color:${color}">${en} &middot; ${ar}</div></div>`,'WH51 &middot; الوسط الزراعي');
+}
 const WATER_BASELINE={date:'Jul 11',supply:41.5,irrigation:26.2};
 function renderWaterCooling(){
   const box=$('waterCooling'); if(!box)return;

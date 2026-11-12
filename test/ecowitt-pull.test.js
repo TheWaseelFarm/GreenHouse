@@ -32,6 +32,7 @@ const PAYLOAD = {
     temp_and_humidity_ch4: { temperature: m(26),   humidity: m(58) }, // zone 4
     temp_ch1: { temperature: m(26.7) }, // irrigation water
     temp_ch2: { temperature: m(30) },   // outside water
+    soil_ch1: { soilmoisture: m(42), ad: m(90) }, // WH51 soil moisture
   },
 };
 
@@ -80,12 +81,14 @@ describe('api/ecowitt-pull', () => {
     expect(res.body.outdoor_temp).toBe(41.3);
     expect(res.body.water_temp_irrigation).toBe(26.7);
     expect(res.body.water_temp_outside).toBe(30);
+    expect(res.body.soil_moisture).toBe(42);
 
     // Persisted row mirrors the existing readings columns.
     expect(saved.temperature).toBe(25);
     expect(saved.hub_temp).toBe(22);
     expect(saved.far_end_temp).toBe(27.8);
     expect(saved.water_temp_irrigation).toBe(26.7);
+    expect(saved.soil_moisture).toBe(42);
     expect(saved.tuya_gh_temp).toBeNull();
   });
 
