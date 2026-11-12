@@ -444,7 +444,7 @@ body.noscroll{overflow:hidden}
         </div>
         <div class="z-src">Meter Pro CO&#x2082; &middot; Canopy sensor</div>
       </div>
-      <div class="zone-card" style="border-left:3px solid var(--gold)">
+      <div class="zone-card" id="farEndCard" style="border-left:3px solid var(--gold)">
         <div class="zn">&#x1F300; Far End Zone</div><div class="zn-ar">&#x627;&#x644;&#x645;&#x646;&#x637;&#x642;&#x629; &#x627;&#x644;&#x637;&#x631;&#x641;&#x64A;&#x629; &middot; &#x642;&#x631;&#x628; &#x627;&#x644;&#x645;&#x631;&#x648;&#x62D;&#x629;</div>
         <div class="z-readings">
           <div class="z-val"><div class="z-num" id="farTemp">&mdash;</div><div class="z-lbl">&deg;C</div></div>
@@ -453,11 +453,14 @@ body.noscroll{overflow:hidden}
         <div class="z-src">Meter &middot; Far end (opposite wet wall)</div>
       </div>
     </div>
+    <div id="sensorsPending" style="margin:8px 0 12px"></div>
     <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:12px 2px 6px"><span class="i18n-en">💧 Water Temperatures</span><span class="i18n-ar">💧 حرارة المياه</span></div>
     <div id="waterTempStrip" style="display:flex;gap:10px;margin-bottom:10px"></div>
     <div id="waterCooling" style="margin-bottom:12px"></div>
-    <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px"><span class="i18n-en">🌱 Soil Moisture</span><span class="i18n-ar">🌱 رطوبة التربة</span></div>
-    <div id="soilMoisture" style="margin-bottom:12px"></div>
+    <div id="soilSection">
+      <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px"><span class="i18n-en">🌱 Soil Moisture</span><span class="i18n-ar">🌱 رطوبة التربة</span></div>
+      <div id="soilMoisture" style="margin-bottom:12px"></div>
+    </div>
     <div id="heatHours" style="margin-bottom:12px"></div>
     <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px"><span class="i18n-en">❄️ Cooling</span><span class="i18n-ar">❄️ التبريد</span></div>
     <div class="cooling-row">
@@ -476,7 +479,7 @@ body.noscroll{overflow:hidden}
       <div>
         <div class="i18n-en" style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Ambient Temperature</div>
         <div class="i18n-ar" style="font-family:var(--ar);font-size:.7rem;color:var(--muted);direction:rtl">&#x62D;&#x631;&#x627;&#x631;&#x629; &#x627;&#x644;&#x645;&#x62D;&#x64A;&#x637; &#x627;&#x644;&#x62E;&#x627;&#x631;&#x62C;&#x64A; &middot; &#x627;&#x644;&#x62F;&#x631;&#x639;&#x64A;&#x629;</div>
-        <div style="font-size:.56rem;color:var(--muted);margin-top:2px;font-family:var(--mono)">Source: SwitchBot outdoor sensor &middot; live</div>
+        <div id="ambientSource" style="font-size:.56rem;color:var(--muted);margin-top:2px;font-family:var(--mono)">Outdoor sensor — not installed</div>
       </div>
       <div id="outsideBadge" class="badge" style="background:rgba(6,68,46,.08);color:var(--muted)">&mdash;</div>
     </div>
@@ -501,7 +504,8 @@ body.noscroll{overflow:hidden}
     <div style="height:6px;background:rgba(6,68,46,.08);border-radius:3px;overflow:hidden">
       <div id="coolingScoreBar" style="height:100%;width:0%;background:#16894E;border-radius:3px;transition:width .6s ease"></div>
     </div>
-    <div style="font-size:.68rem;color:var(--muted);line-height:1.5">Composite score: ambient delta + wet wall gradient.<br>
+    <div id="coolingNaNote" style="display:none;font-size:.72rem;color:var(--danger);font-weight:700;line-height:1.45"></div>
+    <div id="coolingDesc" style="font-size:.68rem;color:var(--muted);line-height:1.5">Composite score: ambient delta + wet wall gradient.<br>
       <span style="color:#16894E;font-weight:700">70&ndash;100</span> Optimal &middot;
       <span style="color:var(--gold);font-weight:700">40&ndash;69</span> Monitor &middot;
       <span style="color:var(--danger);font-weight:700">0&ndash;39</span> Intervention required
@@ -581,9 +585,9 @@ body.noscroll{overflow:hidden}
         <div><span id="vpdGaugeNumber" class="gauge-value">&mdash;</span><span class="gauge-unit">kPa</span></div>
       </div>
       <div class="gauge-scale">
-        <div class="scale-item"><b>Low</b>&lt; 0.8</div>
-        <div class="scale-item"><b>Optimal</b>0.8&ndash;1.6</div>
-        <div class="scale-item"><b>High</b>&gt; 1.6</div>
+        <div class="scale-item"><b><span class="i18n-en">Low</span><span class="i18n-ar">منخفض</span></b><span id="vpdScaleLow">&lt; 0.4</span></div>
+        <div class="scale-item"><b><span class="i18n-en">Optimal</span><span class="i18n-ar">مثالي</span></b><span id="vpdScaleOpt">0.4&ndash;0.8</span></div>
+        <div class="scale-item"><b><span class="i18n-en">High</span><span class="i18n-ar">مرتفع</span></b><span id="vpdScaleHigh">&gt; 0.8</span></div>
       </div>
     </div>
     <div class="advice"><div id="adviceEn">Awaiting sensor data...</div><div id="adviceAr">&#x641;&#x64A; &#x627;&#x646;&#x62A;&#x638;&#x627;&#x631; &#x628;&#x64A;&#x627;&#x646;&#x627;&#x62A; &#x627;&#x644;&#x645;&#x633;&#x62A;&#x634;&#x639;&#x631;...</div></div>
@@ -986,10 +990,15 @@ function renderFreshness(){
   if(ts)ts.textContent=d.toLocaleTimeString('en-SA',{timeZone:'Asia/Riyadh',hour:'2-digit',minute:'2-digit'});
   if(ds)ds.textContent=d.toLocaleDateString('en-SA',{timeZone:'Asia/Riyadh',day:'2-digit',month:'short',year:'numeric'});
   const ageMin=Math.max(0,Math.round((Date.now()-S.lastReadingAt)/60000));
-  const fresh=ageMin<=25; // logged every ~15 min, so >25 min means logging stopped
   const ago=ageMin<60?(ar?`قبل ${ageMin} دقيقة`:`${ageMin} min ago`):ageMin<1440?(ar?`قبل ${Math.round(ageMin/60)} ساعة`:`${Math.round(ageMin/60)} h ago`):(ar?`قبل ${Math.round(ageMin/1440)} يوم`:`${Math.round(ageMin/1440)} d ago`);
-  if(dot)dot.style.background=fresh?'#16894E':'var(--danger)';
-  if(txt)txt.textContent=fresh?(ar?'متصل — البيانات حديثة':'Live — data fresh'):(ar?'⚠️ البيانات متأخرة':'⚠️ Data delayed');
+  // Staleness tiers for a ~15-min logging interval: a reading older than the
+  // interval is "Delayed", and a long gap means logging has stopped.
+  let fcolor,flabel;
+  if(ageMin<=10){fcolor='#16894E';flabel=ar?'متصل — البيانات حديثة':'Live — data fresh';}
+  else if(ageMin<=30){fcolor='var(--gold)';flabel=ar?'⚠️ متأخر':'⚠️ Delayed';}
+  else{fcolor='var(--danger)';flabel=ar?'⛔ توقّف التسجيل':'⛔ Logging stopped';}
+  if(dot)dot.style.background=fcolor;
+  if(txt){txt.textContent=flabel;txt.style.color=fcolor;}
   if(sub)sub.textContent=ago;
 }
 // --- Sensor health ------------------------------------------------------
@@ -1012,7 +1021,7 @@ function markSensor(key,ok){
   renderSensorHealth();
 }
 function agoText(ts,ar){
-  if(!ts)return ar?'لا توجد قراءة بعد':'no reading yet';
+  if(!ts)return ar?'لم يُسجّل بعد':'never reported';
   const m=Math.max(0,Math.round((Date.now()-ts)/60000));
   const t=m<60?(ar?`قبل ${m} دقيقة`:`${m} min ago`):m<1440?(ar?`قبل ${Math.round(m/60)} ساعة`:`${Math.round(m/60)} h ago`):(ar?`قبل ${Math.round(m/1440)} يوم`:`${Math.round(m/1440)} d ago`);
   return t;
@@ -1092,6 +1101,12 @@ function renderMetrics(){
   const vs=getBadge('vpd',vpd).s;const vc=col(vs);
   if(gp){const pct=clamp(vpd/3,0,1);const rot=-90+(pct*180);gp.style.setProperty('--needle-rotation',rot+'deg');gp.style.setProperty('--vpd-color',vc);}
   $('vpdGaugeNumber').textContent=Number(vpd).toFixed(2);
+  // Gauge legend reads from the SAME day/night band as the VPD card, so the
+  // gauge and the card never disagree on what "optimal" is.
+  {const vb=bandNow(VPD_BAND);
+   if($('vpdScaleLow'))$('vpdScaleLow').textContent='< '+vb.ideal[0];
+   if($('vpdScaleOpt'))$('vpdScaleOpt').textContent=vb.ideal[0]+'–'+vb.ideal[1];
+   if($('vpdScaleHigh'))$('vpdScaleHigh').textContent='> '+vb.ideal[1];}
   const adv={good:{en:`VPD ${Number(vpd).toFixed(2)} kPa — within operational range. Stomata active, photosynthesis and sugar development proceeding normally.`,ar:`عجز ضغط البخار مثالي. الثغور مفتوحة وتطور السكر في ذروته.`},warn:{en:`VPD ${Number(vpd).toFixed(2)} kPa — mild transpiration stress. Directive: increase humidity 5-10% or reduce canopy temperature by 2°C.`,ar:`إجهاد نتح خفيف. التوجيه: ارفع الرطوبة 5-10% أو اخفض الحرارة 2°م.`},danger:{en:`VPD ${Number(vpd).toFixed(2)} kPa — CRITICAL. Stomata closing, fruit quality at risk. Activate misting system immediately.`,ar:`عجز ضغط البخار حرج. الثغور تنغلق وجودة الثمار في خطر. شغّل نظام الرذاذ فوراً.`}};
   $('adviceEn').textContent=adv[vs].en;$('adviceAr').textContent=adv[vs].ar;
   const tw=tempW??temp,hw=humW??hum;
@@ -1351,7 +1366,7 @@ function renderZones(){
   if(w1)showAlert('Leak Detection Alert','Water sensor triggered. Inspect tank and irrigation lines immediately.','تنبيه كشف تسرب — افحص الخزان وخطوط الري فوراً.');
 }
 function renderDecisions(){
-  const{co2,temp,hum,vpd,hubTemp,tempW,humW}=S.live;
+  const{co2,temp,hum,vpd,hubTemp,hubHum,tempW,humW}=S.live;
   if(co2===null)return;
   const tw=tempW??temp,hw=humW??hum,acts=[];
   const delta=hubTemp!==null?parseFloat((temp-hubTemp).toFixed(1)):null;
@@ -1364,6 +1379,9 @@ function renderDecisions(){
   else if(hw<50)acts.push({p:'h',en:`Humidity ${hw.toFixed(0)}% — critically low. Risk of desiccation stress. Activate misting immediately.`,ar:`الرطوبة ${hw.toFixed(0)}% — منخفضة جداً. خطر إجهاد الجفاف. شغّل الرذاذ فوراً.`});
   else if(hw<60)acts.push({p:'m',en:`Humidity ${hw.toFixed(0)}% — below operational range. Review irrigation schedule.`,ar:`الرطوبة ${hw.toFixed(0)}% — أقل من النطاق التشغيلي. راجع جدول الري.`});
   if(delta!==null&&delta<1)acts.push({p:'m',en:`Cooling gradient ${delta}°C — below effective threshold. Inspect wet wall pump pressure and pad saturation.`,ar:`تدرج التبريد ${delta}°م — أقل من العتبة الفعالة. افحص ضغط مضخة الجدار المبلل وتشبع الألواح.`});
+  // Flag the CANOPY RH directly — the 70/30 average can hide a dry canopy that
+  // is the plants' real environment.
+  if(hum!=null&&hubHum!=null){const cb=getBadge('hum',hum);if(cb.s!=='good'&&Math.abs(hum-hw)>=6)acts.push({p:'m',en:`Canopy RH ${Math.round(hum)}% is ${(cb.t||'').toLowerCase()} — the 70/30 average (${hw.toFixed(0)}%) masks it. The canopy is the plants' real environment; humidify toward the canopy, not the average.`,ar:`رطوبة المحصول ${Math.round(hum)}% ${cb.ar} — المتوسط المرجّح (${hw.toFixed(0)}%) يخفيها. المحصول هو بيئة النبات الفعلية؛ ارفع الرطوبة عند المحصول لا عند المتوسط.`});}
   if(acts.length===0)acts.push({p:'l',en:`All parameters nominal. Weighted temp ${tw.toFixed(1)}°C, humidity ${hw.toFixed(0)}%, VPD ${Number(vpd).toFixed(2)} kPa. Continue monitoring at standard interval.`,ar:`جميع المعايير ضمن النطاق. موزون: ${tw.toFixed(1)}°م، رطوبة ${hw.toFixed(0)}%، VPD ${Number(vpd).toFixed(2)}. استمر في المراقبة بالتوقيت المعتاد.`});
   $('decisionsBody').innerHTML=acts.map(a=>`<div class="dec-item"><span class="ptag ${a.p==='h'?'ph':a.p==='m'?'pm':'pl'}">${a.p==='h'?'URGENT':a.p==='m'?'ACTION':'STATUS'}</span><div><div class="dec-en">${a.en}</div><div class="dec-ar">${a.ar}</div></div></div>`).join('');
 }
@@ -1592,7 +1610,11 @@ async function fetchLive(){
     const temp=num(r.temperature),hum=num(r.humidity),co2=num(r.co2)??0;
     const vpd=num(r.vpd)??((temp!=null&&hum!=null)?calcVPD(temp,hum):null);
     const hubTemp=num(r.hub_temp),hubHum=num(r.hub_humidity);
-    const tempW=num(r.temp_weighted)??temp,humW=num(r.hum_weighted)??hum;
+    // Reconcile the weighted average with the zone cards: recompute it from the
+    // SAME canopy + wet-wall values shown in the zones (not a separately-stored
+    // value that may have used a different-timestamp wet-wall reading).
+    const tempW=(temp!=null)?(hubTemp!=null?weighted(temp,hubTemp):parseFloat(Number(temp).toFixed(1))):num(r.temp_weighted);
+    const humW =(hum!=null) ?(hubHum!=null ?weighted(hum,hubHum)  :parseFloat(Number(hum).toFixed(1))) :num(r.hum_weighted);
     const w1=r.water_leak_1===true||r.water_leak_1==='true';
     S.live={co2,temp,hum,vpd,hubTemp,hubHum,w1,tempW,humW,
       outsideTemp:num(r.outdoor_temp),outsideHumidity:num(r.outdoor_humidity),
@@ -1607,7 +1629,7 @@ async function fetchLive(){
     markSensor('farend',fresh&&S.live.farEndTemp!=null);
     markSensor('water',fresh&&S.water.irrigation!=null);
     if(S.range===1){S.localHist.push({co2,temperature:temp,humidity:hum,vpd,hub_temp:hubTemp,hub_humidity:hubHum,temp_weighted:tempW,hum_weighted:humW,time:(r.recorded_at||new Date().toISOString())});if(S.localHist.length>72)S.localHist.shift();applyChart(S.localHist.map(x=>({...x,recorded_at:x.time})));}
-    renderMetrics();renderZones();renderFarEnd();renderWaterCooling();renderSoil();renderCoolingScore();renderWaterAlerts();checkAlerts();renderDecisions();detectIncidents();updateStressTracker();
+    renderMetrics();renderZones();renderFarEnd();renderWaterCooling();renderSoil();renderPending();renderCoolingScore();renderWaterAlerts();checkAlerts();renderDecisions();detectIncidents();updateStressTracker();
   }catch(e){
     console.error('fetchLive error:',e);
     const sEn=$('statusEn');if(sEn)sEn.textContent='Network error: '+e.message;
@@ -1638,29 +1660,61 @@ function renderSoil(){
   else if(v>60){en='Wet';ar='رطبة';color='var(--gold)';}
   box.innerHTML=shell(`<div style="text-align:right"><div style="font-family:var(--mono);font-size:1.4rem;font-weight:900;color:${color}">${Math.round(v)}%</div><div style="font-size:.58rem;font-weight:800;color:${color}">${en} &middot; ${ar}</div></div>`,'WH51 &middot; الوسط الزراعي');
 }
+// Collapse never-reported sensors and the (hydroponic) soil card into one small
+// "Sensors pending / not applicable" strip, instead of leaving empty cards that
+// look broken.
+function renderPending(){
+  const box=$('sensorsPending'); const ar=siteLang==='ar';
+  const feNull=S.live.farEndTemp==null, outNull=S.live.outsideTemp==null;
+  const fe=$('farEndCard'); if(fe)fe.style.display=feNull?'none':'';
+  const ss=$('soilSection'); if(ss)ss.style.display='none'; // hydroponic → soil n/a
+  if(!box)return;
+  const items=[];
+  if(feNull)items.push(ar?'حساس الطرف البعيد — لم يُسجّل بعد':'Far-End Meter — never reported');
+  if(outNull)items.push(ar?'حساس الخارج — لم يُسجّل بعد':'Outdoor Meter — never reported');
+  const soil=S.live.soil;
+  items.push(ar?`رطوبة التربة — غير منطبقة (نظام مائي)${soil!=null?` · قراءة ${Math.round(soil)}%`:''}`:`Soil moisture — n/a (hydroponic)${soil!=null?` · sensor reads ${Math.round(soil)}%`:''}`);
+  box.innerHTML=`<div style="border:1px dashed var(--border);border-radius:10px;background:rgba(6,68,46,.02);padding:9px 12px">`
+    +`<div style="font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">⏳ ${ar?'حساسات غير مفعّلة / غير منطبقة':'Sensors pending / not applicable'}</div>`
+    +items.map(t=>`<div style="font-size:.66rem;color:var(--muted);line-height:1.7">• ${t}</div>`).join('')
+    +`</div>`;
+}
 const WATER_BASELINE={date:'Jul 11',supply:41.5,irrigation:26.2};
 function renderWaterCooling(){
   const box=$('waterCooling'); if(!box)return;
   const supply=S.water.outside, irr=S.water.irrigation;
+  const ar=siteLang==='ar';
   const fmt=v=>(v==null)?'&mdash;':v.toFixed(1)+'&deg;C';
   const delta=(supply!=null&&irr!=null)?parseFloat((supply-irr).toFixed(1)):null;
   const baseDelta=parseFloat((WATER_BASELINE.supply-WATER_BASELINE.irrigation).toFixed(1));
-  const deltaColor=delta==null?'var(--muted)':delta>=12?'#16894E':delta>=8?'var(--gold)':'var(--danger)';
-  const cell=(en,ar,val,color)=>`<div style="flex:1;text-align:center;padding:9px 6px">`
+  // The summer baseline (Δ15.3°C) is only meaningful when the chiller is working,
+  // i.e. when the incoming supply water is hot. In cool months comparing to it is
+  // nonsense, so grey the card and say so instead.
+  const coolingActive=(supply!=null&&supply>28);
+  const sameSensor=(supply!=null&&irr!=null&&Math.abs(supply-irr)<0.2);
+  const greyed=!coolingActive;
+  const deltaColor=(delta==null||greyed)?'var(--muted)':delta>=12?'#16894E':delta>=8?'var(--gold)':'var(--danger)';
+  const cell=(en,arL,val,color)=>`<div style="flex:1;text-align:center;padding:9px 6px">`
     +`<div style="font-size:.52rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)">${en}</div>`
     +`<div style="font-family:var(--mono);font-size:1.2rem;font-weight:900;color:${color};margin-top:2px">${val}</div>`
-    +`<div style="font-family:var(--ar);font-size:.56rem;color:var(--muted);direction:rtl">${ar}</div></div>`;
+    +`<div style="font-family:var(--ar);font-size:.56rem;color:var(--muted);direction:rtl">${arL}</div></div>`;
   const div='<div style="width:1px;background:rgba(6,68,46,.1);margin:9px 0"></div>';
-  let cmp='';
-  if(delta!=null){const d=parseFloat((delta-baseDelta).toFixed(1));cmp=d>=0?` &middot; today <strong style="color:#16894E">Δ${delta}°C</strong> (+${d} vs baseline)`:` &middot; today <strong style="color:var(--gold)">Δ${delta}°C</strong> (${d} vs baseline)`;}
-  box.innerHTML=`<div style="border:1px solid rgba(6,68,46,.12);border-radius:10px;background:rgba(6,68,46,.03);overflow:hidden">`
-    +`<div style="padding:8px 10px 0;font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)">💧 Water Cooling Effectiveness &middot; فعالية تبريد الماء</div>`
+  let footer;
+  if(coolingActive){
+    footer=`vs ${WATER_BASELINE.date} summer baseline: ${WATER_BASELINE.supply}°C → ${WATER_BASELINE.irrigation}°C (Δ ${baseDelta}°C)${delta!=null?` &middot; today <strong style="color:${deltaColor}">Δ${delta}°C</strong>`:''}`;
+  }else{
+    footer=ar?`❄️ التبريد غير مطلوب هذا الموسم — ماء التغذية بارد أصلاً (${fmt(supply)}). تُعرض مقارنة الصيف فقط عند تشغيل التبريد.`:`❄️ Chiller not needed this season — supply water already cool (${fmt(supply)}). The summer baseline (Δ${baseDelta}°C) is only meaningful when cooling is active.`;
+  }
+  const warn=sameSensor?`<div style="padding:6px 10px;border-top:1px solid rgba(196,57,43,.2);font-size:.6rem;color:var(--danger);font-weight:700;line-height:1.5">${ar?'⚠️ مستشعرا ماء التغذية والري يعطيان نفس القيمة — تأكّد أنهما حسّاسان منفصلان في موقعين مختلفين.':'⚠️ Supply &amp; irrigation probes read the same value — verify they are two separate sensors in different locations.'}</div>`:'';
+  box.innerHTML=`<div style="border:1px solid rgba(6,68,46,.12);border-radius:10px;background:${greyed?'rgba(6,68,46,.015)':'rgba(6,68,46,.03)'};overflow:hidden">`
+    +`<div style="padding:8px 10px 0;font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)">💧 Water Cooling Effectiveness &middot; فعالية تبريد الماء${greyed?` <span style="color:var(--gold)">· ${ar?'غير مطلوب الآن':'not needed now'}</span>`:''}</div>`
     +`<div style="display:flex;align-items:stretch">`
-    +cell('Supply Tank','خزان التغذية',fmt(supply),'var(--deep)')+div
-    +cell('Irrigation','ماء الري',fmt(irr),'var(--deep)')+div
+    +cell('Supply Tank','خزان التغذية',fmt(supply),greyed?'var(--muted)':'var(--deep)')+div
+    +cell('Irrigation','ماء الري',fmt(irr),greyed?'var(--muted)':'var(--deep)')+div
     +cell('Cooling Δ','فرق التبريد',delta==null?'&mdash;':delta.toFixed(1)+'&deg;C',deltaColor)
     +`</div>`
-    +`<div style="padding:6px 10px;border-top:1px solid rgba(6,68,46,.08);font-size:.6rem;color:var(--muted);line-height:1.5">vs ${WATER_BASELINE.date} baseline: ${WATER_BASELINE.supply}°C → ${WATER_BASELINE.irrigation}°C (Δ ${baseDelta}°C)${cmp}</div>`
+    +`<div style="padding:6px 10px;border-top:1px solid rgba(6,68,46,.08);font-size:.6rem;color:var(--muted);line-height:1.5">${footer}</div>`
+    +warn
     +`</div>`;
 }
 // Midday heat-load tracker — how many hours/day the canopy averaged above 28°C
@@ -1791,6 +1845,24 @@ function renderCoolingScore(){
   if(tEl&&ot!==null)tEl.textContent=ot.toFixed(1);
   if(!el)return;
   if(tw===null||tw===undefined){el.textContent='—';return;}
+  const _ar=siteLang==='ar';
+  const naNote=$('coolingNaNote'),desc=$('coolingDesc'),src=$('ambientSource');
+  if(ot===null||ot===undefined){
+    // No outdoor sensor → the ambient-delta composite is not computable. Show
+    // n/a rather than a misleading 100/100.
+    el.textContent='n/a';el.style.color='var(--muted)';
+    if(barEl){barEl.style.width='0%';barEl.style.background='var(--muted)';}
+    if(tEl)tEl.textContent='—';
+    if(deltaEl)deltaEl.textContent='—';
+    if(badgeEl){badgeEl.textContent=_ar?'غير متصل':'Offline';badgeEl.style.background='rgba(192,57,43,.08)';badgeEl.style.color='var(--danger)';}
+    if(src)src.textContent=_ar?'حساس الخارج — لم يُسجّل بعد':'Outdoor sensor — never reported';
+    if(naNote){naNote.style.display='block';naNote.textContent=_ar?'غير متاح — يحتاج حساس خارجي (لا يمكن حساب الفرق مع الخارج)':'n/a — needs outdoor sensor (ambient delta can’t be computed)';}
+    if(desc)desc.style.display='none';
+    renderTempVerdict();return;
+  }
+  if(naNote)naNote.style.display='none';
+  if(desc)desc.style.display='';
+  if(src)src.textContent=_ar?'حساس الخارج · مباشر':'SwitchBot outdoor sensor · live';
   // When the canopy is already comfortable (cooling is succeeding) or the
   // outside air is mild (no cooling demand — e.g. a cool night), the system is
   // performing as intended. Report 100 rather than a misleading low score
