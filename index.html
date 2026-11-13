@@ -310,10 +310,13 @@ body.noscroll{overflow:hidden}
     <a onclick="navClick(this,null);openPlantJournal()"><i class="ti ti-plant-2"></i><span data-i18n="nav_plantlog">Plant Journal</span></a>
     <a onclick="navClick(this,null);openQrLabels()"><i class="ti ti-qrcode"></i><span data-i18n="nav_qrlabels">QR Plant Labels</span></a>
     <a onclick="navClick(this,null);openCouncil()"><i class="ti ti-brain"></i><span data-i18n="nav_council">Expert Council</span></a>
-    <a onclick="navClick(this,null);openAccessRequests()"><i class="ti ti-user-plus"></i><span data-i18n="nav_access">Access Requests</span></a>
-    <a onclick="navClick(this,null);openChangePassword()"><i class="ti ti-key"></i><span data-i18n="nav_password">Change Password</span></a>
-    <a onclick="navClick(this,'settings')"><i class="ti ti-settings"></i><span data-i18n="nav_settings">Settings</span></a>
-    <a href="/api/auth/logout" class="logout-link"><i class="ti ti-logout"></i><span data-i18n="nav_signout">Sign Out</span></a>
+    <a id="acctToggle" onclick="toggleAcct()"><i class="ti ti-settings"></i><span data-i18n="nav_account">Account &amp; Settings</span><i class="ti ti-chevron-down" style="margin-inline-start:auto;font-size:.9em;opacity:.7"></i></a>
+    <div id="acctMenu" style="display:none">
+      <a onclick="navClick(this,null);openAccessRequests()" style="padding-inline-start:30px"><i class="ti ti-user-plus"></i><span data-i18n="nav_access">Access Requests</span></a>
+      <a onclick="navClick(this,null);openChangePassword()" style="padding-inline-start:30px"><i class="ti ti-key"></i><span data-i18n="nav_password">Change Password</span></a>
+      <a onclick="navClick(this,'settings')" style="padding-inline-start:30px"><i class="ti ti-settings"></i><span data-i18n="nav_settings">Settings</span></a>
+      <a href="/api/auth/logout" class="logout-link" style="padding-inline-start:30px"><i class="ti ti-logout"></i><span data-i18n="nav_signout">Sign Out</span></a>
+    </div>
   </nav>
   <div class="side-art">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 170" fill="none"><path d="M20 139h380M55 139V90l23-18 23 18v49M137 139V64h46v75M157 64V40h24v24M218 139V83l37-26 37 26v56M322 139V72h39v67" stroke="#C49A3A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/><path d="M70 99h12M70 116h12M151 83h10M151 101h10M151 119h10M235 96h10M255 96h10M275 96h10M335 91h9M335 110h9" stroke="#06442E" stroke-width="4" stroke-linecap="round" opacity=".65"/><path d="M25 151c62-14 99-13 151-4s88 5 127-3 64-4 92 5" stroke="#8FAF7A" stroke-width="3" stroke-linecap="round" opacity=".75"/></svg>
@@ -915,6 +918,7 @@ const I18N={
   nav_qrlabels:{en:'QR Plant Labels',ar:'باركود المواقع'},
   nav_council:{en:'Expert Council',ar:'المجلس الاستشاري'},nav_access:{en:'Access Requests',ar:'طلبات الوصول'},
   nav_password:{en:'Change Password',ar:'تغيير كلمة المرور'},nav_settings:{en:'Settings',ar:'الإعدادات'},
+  nav_account:{en:'Account & Settings',ar:'الحساب والإعدادات'},
   nav_signout:{en:'Sign Out',ar:'تسجيل الخروج'},hdr_title:{en:'Farm Environment Monitor',ar:'مراقبة بيئة المزرعة'},
   st_lastreading:{en:'Last Reading',ar:'آخر قراءة'},st_date:{en:'Date',ar:'التاريخ'},
   st_online:{en:'Systems Online',ar:'الأنظمة تعمل'},st_active:{en:'All Sensors Active',ar:'كل الحساسات نشطة'},
@@ -949,6 +953,9 @@ function weighted(c,w){return parseFloat((c*W_CANOPY+w*W_WETWALL).toFixed(1));}
 function showLoadingBar(){const b=$('loadingBar');b.classList.remove('done');b.classList.add('running');}
 function hideLoadingBar(){const b=$('loadingBar');b.classList.remove('running');b.classList.add('done');setTimeout(()=>b.classList.remove('done'),400);}
 function navClick(el,sid){document.querySelectorAll('.nav a:not(.logout-link)').forEach(a=>a.classList.remove('active'));el.classList.add('active');if(sid){const t=document.getElementById(sid);if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}}
+// Collapsible Account & Settings group — keeps the top-level nav short so it
+// doesn't wrap onto multiple rows on narrow screens.
+function toggleAcct(){const m=$('acctMenu');if(!m)return;const open=(m.style.display==='none'||!m.style.display);m.style.display=open?'block':'none';const t=$('acctToggle');if(t)t.classList.toggle('active',open);}
 function doRefresh(btn){btn.disabled=true;btn.style.opacity='0.6';showLoadingBar();fetchLive().finally(()=>{btn.disabled=false;btn.style.opacity='1';hideLoadingBar();});}
 function getStatus(m,v){if(m==='hum')return(v>=T.hum.ok[0]&&v<=T.hum.ok[1])?'good':'warn';if(v>=T[m].ok[0]&&v<=T[m].ok[1])return'good';if(v>=T[m].warn[0]&&v<=T[m].warn[1])return'warn';return'danger';}
 function getHumBadge(v){if(v>=T.hum.ok[0]&&v<=T.hum.ok[1])return{s:'good',t:'Optimal',ar:'مثالي'};if(v>T.hum.ok[1])return{s:'warning',t:'Elevated',ar:'مرتفع'};if(v>=T.hum.warn[0])return{s:'warning',t:'Below Range',ar:'دون النطاق'};return{s:'danger',t:'Critical',ar:'حرج'};}
@@ -1114,11 +1121,17 @@ function renderMetrics(){
   // (seasonal temp + day/night VPD/humidity via getBadge), NOT the old fixed T
   // thresholds — otherwise the banner says "Critical" while the temp card says
   // "Optimal". getBadge routes temp→seasonal, vpd/hum→day-night, co2→range.
-  const norm=s=>s==='warning'?'warn':s;
-  const checks=[getBadge('co2',co2).s,getBadge('temp',tw).s,getBadge('hum',hw).s,getBadge('vpd',vpd).s].map(norm);
-  const overall=checks.includes('danger')?'danger':checks.includes('warn')?'warn':'good';
+  // Banner derives from the SAME single evaluation as the thermal-health card
+  // and the directives, so they never disagree. It names the limiting factor.
+  const H=thermalHealth();
+  const overall=H?H.overallSeverity:'good';
   $('statusDot').style.background=col(overall);
-  const sm={good:{en:'All parameters within operational range — no intervention required',ar:'جميع المعايير ضمن النطاق التشغيلي — لا يلزم تدخل'},warn:{en:`Suboptimal conditions detected — weighted temp ${tw.toFixed(1)}°C, humidity ${hw.toFixed(0)}%, VPD ${Number(vpd).toFixed(2)} kPa`,ar:'ظروف دون المثالية — راجع التوجيهات التشغيلية'},danger:{en:'Critical deviation detected — immediate intervention required',ar:'انحراف حرج — تدخل فوري مطلوب'}};
+  const lf=(H&&H.worst)?`${H.worst.k} (${H.worst.v})`:'';
+  const sm={
+    good:{en:'All parameters within operational range — no intervention required',ar:'جميع المعايير ضمن النطاق التشغيلي — لا يلزم تدخل'},
+    warn:{en:`Suboptimal — limiting factor: ${lf}. See operational directives.`,ar:`دون المثالي — العامل المحدِّد: ${lf}. راجع التوجيهات التشغيلية.`},
+    danger:{en:`Needs attention — limiting factor: ${lf}. Act on the directives.`,ar:`يتطلب انتباهاً — العامل المحدِّد: ${lf}. نفّذ التوجيهات.`}
+  };
   $('statusEn').textContent=sm[overall].en;$('statusAr').textContent=sm[overall].ar;
   renderCoolingScore();
 }
@@ -1230,21 +1243,33 @@ function thermalHealth(){
   const irr=S.water.irrigation;
   const outside=S.live.outsideTemp;
   const summer=outside!=null&&outside>38;
+  const canHum=S.live.hum;   // canopy RH — the plants' real environment
+  const co2=S.live.co2;
   const comps=[];
-  if(tw!=null){const B=seasonBand();const lo=B.ideal[0],hi=B.ideal[1];let s;if(B.frost!=null&&tw<=B.frost)s=20;else if(tw<lo)s=85;else if(tw<=hi)s=100;else if(tw<=B.watch)s=85;else if(tw<=B.crit)s=55;else s=25;comps.push({k:'Canopy temp',w:0.50,s,v:tw.toFixed(1)+'°C'});}
-  if(vpd!=null){let s;if(vpd>1.5)s=25;else if(vpd>1.3)s=45;else if(vpd>1.0)s=70;else if(vpd<0.4)s=70;else s=100;comps.push({k:'VPD',w:0.25,s,v:Number(vpd).toFixed(2)+' kPa'});}
-  if(irr!=null){let s;if(irr>26)s=30;else if(irr>22)s=60;else s=100;comps.push({k:'Irrigation water',w:0.15,s,v:irr.toFixed(1)+'°C'});}
-  if(grad!=null){let s;if(grad<0)s=20;else if(grad<1)s=55;else if(grad<3)s=85;else s=100;comps.push({k:'Cooling gradient',w:0.10,s,v:(grad>0?'+':'')+grad.toFixed(1)+'°C'});}
+  if(tw!=null){const B=seasonBand();const lo=B.ideal[0],hi=B.ideal[1];let s;if(B.frost!=null&&tw<=B.frost)s=20;else if(tw<lo)s=85;else if(tw<=hi)s=100;else if(tw<=B.watch)s=85;else if(tw<=B.crit)s=55;else s=25;comps.push({k:'Canopy temp',w:0.40,s,v:tw.toFixed(1)+'°C'});}
+  if(canHum!=null){const hb=getBadge('hum',canHum);const s=hb.s==='good'?100:(hb.s==='warn'||hb.s==='warning')?62:32;comps.push({k:'Canopy RH',w:0.22,s,v:Math.round(canHum)+'%'});}
+  if(vpd!=null){let s;if(vpd>1.5)s=25;else if(vpd>1.3)s=45;else if(vpd>1.0)s=70;else if(vpd<0.4)s=70;else s=100;comps.push({k:'VPD',w:0.18,s,v:Number(vpd).toFixed(2)+' kPa'});}
+  if(irr!=null){let s;if(irr>26)s=30;else if(irr>22)s=60;else s=100;comps.push({k:'Irrigation water',w:0.12,s,v:irr.toFixed(1)+'°C'});}
+  if(grad!=null){let s;if(grad<0)s=20;else if(grad<1)s=55;else if(grad<3)s=85;else s=100;comps.push({k:'Cooling gradient',w:0.08,s,v:(grad>0?'+':'')+grad.toFixed(1)+'°C'});}
   if(!comps.length)return null;
   const totW=comps.reduce((a,c)=>a+c.w,0);
   const index=Math.round(comps.reduce((a,c)=>a+c.s*c.w,0)/totW);
   const worst=comps.slice().sort((a,b)=>a.s-b.s)[0];
+  // ONE overall verdict, shared by the banner AND this card, derived from the
+  // SAME per-metric bands the metric cards use — so the status word can never
+  // contradict the cards (no "Healthy" beside a red humidity card).
+  const norm=s=>s==='warning'?'warn':s;const ord={good:0,warn:1,danger:2};
+  const badges=[];
+  if(tw!=null)badges.push(norm(getBadge('temp',tw).s));
+  if(canHum!=null)badges.push(norm(getBadge('hum',canHum).s));
+  if(vpd!=null)badges.push(norm(getBadge('vpd',vpd).s));
+  if(co2!=null)badges.push(norm(getBadge('co2',co2).s));
+  const overallSeverity=badges.reduce((a,b)=>ord[b]>ord[a]?b:a,'good');
   let status,color;
-  if(index>=80){status='HEALTHY';color='#16894E';}
-  else if(index>=60){status='MONITOR';color='var(--gold)';}
-  else if(index>=40){status='STRESSED';color='#C4662A';}
-  else{status='CRITICAL';color='var(--danger)';}
-  return{index,status,color,worst,comps,summer,outside};
+  if(overallSeverity==='good'){status='HEALTHY';color='#16894E';}
+  else if(overallSeverity==='warn'){status='MONITOR';color='var(--gold)';}
+  else{status='ATTENTION';color='var(--danger)';}
+  return{index,status,color,worst,comps,summer,outside,overallSeverity};
 }
 function renderThermalHealth(){
   const box=$('thermalHealth');if(!box)return;
@@ -1269,15 +1294,28 @@ const YIELD_DEFAULTS={ yieldKg:5000, priceKg:20, currency:'SAR' };
 function getEcon(){ try{ return Object.assign({},YIELD_DEFAULTS,JSON.parse(localStorage.getItem('gh_econ')||'{}')); }catch(_){ return {...YIELD_DEFAULTS}; } }
 function setEcon(e){ try{ localStorage.setItem('gh_econ',JSON.stringify(e)); }catch(_){}}
 // Translate current conditions into an estimated % of potential yield lost.
+// How long a deviation has been continuously active (minutes), persisted across
+// refreshes so a brief blip never drives a yield/revenue projection.
+function devDuration(key,active){
+  const now=Date.now();let m={};try{m=JSON.parse(localStorage.getItem('gh_dev')||'{}');}catch(_){}
+  if(active){if(!m[key])m[key]=now;}else{delete m[key];}
+  try{localStorage.setItem('gh_dev',JSON.stringify(m));}catch(_){}
+  return (active&&m[key])?Math.round((now-m[key])/60000):0;
+}
+const SUSTAIN_MIN=30; // only a deviation held this long counts toward yield loss
 function yieldImpact(){
   const tw=S.live.tempW!=null?S.live.tempW:S.live.temp;
   const vpd=S.live.vpd, hum=S.live.humW!=null?S.live.humW:S.live.hum;
-  const factors=[]; let loss=0;
-  if(tw!=null){let l=0;if(tw>28)l=35;else if(tw>26)l=22;else if(tw>24)l=12;else if(tw>22)l=5;if(l){factors.push({k:'Heat stress',v:tw.toFixed(1)+'°C',l});}loss+=l;}
-  if(vpd!=null){let l=0;if(vpd>1.6)l=20;else if(vpd>1.3)l=12;else if(vpd>1.0)l=5;else if(vpd<0.4)l=6;if(l){factors.push({k:vpd<0.4?'Low VPD':'High VPD',v:Number(vpd).toFixed(2)+' kPa',l});}loss+=l;}
-  if(hum!=null){let l=0;if(hum>90)l=18;else if(hum>85)l=10;else if(hum<45)l=8;if(l){factors.push({k:hum>85?'Botrytis risk':'Low humidity',v:Math.round(hum)+'%',l});}loss+=l;}
+  const raw=[];
+  if(tw!=null){let l=0;if(tw>28)l=35;else if(tw>26)l=22;else if(tw>24)l=12;else if(tw>22)l=5;raw.push({key:'heat',k:'Heat stress',v:tw.toFixed(1)+'°C',l});}
+  if(vpd!=null){let l=0;if(vpd>1.6)l=20;else if(vpd>1.3)l=12;else if(vpd>1.0)l=5;else if(vpd<0.4)l=6;raw.push({key:'vpd',k:vpd<0.4?'Low VPD':'High VPD',v:Number(vpd).toFixed(2)+' kPa',l});}
+  if(hum!=null){let l=0;if(hum>90)l=18;else if(hum>85)l=10;else if(hum<45)l=8;raw.push({key:'hum',k:hum>85?'Botrytis risk':'Low humidity',v:Math.round(hum)+'%',l});}
+  let loss=0;const counted=[],emerging=[];
+  raw.forEach(f=>{const active=f.l>0;const mins=devDuration(f.key,active);
+    if(!active)return;
+    if(mins>=SUSTAIN_MIN){counted.push({...f,mins});loss+=f.l;}else{emerging.push({...f,mins});}});
   loss=Math.min(60,Math.round(loss));
-  return {loss,factors,ok:tw!=null};
+  return {loss,counted,emerging,ok:tw!=null};
 }
 function renderYieldImpact(){
   const box=$('yieldImpact'); if(!box)return;
@@ -1289,7 +1327,8 @@ function renderYieldImpact(){
   const H=(typeof thermalHealth==='function')?thermalHealth():null;
   const col=Y.loss>=20?'var(--danger)':Y.loss>=8?'var(--gold)':'#16894E';
   const money=n=>econ.currency+' '+Math.round(n).toLocaleString('en-US');
-  const chips=Y.factors.length?Y.factors.map(f=>`<span style="font-size:.6rem;color:var(--muted);background:rgba(6,68,46,.06);border-radius:6px;padding:2px 7px;margin:2px 4px 0 0;display:inline-block">${esc(f.k)} ${esc(f.v)} · −${f.l}%</span>`).join(''):'<span style="font-size:.66rem;color:#16894E;font-weight:700">✓ All yield drivers within range</span>';
+  const chip=(f,counted)=>`<span style="font-size:.6rem;color:${counted?'#8a2b22':'#9aa088'};background:${counted?'rgba(192,57,43,.08)':'rgba(6,68,46,.04)'};border-radius:6px;padding:2px 7px;margin:2px 4px 0 0;display:inline-block">${esc(f.k)} ${esc(f.v)} · ${counted?`−${f.l}% · ${f.mins}m`:`emerging ${f.mins}m · not counted`}</span>`;
+  const chips=(Y.counted.length||Y.emerging.length)?Y.counted.map(f=>chip(f,true)).join('')+Y.emerging.map(f=>chip(f,false)).join(''):'<span style="font-size:.66rem;color:#16894E;font-weight:700">✓ All yield drivers within range</span>';
   box.innerHTML=`<div class="panel panel-pad" style="border-left:5px solid ${col}">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px">
       <div><div class="i18n-en" style="font-size:.62rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Yield &amp; Revenue Impact</div><div class="i18n-ar" style="font-family:var(--ar);font-size:.74rem;color:var(--muted);direction:rtl">أثر الظروف على المحصول والإيراد</div></div>
@@ -1315,7 +1354,7 @@ function renderYieldImpact(){
       </div>
     </div>
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">${chips}</div>
-    <div style="font-size:.58rem;color:var(--muted);margin-top:8px">Estimate if current conditions persist through fruiting · assumptions: ${econ.yieldKg.toLocaleString('en-US')} kg × ${econ.currency} ${econ.priceKg}/kg</div>
+    <div style="font-size:.58rem;color:var(--muted);margin-top:8px"><span class="i18n-en">Counts only deviations sustained ≥${SUSTAIN_MIN} min, if they persist through fruiting · assumptions: ${econ.yieldKg.toLocaleString('en-US')} kg × ${econ.currency} ${econ.priceKg}/kg</span><span class="i18n-ar">يُحتسب فقط انحراف مستمر ≥${SUSTAIN_MIN} دقيقة، بافتراض استمراره حتى الإثمار · ${econ.yieldKg.toLocaleString('en-US')} كجم × ${econ.priceKg} ${econ.currency}/كجم</span></div>
   </div>`;
 }
 function openYieldAssumptions(){
@@ -1769,11 +1808,16 @@ function renderHeatCard(){
   const topRight=isToday
     ?`<div style="font-size:.58rem;color:var(--muted)">today</div>`
     :`<div onclick="selectHeatDay('${todayKey}')" style="font-size:.58rem;color:var(--deep);cursor:pointer;font-weight:700">${sel.date.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'})} &nbsp;&#x2715; today</div>`;
-  const maxH=Math.max(6,...last7.map(d=>d.h28));
+  // Bar height encodes the daily PEAK canopy temp (so the chart always shows a
+  // trend, even in cool months when "hours >28°C" is 0); colour still encodes
+  // the heat-hour load.
+  const peaks=last7.map(d=>d.peak).filter(p=>p>-Infinity);
+  const pmin=(peaks.length?Math.min(...peaks):18)-1, pmax=(peaks.length?Math.max(...peaks):30)+1;
+  const pspan=Math.max(4,pmax-pmin);
   const bars=last7.map(d=>{
     const isSel=d.day===_heatSel;
-    const h=Math.max(2,Math.round((d.h28/maxH)*40));
-    const color=d.h30>0?'var(--danger)':d.h28>0?'var(--gold)':'#cdd6c4';
+    const h=d.peak>-Infinity?Math.max(4,Math.round(((d.peak-pmin)/pspan)*40)):2;
+    const color=d.h30>0?'var(--danger)':d.h28>0?'var(--gold)':'#8FAF7A';
     const dl=d.date.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2);
     const peakLbl=d.peak>-Infinity?Math.round(d.peak)+'°':'';
     const peakClr=d.h30>0?'var(--danger)':d.h28>0?'#8B5E00':'var(--muted)';
@@ -1791,7 +1835,7 @@ function renderHeatCard(){
     +`<div><span style="font-family:var(--mono);font-size:1.5rem;font-weight:900;color:${sel.h30>0?'var(--danger)':'#16894E'}">${sel.h30}</span><span style="font-size:.62rem;color:var(--muted)"> hrs &gt;30&deg;C</span></div></div>`
     +`<div style="font-size:.62rem;color:var(--deep);margin:0 0 8px;font-weight:600">${line}</div>`
     +`<div style="display:flex;gap:4px;align-items:flex-end">${bars}</div>`
-    +`<div style="font-size:.56rem;color:var(--muted);margin-top:6px;line-height:1.45">Tap a bar to see that day's window, avg &amp; peak. Above each bar = peak canopy temp; below = heat window (hours &gt;28&deg;C). Bar height = hours &gt;28&deg;C (gold) / &gt;30&deg;C (red).</div></div>`;
+    +`<div style="font-size:.56rem;color:var(--muted);margin-top:6px;line-height:1.45"><span class="i18n-en">Bar height = daily peak canopy temp (label above). Colour = heat-hour load: green none · gold &gt;28°C · red &gt;30°C. Tap a bar for its window &amp; avg.</span><span class="i18n-ar">ارتفاع العمود = ذروة حرارة المحصول اليومية (الرقم أعلاه). اللون = حِمل ساعات الحرارة: أخضر لا شيء · ذهبي &gt;28° · أحمر &gt;30°. اضغط العمود لعرض نافذته ومتوسطه.</span></div></div>`;
 }
 function renderWaterAlerts(){
   const strip=$('waterTempStrip'), box=$('waterAlerts');
