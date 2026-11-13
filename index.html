@@ -1755,13 +1755,12 @@ function renderPending(){
   const box=$('sensorsPending'); const ar=siteLang==='ar';
   const feNull=S.live.farEndTemp==null, outNull=S.live.outsideTemp==null;
   const fe=$('farEndCard'); if(fe)fe.style.display=feNull?'none':'';
-  const ss=$('soilSection'); if(ss)ss.style.display='none'; // hydroponic → soil n/a
+  const ss=$('soilSection'); if(ss)ss.style.display=''; // full soil-moisture card restored
   if(!box)return;
   const items=[];
   if(feNull)items.push(ar?'حساس الطرف البعيد — لم يُسجّل بعد':'Far-End Meter — never reported');
   if(outNull)items.push(ar?'حساس الخارج — لم يُسجّل بعد':'Outdoor Meter — never reported');
-  const soil=S.live.soil;
-  items.push(ar?`رطوبة التربة — غير منطبقة (نظام مائي)${soil!=null?` · قراءة ${Math.round(soil)}%`:''}`:`Soil moisture — n/a (hydroponic)${soil!=null?` · sensor reads ${Math.round(soil)}%`:''}`);
+  if(!items.length){box.innerHTML='';return;}
   box.innerHTML=`<div style="border:1px dashed var(--border);border-radius:10px;background:rgba(6,68,46,.02);padding:9px 12px">`
     +`<div style="font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">⏳ ${ar?'حساسات غير مفعّلة / غير منطبقة':'Sensors pending / not applicable'}</div>`
     +items.map(t=>`<div style="font-size:.66rem;color:var(--muted);line-height:1.7">• ${t}</div>`).join('')
