@@ -557,6 +557,7 @@ body.noscroll{overflow:hidden}
       </div>
     </div>
     <div class="chart-box" dir="ltr" style="direction:ltr"><canvas id="trendChart" dir="ltr"></canvas></div>
+    <div id="smallMultiples" dir="ltr" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px"></div>
     <div id="sstemp" class="zone-strip">
       <span class="zone-strip-label">&#x1F321; Temp Zone:</span>
       <button class="zbtn zactive" onclick="zoneClick(this,'temp','weighted')">Weighted 70/30</button>
@@ -1522,7 +1523,55 @@ function getDatasets(data,metric,subView){
   else if(metric==='hum'){const sv=subView||S.subView.hum;if(sv==='weighted'){datasets=[{label:'Weighted Humidity % (70/30)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C49A3A',backgroundColor:'rgba(196,154,58,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Weighted humidity — operational range: 60–75%';}else if(sv==='canopy'){datasets=[{label:'Canopy Humidity %',data:data.map(r=>(r.humidity&&r.humidity>0&&r.humidity<100)?r.humidity:null),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Canopy zone humidity (Meter Pro, 70% weight)';}else if(sv==='wetwall'){datasets=[{label:'Wet Wall Humidity %',data:data.map(r=>r.hub_humidity),borderColor:'#3B82C4',backgroundColor:'rgba(59,130,196,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Wet wall zone humidity (Meter, 30% weight)';}else{datasets=[{label:'Canopy Hum',data:data.map(r=>(r.humidity&&r.humidity>0&&r.humidity<100)?r.humidity:null),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y2'},{label:'Wet Wall Hum',data:data.map(r=>r.hub_humidity),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y2'},{label:'Weighted (70/30)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.38,borderWidth:1.6,pointRadius:0,borderDash:[2,4],yAxisID:'y2'}];note='Zone humidity comparison — canopy vs wet wall vs weighted composite';}}
   return{labels,datasets,note};
 }
+// Small multiples for the "all" overview: one inline-SVG sparkline per metric,
+// each with its OWN y-scale and a shaded current-target band — so temperature
+// isn't a flat line crushed against a shared axis and every band is explicit.
+function _spark(title,color,vals,band,unit,fmt){
+  const pts=vals.filter(v=>v!=null&&isFinite(v));
+  if(pts.length<2)return `<div style="background:var(--card);border:1px solid rgba(6,68,46,.1);border-radius:10px;padding:8px 10px"><div style="font-size:.56rem;font-weight:800;text-transform:uppercase;color:var(--muted)">${title}</div><div style="height:76px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.66rem">—</div></div>`;
+  const W=300,H=90,pL=2,pR=2,pT=8,pB=8;
+  let lo=Math.min(...pts),hi=Math.max(...pts);
+  if(band){lo=Math.min(lo,band[0]);hi=Math.max(hi,band[1]);}
+  if(hi-lo<1e-6)hi=lo+1;const mg=(hi-lo)*0.12;lo-=mg;hi+=mg;
+  const x=i=>pL+(i/((vals.length-1)||1))*(W-pL-pR);
+  const y=v=>pT+(1-(v-lo)/(hi-lo))*(H-pT-pB);
+  let bandRect='';
+  if(band){const yT=y(Math.min(hi,band[1])),yB=y(Math.max(lo,band[0]));bandRect=`<rect x="${pL}" y="${yT.toFixed(1)}" width="${W-pL-pR}" height="${Math.max(0,(yB-yT)).toFixed(1)}" fill="${color}" opacity="0.12"/>`;}
+  let d='',started=false;
+  vals.forEach((v,i)=>{if(v==null||!isFinite(v)){started=false;return;}d+=(started?' L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1);started=true;});
+  const cur=pts[pts.length-1];
+  return `<div style="background:var(--card);border:1px solid rgba(6,68,46,.1);border-radius:10px;padding:8px 10px">`
+    +`<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:.56rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)">${title}</span><span style="font-family:var(--mono);font-size:.82rem;font-weight:900;color:${color}">${fmt(cur)}${unit}</span></div>`
+    +`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:76px;display:block;margin-top:3px">${bandRect}<path d="${d}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`
+    +`<div style="font-size:.5rem;color:var(--muted);font-family:var(--mono);text-align:right">target ${band?band[0]+'–'+band[1]+unit:'—'}</div></div>`;
+}
+function renderSmallMultiples(data){
+  const box=$('smallMultiples');if(!box)return;
+  const ts=r=>new Date(r.recorded_at||r.time||0).getTime();
+  const d=Array.isArray(data)?data.slice().sort((a,b)=>ts(a)-ts(b)):[];
+  const calcW=(r,type)=>{const c=type==='temp'?(r.temperature??r.temp):r.humidity;const w=type==='temp'?r.hub_temp:r.hub_humidity;return(c!=null&&w!=null)?parseFloat((c*W_CANOPY+w*W_WETWALL).toFixed(1)):(c??null);};
+  const co2=d.map(r=>r.co2!=null?+r.co2:null);
+  const temp=d.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v!=null&&v>5&&v<45)?+(+v).toFixed(1):null;});
+  const hum=d.map(r=>{const v=r.hum_weighted??calcW(r,'hum');return(v!=null)?Math.round(+v):null;});
+  const vpd=d.map(r=>r.vpd!=null?+r.vpd:null);
+  box.innerHTML=
+     _spark('CO₂ ppm','#8FAF7A',co2,[350,500],'',v=>Math.round(v))
+    +_spark('Temp °C (weighted)','#06442E',temp,seasonBand().ideal,'°',v=>(+v).toFixed(1))
+    +_spark('Humidity % (weighted)','#1976D2',hum,bandNow(HUM_BAND).ideal,'%',v=>Math.round(v))
+    +_spark('VPD kPa','#C49A3A',vpd,bandNow(VPD_BAND).ideal,'',v=>(+v).toFixed(2));
+}
 function applyChart(data){
+  const sm=$('smallMultiples');const box=$('trendChart')?$('trendChart').parentElement:null;
+  if(S.metric==='all'){
+    if(box)box.style.display='none';
+    if(sm)sm.style.display='grid';
+    renderSmallMultiples(data);
+    if($('chartNote'))$('chartNote').textContent='Small multiples — each metric on its own axis; shaded band = current target (seasonal, day/night).';
+    renderChartCoverage(Array.isArray(data)?data.length:0);
+    return;
+  }
+  if(sm)sm.style.display='none';
+  if(box)box.style.display='';
   if(!S.chart)buildChart();
   const{labels,datasets,note}=getDatasets(data,S.metric,S.subView[S.metric]);
   S.chart.data.labels=labels;S.chart.data.datasets=datasets;
