@@ -375,7 +375,7 @@ body.noscroll{overflow:hidden}
   <article class="metric good" id="tempCard" onclick="toggleMetric('temp')">
     <div class="metric-top">
       <div class="metric-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><path d="M32 7a9 9 0 0 0-9 9v20.7a16 16 0 1 0 18 0V16a9 9 0 0 0-9-9Z" stroke="#06442E" stroke-width="4" stroke-linecap="round"/><path d="M32 20v25" stroke="#8FAF7A" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="47" r="8" fill="#E8F0E2" stroke="#06442E" stroke-width="4"/></svg></div>
-      <div><div class="metric-label-en">Temperature</div><div class="metric-label-ar">&#x62F;&#x631;&#x62C;&#x629; &#x627;&#x644;&#x62D;&#x631;&#x627;&#x631;&#x629;</div><div class="mc-sub">Weighted avg: 70% canopy &middot; 30% wet wall</div></div>
+      <div><div class="metric-label-en">Temperature</div><div class="metric-label-ar">&#x62F;&#x631;&#x62C;&#x629; &#x627;&#x644;&#x62D;&#x631;&#x627;&#x631;&#x629;</div><div class="mc-sub">Greenhouse air &middot; WH46 sensor (interim)</div></div>
       <div id="tempStatus" class="badge">Optimal</div>
     </div>
     <div class="metric-value"><span id="tempValue" class="metric-number">&mdash;</span><span class="unit">&deg;C</span></div>
@@ -387,7 +387,7 @@ body.noscroll{overflow:hidden}
   <article class="metric good" id="humidityCard" onclick="toggleMetric('hum')">
     <div class="metric-top">
       <div class="metric-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><path d="M32 7C22 20 15 30 15 40a17 17 0 0 0 34 0C49 30 42 20 32 7Z" stroke="#1976D2" stroke-width="4" stroke-linejoin="round"/><path d="M24 43c2.5 5 9.2 7.5 15 2.5" stroke="#8FAF7A" stroke-width="4" stroke-linecap="round"/></svg></div>
-      <div><div class="metric-label-en">Humidity</div><div class="metric-label-ar">&#x627;&#x644;&#x631;&#x637;&#x648;&#x628;&#x629; &#x627;&#x644;&#x646;&#x633;&#x628;&#x64A;&#x629;</div><div class="mc-sub">Weighted avg: 70% canopy &middot; 30% wet wall</div></div>
+      <div><div class="metric-label-en">Humidity</div><div class="metric-label-ar">&#x627;&#x644;&#x631;&#x637;&#x648;&#x628;&#x629; &#x627;&#x644;&#x646;&#x633;&#x628;&#x64A;&#x629;</div><div class="mc-sub">Greenhouse air &middot; WH46 sensor (interim)</div></div>
       <div id="humidityStatus" class="badge">Optimal</div>
     </div>
     <div class="metric-value"><span id="humidityValue" class="metric-number">&mdash;</span><span class="unit">%</span></div>
@@ -427,11 +427,11 @@ body.noscroll{overflow:hidden}
     <section id="tempVerdict" style="margin-bottom:14px"></section>
     <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px"><span class="i18n-en">🌿 Air Zones</span><span class="i18n-ar">🌿 مناطق الهواء</span></div>
     <div class="weighted-row" style="margin-bottom:10px">
-      <div><div class="wt-label">Weighted Greenhouse Avg</div><div class="wt-label-ar">&#x645;&#x62A;&#x648;&#x633;&#x637; &#x645;&#x648;&#x632;&#x648;&#x646; &middot; 70% &#x645;&#x62D;&#x635;&#x648;&#x644; + 30% &#x62A;&#x628;&#x631;&#x64A;&#x62F;</div></div>
+      <div><div class="wt-label">Greenhouse Air (interim)</div><div class="wt-label-ar">هواء البيت المحمي · حسّاس WH46 (مؤقت)</div></div>
       <div style="text-align:right"><div class="wt-val" id="wtTemp">&mdash;&deg;C</div><div class="wt-sub" id="wtHum">Humidity: &mdash;%</div></div>
     </div>
     <div class="zones-grid">
-      <div class="zone-card wet">
+      <div class="zone-card wet" style="display:none">
         <div class="zn wet">&#x1F30A; Wet Wall Zone</div><div class="zn-ar">&#x645;&#x646;&#x637;&#x642;&#x629; &#x627;&#x644;&#x62C;&#x62F;&#x627;&#x631; &#x627;&#x644;&#x645;&#x628;&#x644;&#x644; &middot; 30%</div>
         <div class="z-readings">
           <div class="z-val"><div class="z-num" id="hubTemp">&mdash;</div><div class="z-lbl">&deg;C</div></div>
@@ -440,12 +440,12 @@ body.noscroll{overflow:hidden}
         <div class="z-src">Meter &middot; Wet wall (cooling wall sensor)</div>
       </div>
       <div class="zone-card cnp">
-        <div class="zn cnp">&#x1F33F; Canopy Zone</div><div class="zn-ar">&#x645;&#x646;&#x637;&#x642;&#x629; &#x627;&#x644;&#x645;&#x62D;&#x635;&#x648;&#x644; &middot; 70%</div>
+        <div class="zn cnp">&#x1F33F; Greenhouse Air</div><div class="zn-ar">هواء البيت المحمي · WH46 (مؤقت)</div>
         <div class="z-readings">
           <div class="z-val"><div class="z-num" id="canTemp">&mdash;</div><div class="z-lbl">&deg;C</div></div>
           <div class="z-val"><div class="z-num" id="canHum">&mdash;</div><div class="z-lbl">%</div></div>
         </div>
-        <div class="z-src">Meter Pro CO&#x2082; &middot; Canopy sensor</div>
+        <div class="z-src">WH46 combo &middot; interim (CH1 removed, location unverified)</div>
       </div>
       <div class="zone-card" id="farEndCard" style="border-left:3px solid var(--gold)">
         <div class="zn">&#x1F300; Far End Zone</div><div class="zn-ar">&#x627;&#x644;&#x645;&#x646;&#x637;&#x642;&#x629; &#x627;&#x644;&#x637;&#x631;&#x641;&#x64A;&#x629; &middot; &#x642;&#x631;&#x628; &#x627;&#x644;&#x645;&#x631;&#x648;&#x62D;&#x629;</div>
@@ -467,8 +467,8 @@ body.noscroll{overflow:hidden}
     <div id="heatHours" style="margin-bottom:12px"></div>
     <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px"><span class="i18n-en">❄️ Cooling</span><span class="i18n-ar">❄️ التبريد</span></div>
     <div class="cooling-row">
-      <div><div class="cl-desc">Cooling Gradient</div><div class="cl-desc-ar" id="clDesc">&#x62A;&#x62F;&#x631;&#x62C; &#x627;&#x644;&#x62A;&#x628;&#x631;&#x64A;&#x62F;</div></div>
-      <div style="text-align:right"><div class="cl-val" id="clVal">&mdash;</div><div style="font-size:.56rem;color:var(--muted)">&deg;C canopy vs wet wall</div></div>
+      <div><div class="cl-desc">Inside vs Outdoor</div><div class="cl-desc-ar" id="clDesc">داخل البيت مقابل الخارج</div></div>
+      <div style="text-align:right"><div class="cl-val" id="clVal">&mdash;</div><div style="font-size:.56rem;color:var(--muted)">&deg;C greenhouse vs outside</div></div>
     </div>
     <div class="w-card" style="margin-top:4px">
       <div><div class="w-lbl">&#x1F4A7; Leak Detection Sensor</div><div class="w-lbl-ar">&#x645;&#x633;&#x62A;&#x634;&#x639;&#x631; &#x627;&#x644;&#x643;&#x634;&#x641; &#x639;&#x646; &#x627;&#x644;&#x62A;&#x633;&#x631;&#x628;</div></div>
@@ -508,7 +508,7 @@ body.noscroll{overflow:hidden}
       <div id="coolingScoreBar" style="height:100%;width:0%;background:#16894E;border-radius:3px;transition:width .6s ease"></div>
     </div>
     <div id="coolingNaNote" style="display:none;font-size:.72rem;color:var(--danger);font-weight:700;line-height:1.45"></div>
-    <div id="coolingDesc" style="font-size:.68rem;color:var(--muted);line-height:1.5">Composite score: ambient delta + wet wall gradient.<br>
+    <div id="coolingDesc" style="font-size:.68rem;color:var(--muted);line-height:1.5">Composite score: inside-vs-outdoor delta.<br>
       <span style="color:#16894E;font-weight:700">70&ndash;100</span> Optimal &middot;
       <span style="color:var(--gold);font-weight:700">40&ndash;69</span> Monitor &middot;
       <span style="color:var(--danger);font-weight:700">0&ndash;39</span> Intervention required
@@ -560,19 +560,13 @@ body.noscroll{overflow:hidden}
     <div id="smallMultiples" dir="ltr" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px"></div>
     <div id="sstemp" class="zone-strip">
       <span class="zone-strip-label">&#x1F321; Temp Zone:</span>
-      <button class="zbtn zactive" onclick="zoneClick(this,'temp','weighted')">Weighted 70/30</button>
-      <button class="zbtn" onclick="zoneClick(this,'temp','canopy')">&#x1F33F; Canopy Only</button>
-      <button class="zbtn" onclick="zoneClick(this,'temp','wetwall')">&#x1F30A; Wet Wall Only</button>
-      <button class="zbtn" onclick="zoneClick(this,'temp','compare')">&#x2696; Compare Zones</button>
+      <button class="zbtn zactive" onclick="zoneClick(this,'temp','weighted')">Greenhouse Air (WH46)</button>
     </div>
     <div id="sshum" class="zone-strip">
       <span class="zone-strip-label">&#x1F4A7; Humidity Zone:</span>
-      <button class="zbtn zactive" onclick="zoneClick(this,'hum','weighted')">Weighted 70/30</button>
-      <button class="zbtn" onclick="zoneClick(this,'hum','canopy')">&#x1F33F; Canopy Only</button>
-      <button class="zbtn" onclick="zoneClick(this,'hum','wetwall')">&#x1F30A; Wet Wall Only</button>
-      <button class="zbtn" onclick="zoneClick(this,'hum','compare')">&#x2696; Compare Zones</button>
+      <button class="zbtn zactive" onclick="zoneClick(this,'hum','weighted')">Greenhouse Air (WH46)</button>
     </div>
-    <div class="chart-note" id="chartNote">Weighted averages: 70% canopy zone + 30% wet wall zone</div>
+    <div class="chart-note" id="chartNote">Greenhouse air — WH46 interim sensor (CH1 removed pending location check)</div>
     <div id="chartCoverage" style="display:none;margin-top:8px;padding:8px 11px;border-radius:9px;background:rgba(196,57,43,.08);border:1px solid rgba(196,57,43,.2);color:#8B2A1E;font-size:.66rem;font-weight:700;line-height:1.5"></div>
     <button class="refresh-btn" style="margin-top:14px" onclick="doRefresh(this)"><i class="ti ti-refresh"></i>Refresh Data &mdash; &#x62A;&#x62D;&#x62F;&#x64A;&#x62B; &#x627;&#x644;&#x628;&#x64A;&#x627;&#x646;&#x627;&#x62A;</button>
   </section>
@@ -1016,9 +1010,8 @@ function renderFreshness(){
 // number. A sensor is only flagged after 2 consecutive failed reads, which
 // rides out transient SwitchBot rate-limit blips.
 const SENSORS={
-  canopy:{en:'Canopy Meter Pro',ar:'حساس المجسّة (المحصول)'},
-  wetwall:{en:'Wet Wall Meter',ar:'حساس الجدار الرطب'},
-  outdoor:{en:'Outdoor Meter',ar:'حساس الخارج'},
+  canopy:{en:'Greenhouse Air (WH46)',ar:'هواء البيت المحمي (WH46)'},
+  outdoor:{en:'Outdoor Meter (CH2)',ar:'حساس الخارج (CH2)'},
   farend:{en:'Far-End Meter',ar:'حساس الطرف البعيد'},
   water:{en:'Water Temp Probes',ar:'حساسات حرارة الماء'}
 };
@@ -1247,8 +1240,8 @@ function thermalHealth(){
   const canHum=S.live.hum;   // canopy RH — the plants' real environment
   const co2=S.live.co2;
   const comps=[];
-  if(tw!=null){const B=seasonBand();const lo=B.ideal[0],hi=B.ideal[1];let s;if(B.frost!=null&&tw<=B.frost)s=20;else if(tw<lo)s=85;else if(tw<=hi)s=100;else if(tw<=B.watch)s=85;else if(tw<=B.crit)s=55;else s=25;comps.push({k:'Canopy temp',w:0.40,s,v:tw.toFixed(1)+'°C'});}
-  if(canHum!=null){const hb=getBadge('hum',canHum);const s=hb.s==='good'?100:(hb.s==='warn'||hb.s==='warning')?62:32;comps.push({k:'Canopy RH',w:0.22,s,v:Math.round(canHum)+'%'});}
+  if(tw!=null){const B=seasonBand();const lo=B.ideal[0],hi=B.ideal[1];let s;if(B.frost!=null&&tw<=B.frost)s=20;else if(tw<lo)s=85;else if(tw<=hi)s=100;else if(tw<=B.watch)s=85;else if(tw<=B.crit)s=55;else s=25;comps.push({k:'Air temp',w:0.40,s,v:tw.toFixed(1)+'°C'});}
+  if(canHum!=null){const hb=getBadge('hum',canHum);const s=hb.s==='good'?100:(hb.s==='warn'||hb.s==='warning')?62:32;comps.push({k:'Air RH',w:0.22,s,v:Math.round(canHum)+'%'});}
   if(vpd!=null){let s;if(vpd>1.5)s=25;else if(vpd>1.3)s=45;else if(vpd>1.0)s=70;else if(vpd<0.4)s=70;else s=100;comps.push({k:'VPD',w:0.18,s,v:Number(vpd).toFixed(2)+' kPa'});}
   if(irr!=null){let s;if(irr>26)s=30;else if(irr>22)s=60;else s=100;comps.push({k:'Irrigation water',w:0.12,s,v:irr.toFixed(1)+'°C'});}
   if(grad!=null){let s;if(grad<0)s=20;else if(grad<1)s=55;else if(grad<3)s=85;else s=100;comps.push({k:'Cooling gradient',w:0.08,s,v:(grad>0?'+':'')+grad.toFixed(1)+'°C'});}
@@ -1391,15 +1384,14 @@ function renderZones(){
   $('wtTemp').textContent=tempW!==null?tempW.toFixed(1)+'°C':'--°C';
   $('wtHum').textContent=humW!==null?'Humidity: '+humW.toFixed(0)+'%':'Humidity: --%';
   const cv=$('clVal');
-  if(hubTemp!=null){
-    const delta=parseFloat((temp-hubTemp).toFixed(1));
+  const outT=S.live.outsideTemp;
+  if(outT!=null&&temp!=null){
+    const delta=parseFloat((temp-outT).toFixed(1));
     cv.textContent=(delta>0?'+':'')+delta+'°C';
-    if(delta>=3){cv.style.color='#16894E';$('clDesc').innerHTML='✅ Cooling gradient nominal — wet wall operating at rated capacity';}
-    else if(delta>=1){cv.style.color='#16894E';$('clDesc').innerHTML='✓ Adequate gradient — cooling effective';}
-    else if(delta>=0){cv.style.color='var(--gold)';$('clDesc').innerHTML='⚠️ Insufficient gradient — only '+delta+'°C. Inspect wet wall pump and pad condition';}
-    else{cv.style.color='var(--danger)';$('clDesc').innerHTML='🚨 Reverse gradient detected — wet wall zone hotter than canopy. Immediate inspection required';}
+    cv.style.color=delta>=0?'#16894E':'var(--gold)';
+    $('clDesc').innerHTML=(delta>=0?'الداخل أدفأ من الخارج':'الداخل أبرد من الخارج');
   } else {
-    cv.textContent='—';cv.style.color='var(--muted)';$('clDesc').innerHTML='⚠️ Wet wall sensor reading unavailable — showing canopy only';
+    cv.textContent='—';cv.style.color='var(--muted)';$('clDesc').innerHTML='بانتظار حسّاس الخارج (CH2)';
   }
   const w1El=$('w1Status');
   if(w1El){w1El.textContent=w1?'🚨 LEAK DETECTED':'✓ No leak';w1El.style.color=w1?'var(--danger)':'#16894E';w1El.style.fontWeight='800';}
@@ -1410,8 +1402,8 @@ function renderDecisions(){
   if(co2===null)return;
   const tw=tempW??temp,hw=humW??hum,acts=[];
   const delta=hubTemp!==null?parseFloat((temp-hubTemp).toFixed(1)):null;
-  if(tw>26)acts.push({p:'h',en:`Canopy temp ${tw.toFixed(1)}°C — critical threshold exceeded. Sugar development arrested. Activate full cooling protocol immediately.`,ar:`درجة حرارة المحصول ${tw.toFixed(1)}°م — تجاوزت الحد الحرج. تطور السكر متوقف. شغّل بروتوكول التبريد الكامل فوراً.`});
-  else if(tw>22)acts.push({p:'m',en:`Canopy temp ${tw.toFixed(1)}°C — above operational range. Increase cooling capacity.`,ar:`درجة الحرارة ${tw.toFixed(1)}°م — فوق النطاق التشغيلي. زد طاقة التبريد.`});
+  if(tw>26)acts.push({p:'h',en:`Greenhouse air ${tw.toFixed(1)}°C — critical threshold exceeded. Sugar development arrested. Activate full cooling protocol immediately.`,ar:`حرارة هواء البيت ${tw.toFixed(1)}°م — تجاوزت الحد الحرج. تطور السكر متوقف. شغّل بروتوكول التبريد الكامل فوراً.`});
+  else if(tw>22)acts.push({p:'m',en:`Greenhouse air ${tw.toFixed(1)}°C — above operational range. Increase cooling capacity.`,ar:`حرارة هواء البيت ${tw.toFixed(1)}°م — فوق النطاق التشغيلي. زد طاقة التبريد.`});
   if(vpd>1.3)acts.push({p:'h',en:`VPD ${Number(vpd).toFixed(2)} kPa — critical. Stomata closure imminent. Activate misting system immediately.`,ar:`عجز ضغط البخار ${Number(vpd).toFixed(2)} حرج. الثغور تنغلق. شغّل نظام الرذاذ فوراً.`});
   else if(vpd>1.0)acts.push({p:'m',en:`VPD ${Number(vpd).toFixed(2)} kPa — elevated. Increase relative humidity by 5-10%.`,ar:`عجز ضغط البخار مرتفع. ارفع الرطوبة النسبية 5-10%.`});
   if(hw>85)acts.push({p:'h',en:`Humidity ${hw.toFixed(0)}% — Botrytis risk zone. Activate ventilation immediately to prevent fungal establishment.`,ar:`الرطوبة ${hw.toFixed(0)}% — نطاق خطر البوتريتيس. شغّل التهوية فوراً لمنع تكون الفطريات.`});
@@ -1516,11 +1508,11 @@ function getDatasets(data,metric,subView){
   const labels=data.map(fmt);
   const calcW=(r,type)=>{const c=type==='temp'?(r.temperature??r.temp):r.humidity;const w=type==='temp'?r.hub_temp:r.hub_humidity;return(c!=null&&w!=null)?parseFloat((c*W_CANOPY+w*W_WETWALL).toFixed(1)):c??null;};
   let datasets=[],note='';
-  if(metric==='all'){datasets=[{label:'CO₂ ppm',data:data.map(r=>r.co2),borderColor:'#8FAF7A',backgroundColor:'rgba(143,175,122,0.08)',tension:0.3,borderWidth:2,pointRadius:0,pointHoverRadius:4,fill:false,yAxisID:'y1'},{label:'Temp °C (W)',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),borderColor:'#06442E',backgroundColor:'transparent',tension:0.45,borderWidth:2,pointRadius:0,pointHoverRadius:4,fill:false,yAxisID:'y2'},{label:'Humidity % (W)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#1976D2',backgroundColor:'transparent',tension:0.45,borderWidth:2,pointRadius:0,pointHoverRadius:4,fill:false,yAxisID:'y2'},{label:'VPD kPa',data:data.map(r=>{const v=r.vpd;return(v!==null&&v!==undefined&&v>0&&v<3.0)?parseFloat(Number(v).toFixed(2)):null;}),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.3,borderWidth:2,pointRadius:0,pointHoverRadius:4,fill:false,yAxisID:'y3'}];note='Weighted averages: 70% canopy zone + 30% wet wall zone';}
+  if(metric==='all'){datasets=[{label:'CO₂ ppm',data:data.map(r=>r.co2),borderColor:'#8FAF7A',backgroundColor:'rgba(143,175,122,0.08)',tension:0.3,borderWidth:2,pointRadius:0,pointHoverRadius:4,fill:false,yAxisID:'y1'},{label:'Temp °C (W)',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),borderColor:'#06442E',backgroundColor:'transparent',tension:0.45,borderWidth:2,pointRadius:0,pointHoverRadius:4,fill:false,yAxisID:'y2'},{label:'Humidity % (W)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#1976D2',backgroundColor:'transparent',tension:0.45,borderWidth:2,pointRadius:0,pointHoverRadius:4,fill:false,yAxisID:'y2'},{label:'VPD kPa',data:data.map(r=>{const v=r.vpd;return(v!==null&&v!==undefined&&v>0&&v<3.0)?parseFloat(Number(v).toFixed(2)):null;}),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.3,borderWidth:2,pointRadius:0,pointHoverRadius:4,fill:false,yAxisID:'y3'}];note='Greenhouse air — WH46 interim sensor';}
   else if(metric==='co2'){datasets=[{label:'CO₂ ppm',data:data.map(r=>r.co2),borderColor:'#8FAF7A',backgroundColor:'rgba(143,175,122,0.1)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y1'}];note='CO₂ concentration — Meter Pro canopy sensor — target range: 350–500 ppm';}
   else if(metric==='vpd'){datasets=[{label:'VPD kPa',data:data.map(r=>r.vpd),borderColor:'#C49A3A',backgroundColor:'rgba(196,154,58,0.1)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y2'}];note='VPD calculated from canopy temperature and humidity — operational target: 0.5–1.0 kPa';}
-  else if(metric==='temp'){const sv=subView||S.subView.temp;if(sv==='weighted'){datasets=[{label:'Weighted Temp °C (70/30)',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y1'}];note='Weighted temperature — operational range: 16–22°C';}else if(sv==='canopy'){datasets=[{label:'Canopy Temp °C',data:data.map(r=>{const v=r.temperature??r.temp;return(v&&v>5&&v<45)?v:null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y1'}];note='Canopy zone temperature — Meter Pro sensor';}else if(sv==='wetwall'){datasets=[{label:'Wet Wall Temp °C',data:data.map(r=>(r.hub_temp&&r.hub_temp>5&&r.hub_temp<45)?r.hub_temp:null),borderColor:'#3B82C4',backgroundColor:'rgba(59,130,196,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y1'}];note='Wet wall zone temperature — Meter sensor';}else{datasets=[{label:'Canopy Temp °C',data:data.map(r=>{const v=r.temperature??r.temp;return(v&&v>5&&v<45)?v:null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.3,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y1'},{label:'Wet Wall Temp',data:data.map(r=>(r.hub_temp&&r.hub_temp>5&&r.hub_temp<45)?r.hub_temp:null),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y1'},{label:'Weighted Temp °C',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.3,borderWidth:2,pointRadius:0,yAxisID:'y1'}];note='Zone comparison — gradient between lines indicates cooling effectiveness';}}
-  else if(metric==='hum'){const sv=subView||S.subView.hum;if(sv==='weighted'){datasets=[{label:'Weighted Humidity % (70/30)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C49A3A',backgroundColor:'rgba(196,154,58,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Weighted humidity — operational range: 60–75%';}else if(sv==='canopy'){datasets=[{label:'Canopy Humidity %',data:data.map(r=>(r.humidity&&r.humidity>0&&r.humidity<100)?r.humidity:null),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Canopy zone humidity (Meter Pro, 70% weight)';}else if(sv==='wetwall'){datasets=[{label:'Wet Wall Humidity %',data:data.map(r=>r.hub_humidity),borderColor:'#3B82C4',backgroundColor:'rgba(59,130,196,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Wet wall zone humidity (Meter, 30% weight)';}else{datasets=[{label:'Canopy Hum',data:data.map(r=>(r.humidity&&r.humidity>0&&r.humidity<100)?r.humidity:null),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y2'},{label:'Wet Wall Hum',data:data.map(r=>r.hub_humidity),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y2'},{label:'Weighted (70/30)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.38,borderWidth:1.6,pointRadius:0,borderDash:[2,4],yAxisID:'y2'}];note='Zone humidity comparison — canopy vs wet wall vs weighted composite';}}
+  else if(metric==='temp'){const sv=subView||S.subView.temp;if(sv==='weighted'){datasets=[{label:'Greenhouse Air °C',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y1'}];note='Weighted temperature — operational range: 16–22°C';}else if(sv==='canopy'){datasets=[{label:'Canopy Temp °C',data:data.map(r=>{const v=r.temperature??r.temp;return(v&&v>5&&v<45)?v:null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.3,borderWidth:2.5,pointRadius:0,fill:true,yAxisID:'y1'}];note='Canopy zone temperature — Meter Pro sensor';}else if(sv==='wetwall'){datasets=[{label:'Wet Wall Temp °C',data:data.map(r=>(r.hub_temp&&r.hub_temp>5&&r.hub_temp<45)?r.hub_temp:null),borderColor:'#3B82C4',backgroundColor:'rgba(59,130,196,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y1'}];note='Wet wall zone temperature — Meter sensor';}else{datasets=[{label:'Canopy Temp °C',data:data.map(r=>{const v=r.temperature??r.temp;return(v&&v>5&&v<45)?v:null;}),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.3,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y1'},{label:'Wet Wall Temp',data:data.map(r=>(r.hub_temp&&r.hub_temp>5&&r.hub_temp<45)?r.hub_temp:null),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y1'},{label:'Weighted Temp °C',data:data.map(r=>{const v=r.temp_weighted??calcW(r,'temp');return(v&&v>8&&v<38)?parseFloat(Number(v).toFixed(1)):null;}),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.3,borderWidth:2,pointRadius:0,yAxisID:'y1'}];note='Zone comparison — gradient between lines indicates cooling effectiveness';}}
+  else if(metric==='hum'){const sv=subView||S.subView.hum;if(sv==='weighted'){datasets=[{label:'Greenhouse Air %',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C49A3A',backgroundColor:'rgba(196,154,58,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Weighted humidity — operational range: 60–75%';}else if(sv==='canopy'){datasets=[{label:'Canopy Humidity %',data:data.map(r=>(r.humidity&&r.humidity>0&&r.humidity<100)?r.humidity:null),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.08)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Canopy zone humidity (Meter Pro, 70% weight)';}else if(sv==='wetwall'){datasets=[{label:'Wet Wall Humidity %',data:data.map(r=>r.hub_humidity),borderColor:'#3B82C4',backgroundColor:'rgba(59,130,196,0.1)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:true,yAxisID:'y2'}];note='Wet wall zone humidity (Meter, 30% weight)';}else{datasets=[{label:'Canopy Hum',data:data.map(r=>(r.humidity&&r.humidity>0&&r.humidity<100)?r.humidity:null),borderColor:'#06442E',backgroundColor:'rgba(6,68,46,0.05)',tension:0.38,borderWidth:2.4,pointRadius:0,fill:false,yAxisID:'y2'},{label:'Wet Wall Hum',data:data.map(r=>r.hub_humidity),borderColor:'#3B82C4',backgroundColor:'transparent',tension:0.38,borderWidth:1.8,pointRadius:0,borderDash:[5,3],yAxisID:'y2'},{label:'Weighted (70/30)',data:data.map(r=>r.hum_weighted??calcW(r,'hum')),borderColor:'#C49A3A',backgroundColor:'transparent',tension:0.38,borderWidth:1.6,pointRadius:0,borderDash:[2,4],yAxisID:'y2'}];note='Zone humidity comparison — canopy vs wet wall vs weighted composite';}}
   return{labels,datasets,note};
 }
 // Small multiples for the "all" overview: one inline-SVG sparkline per metric,
@@ -1712,7 +1704,6 @@ async function fetchLive(){
     S.water.outside=num(r.water_temp_outside);
     // Sensor health = value present AND fresh; a stale or missing value → offline.
     markSensor('canopy',fresh&&temp!=null&&temp>5);
-    markSensor('wetwall',fresh&&hubTemp!=null);
     markSensor('outdoor',fresh&&S.live.outsideTemp!=null);
     markSensor('farend',fresh&&S.live.farEndTemp!=null);
     markSensor('water',fresh&&S.water.irrigation!=null);
@@ -1742,11 +1733,12 @@ function renderSoil(){
   const shell=(numHtml,sub)=>`<div style="border:1px solid rgba(6,68,46,.12);border-radius:10px;background:rgba(6,68,46,.03);padding:10px 12px;display:flex;align-items:center;justify-content:space-between">`
     +`<div><div style="font-size:.56rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)">🌱 Soil Moisture &middot; رطوبة التربة</div>`
     +`<div style="font-size:.56rem;color:var(--muted);margin-top:2px">${sub}</div></div>${numHtml}</div>`;
-  if(v==null){box.innerHTML=shell('<div style="font-family:var(--mono);font-size:1.4rem;font-weight:900;color:var(--muted)">&mdash;</div>','WH51 &middot; بانتظار الحسّاس');return;}
-  let en='Good',ar='مناسبة',color='#16894E';
-  if(v<20){en='Dry';ar='جافة';color='var(--danger)';}
-  else if(v>60){en='Wet';ar='رطبة';color='var(--gold)';}
-  box.innerHTML=shell(`<div style="text-align:right"><div style="font-family:var(--mono);font-size:1.4rem;font-weight:900;color:${color}">${Math.round(v)}%</div><div style="font-size:.58rem;font-weight:800;color:${color}">${en} &middot; ${ar}</div></div>`,'WH51 &middot; الوسط الزراعي');
+  const loc='L4 · T20 · lv6';
+  if(v==null){box.innerHTML=shell('<div style="font-family:var(--mono);font-size:1.4rem;font-weight:900;color:var(--muted)">&mdash;</div>',`WH51 · ${loc} · بانتظار الحسّاس`);return;}
+  // Volcanic rock + perlite is a coarse inorganic medium the capacitance probe
+  // does not couple to reliably (the reading sits flat), so show the raw value
+  // but flag it uncalibrated — no false Dry/Good/Wet grading.
+  box.innerHTML=shell(`<div style="text-align:right"><div style="font-family:var(--mono);font-size:1.4rem;font-weight:900;color:var(--muted)">${Math.round(v)}%</div><div style="font-size:.54rem;font-weight:800;color:var(--gold)">uncalibrated · غير معاير</div></div>`,`WH51 · ${loc} · volcanic rock + perlite`);
 }
 // Collapse never-reported sensors and the (hydroponic) soil card into one small
 // "Sensors pending / not applicable" strip, instead of leaving empty cards that
