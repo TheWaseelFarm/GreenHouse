@@ -24,16 +24,17 @@ const { evaluateCriticals, detectFlatlines, processAlerts } = require('../_lib/a
 
 const MAC = process.env.ECOWITT_MAC || '1C:8F:57:37:33:2F';
 
-// Which multi-channel (WN31) channel is which greenhouse zone, and the weight
-// each carries in the greenhouse-wide average (normalised over the zones that
-// actually reported, so a missing sensor never drags the average to zero).
-const ZONES = [
-  { key: 'canopy',  ch: 1, w: 0.40 },
-  { key: 'wetwall', ch: 2, w: 0.30 },
-  { key: 'farend',  ch: 3, w: 0.15 },
-  { key: 'zone4',   ch: 4, w: 0.15 },
-];
-// WN34 water-temperature probes are reported as temp_chN.
+// Sensor map — verified Nov 2026 against physical placement:
+//   WH46 (t_rh_aqi_combo) → greenhouse interior air. PROVISIONAL interim source
+//     while the dedicated canopy probe (WN31 CH1) is removed pending a physical
+//     location check — CH1 is intentionally NOT read.
+//   WN31 CH2 (temp_and_humidity_ch2) → OUTDOOR air (confirmed outside the house;
+//     it was previously, wrongly, mapped to a "wet wall" greenhouse zone).
+//   WN34 temp_ch1 → irrigation/working tank; temp_ch2 → supply/storage tank
+//     (confirmed by their daily temperature signatures).
+//   WH51 soil_ch1 → substrate moisture at Line 4 · Tower 20 · Level 6; the
+//     medium is volcanic rock + perlite, which the capacitance probe does not
+//     reliably couple to, so the value is reported but treated as uncalibrated.
 const WATER = { irrigation: 'temp_ch1', outside: 'temp_ch2' };
 
 module.exports = async (req, res) => {
@@ -62,60 +63,56 @@ module.exports = async (req, res) => {
     const validTemp = (n) => (n !== null && n > 5 && n < 60) ? n : null; // reject the 0/0 disconnected fault
     const pct = (n) => (n !== null && n > 0 && n <= 100) ? n : null;
 
-    const zones = {};
-    for (const z of ZONES) {
-      const g = d['temp_and_humidity_ch' + z.ch] || {};
-      zones[z.key] = { temp: validTemp(val(g.temperature)), hum: pct(val(g.humidity)), w: z.w };
-    }
-    const canopy = zones.canopy;
+    // Greenhouse interior air — PROVISIONAL source: the WH46 combo, whose own
+    // temperature/humidity live under t_rh_aqi_combo (not inside co2_aqi_combo).
+    // The dedicated canopy probe (WN31 CH1) is deliberately not read until its
+    // physical location is verified.
+    const airTH = d.t_rh_aqi_combo || {};
+    const temp     = validTemp(val(airTH.temperature));   // null when the sensor is offline
+    const humidity = pct(val(airTH.humidity));
+    const vpd      = (temp !== null && humidity !== null) ? calcVPD(temp, humidity) : null;
 
-    // CO2 (WH46 reports under co2_aqi_combo). Fall back to its temp/hum for the
-    // canopy if the dedicated canopy channel is missing.
+    // No zone blend: the former "wet wall" channel was the outdoor sensor (now
+    // mapped below), so the greenhouse figure is the single interior reading.
+    const temp_weighted = temp;
+    const hum_weighted  = humidity;
+
+    // CO2 (WH46 reports under co2_aqi_combo).
     const combo = d.co2_aqi_combo || {};
     const co2 = combo.co2 != null ? Math.round(val(combo.co2)) : 0;
-    // The WH46's own temperature/humidity live under t_rh_aqi_combo (not inside
-    // co2_aqi_combo). Use them as a canopy fallback until the WN31 canopy
-    // channel is paired, so the air sensor alone still lights up the dashboard.
-    const airTH = d.t_rh_aqi_combo || {};
-    if (canopy.temp === null) { const t = validTemp(val(airTH.temperature)); if (t !== null) canopy.temp = t; }
-    if (canopy.hum === null)  { const h = pct(val(airTH.humidity)); if (h !== null) canopy.hum = h; }
 
-    const temp     = canopy.temp !== null ? canopy.temp : 0;
-    const humidity = canopy.hum  !== null ? canopy.hum  : 0;
-    const vpd      = calcVPD(temp, humidity);
+    // Outdoor air — WN31 CH2, confirmed physically outside.
+    const ch2 = d.temp_and_humidity_ch2 || {};
+    const outdoor_temp     = validTemp(val(ch2.temperature));
+    const outdoor_humidity = pct(val(ch2.humidity));
 
-    const temp_weighted = weightedAvg(ZONES.map(z => zones[z.key]), 'temp', temp);
-    const hum_weighted  = weightedAvg(ZONES.map(z => zones[z.key]), 'hum', humidity);
-
-    const wet = zones.wetwall;
-    const cooling_delta = (canopy.temp !== null && wet.temp !== null)
-      ? parseFloat((canopy.temp - wet.temp).toFixed(1)) : null;
-
-    const out = d.outdoor || {};
-    const outdoor_temp     = validTemp(val(out.temperature));
-    const outdoor_humidity = pct(val(out.humidity));
+    // Inside-vs-outside delta (replaces the old canopy-vs-wetwall "cooling"
+    // gradient, which was meaningless once CH2 was found to be outdoors).
+    const cooling_delta = (temp !== null && outdoor_temp !== null)
+      ? parseFloat((temp - outdoor_temp).toFixed(1)) : null;
 
     const water_temp_irrigation = val((d[WATER.irrigation] || {}).temperature);
     const water_temp_outside    = val((d[WATER.outside]    || {}).temperature);
 
-    // Soil moisture (WH51, soil_ch1) as a 0-100% value.
+    // Soil moisture (WH51, soil_ch1) as a 0-100% value. Uncalibrated for the
+    // volcanic-rock + perlite medium — stored, but flagged on the dashboard.
     const soil_moisture = val((d.soil_ch1 || {}).soilmoisture);
 
     // No WH55 leak sensor in this build.
     const water_leak_1 = false;
 
-    const heat_index         = calcHeatIndex(temp, humidity);
-    const dew_point          = calcDewPoint(temp, humidity);
-    const abs_humidity       = calcAbsHumidity(temp, humidity);
-    const plant_stress_index = calcPSI(vpd, temp, humidity);
+    const canCalc = temp !== null && humidity !== null;
+    const heat_index         = canCalc ? calcHeatIndex(temp, humidity) : null;
+    const dew_point          = canCalc ? calcDewPoint(temp, humidity) : null;
+    const abs_humidity       = canCalc ? calcAbsHumidity(temp, humidity) : null;
+    const plant_stress_index = canCalc ? calcPSI(vpd, temp, humidity) : null;
 
     // If the gateway was offline this cycle, the Ecowitt API returns no channel
     // data and every mapped field is null/absent. Do NOT write a zero row then —
     // it pollutes history and makes the dashboard flip to "0 / offline". Skip
     // the insert; the dashboard keeps the last real reading and the freshness
     // banner handles the staleness.
-    const hasData = canopy.temp !== null || wet.temp !== null
-      || zones.farend.temp !== null || zones.zone4.temp !== null
+    const hasData = temp !== null
       || (co2 && co2 > 0)
       || water_temp_irrigation !== null || water_temp_outside !== null
       || outdoor_temp !== null || soil_moisture !== null;
@@ -128,8 +125,8 @@ module.exports = async (req, res) => {
       temperature: temp,
       humidity,
       vpd,
-      hub_temp: wet.temp,
-      hub_humidity: wet.hum,
+      hub_temp: null,            // "wet wall" retired — that channel was outdoor
+      hub_humidity: null,
       temp_weighted,
       hum_weighted,
       cooling_delta,
@@ -140,8 +137,8 @@ module.exports = async (req, res) => {
       plant_stress_index,
       outdoor_temp,
       outdoor_humidity,
-      far_end_temp: zones.farend.temp,
-      far_end_humidity: zones.farend.hum,
+      far_end_temp: null,
+      far_end_humidity: null,
       tuya_gh_temp: null, tuya_gh_humidity: null,
       tuya_out_temp: null, tuya_out_humidity: null,
       water_temp_irrigation,
@@ -165,7 +162,7 @@ module.exports = async (req, res) => {
     let alerts = { skipped: 'not-run' };
     let flatlines = [];
     try {
-      const temp_valid = canopy.temp !== null;
+      const temp_valid = temp !== null;
       const criticals = evaluateCriticals(
         { temp_weighted, vpd, water_temp_irrigation, water_leak_1, temp_valid },
         new Date()
@@ -188,7 +185,8 @@ module.exports = async (req, res) => {
     res.status(200).json({
       success: true,
       source: 'ecowitt-api',
-      zones: Object.fromEntries(ZONES.map(z => [z.key, { temp: zones[z.key].temp, hum: zones[z.key].hum }])),
+      air: { temp, hum: humidity, source: 'WH46 (provisional)' },
+      outdoor: { temp: outdoor_temp, hum: outdoor_humidity, source: 'WN31 CH2' },
       co2, temp, humidity, vpd,
       temp_weighted, hum_weighted, cooling_delta,
       outdoor_temp, outdoor_humidity,
@@ -202,15 +200,6 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 };
-
-// Normalised weighted average over the zones whose `field` is non-null.
-function weightedAvg(list, field, fallback) {
-  let sum = 0, wsum = 0;
-  for (const z of list) {
-    if (z[field] !== null && z[field] !== undefined) { sum += z[field] * z.w; wsum += z.w; }
-  }
-  return wsum > 0 ? parseFloat((sum / wsum).toFixed(1)) : parseFloat(Number(fallback).toFixed(1));
-}
 
 function httpGet(hostname, path, headers) {
   return new Promise((resolve, reject) => {

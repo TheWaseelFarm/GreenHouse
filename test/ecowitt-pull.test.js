@@ -23,16 +23,14 @@ const m = (v) => ({ time: '1', unit: 'C', value: String(v) });
 const PAYLOAD = {
   code: 0, msg: 'success', time: '1700000000',
   data: {
-    indoor:  { temperature: m(23), humidity: m(48) },
-    outdoor: { temperature: m(41.3), humidity: m(12) },
-    co2_aqi_combo: { co2: m(800), temperature: m(26), humidity: m(58) },
-    temp_and_humidity_ch1: { temperature: m(25),   humidity: m(60) }, // canopy
-    temp_and_humidity_ch2: { temperature: m(22),   humidity: m(75) }, // wet wall
-    temp_and_humidity_ch3: { temperature: m(27.8), humidity: m(63) }, // far end
-    temp_and_humidity_ch4: { temperature: m(26),   humidity: m(58) }, // zone 4
-    temp_ch1: { temperature: m(26.7) }, // irrigation water
-    temp_ch2: { temperature: m(30) },   // outside water
-    soil_ch1: { soilmoisture: m(42), ad: m(90) }, // WH51 soil moisture
+    indoor:  { temperature: m(18), humidity: m(67) },          // gateway box — ignored
+    co2_aqi_combo: { co2: m(450) },                            // CO2 only
+    t_rh_aqi_combo: { temperature: m(21.7), humidity: m(51) }, // WH46 → greenhouse air
+    temp_and_humidity_ch1: { temperature: m(28.7), humidity: m(36) }, // CH1 — IGNORED (location unverified)
+    temp_and_humidity_ch2: { temperature: m(30),   humidity: m(19) }, // CH2 → OUTDOOR
+    temp_ch1: { temperature: m(21.5) }, // irrigation / working tank
+    temp_ch2: { temperature: m(24.3) }, // supply / storage tank
+    soil_ch1: { soilmoisture: m(22), ad: m(143) }, // WH51 soil moisture (L4·T20·lv6)
   },
 };
 
@@ -54,7 +52,7 @@ describe('api/ecowitt-pull', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('pulls from the Ecowitt API, maps zones, and saves a reading', async () => {
+  it('maps WH46 → greenhouse air and CH2 → outdoor, ignoring CH1', async () => {
     mockEcowitt();
     let saved;
     nock(SUPA).post('/rest/v1/readings', (b) => { saved = b; return true; }).reply(201, '');
@@ -65,38 +63,40 @@ describe('api/ecowitt-pull', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body.source).toBe('ecowitt-api');
-    expect(res.body.temp).toBe(25);
-    expect(res.body.humidity).toBe(60);
-    expect(res.body.co2).toBe(800);
-    expect(res.body.vpd).toBe(calcVPD(25, 60));
 
-    expect(res.body.zones.canopy).toEqual({ temp: 25, hum: 60 });
-    expect(res.body.zones.wetwall).toEqual({ temp: 22, hum: 75 });
-    expect(res.body.zones.farend.temp).toBe(27.8);
-    expect(res.body.zones.zone4.temp).toBe(26);
+    // Greenhouse air comes from the WH46 (t_rh_aqi_combo), NOT from CH1 (28.7).
+    expect(res.body.temp).toBe(21.7);
+    expect(res.body.humidity).toBe(51);
+    expect(res.body.co2).toBe(450);
+    expect(res.body.vpd).toBe(calcVPD(21.7, 51));
+    expect(res.body.air).toEqual({ temp: 21.7, hum: 51, source: 'WH46 (provisional)' });
 
-    // 25*.4 + 22*.3 + 27.8*.15 + 26*.15 = 24.67 → 24.7
-    expect(res.body.temp_weighted).toBe(24.7);
-    expect(res.body.cooling_delta).toBe(3); // 25 − 22
-    expect(res.body.outdoor_temp).toBe(41.3);
-    expect(res.body.water_temp_irrigation).toBe(26.7);
-    expect(res.body.water_temp_outside).toBe(30);
-    expect(res.body.soil_moisture).toBe(42);
+    // No zone blend — the single interior reading is the greenhouse figure.
+    expect(res.body.temp_weighted).toBe(21.7);
 
-    // Persisted row mirrors the existing readings columns.
-    expect(saved.temperature).toBe(25);
-    expect(saved.hub_temp).toBe(22);
-    expect(saved.far_end_temp).toBe(27.8);
-    expect(saved.water_temp_irrigation).toBe(26.7);
-    expect(saved.soil_moisture).toBe(42);
-    expect(saved.tuya_gh_temp).toBeNull();
+    // CH2 is outdoor now; inside-vs-outside delta = 21.7 − 30 = −8.3.
+    expect(res.body.outdoor_temp).toBe(30);
+    expect(res.body.outdoor.temp).toBe(30);
+    expect(res.body.cooling_delta).toBe(-8.3);
+
+    expect(res.body.water_temp_irrigation).toBe(21.5);
+    expect(res.body.water_temp_outside).toBe(24.3);
+    expect(res.body.soil_moisture).toBe(22);
+
+    // Persisted row: greenhouse air in temperature, outdoor in outdoor_temp,
+    // wet-wall/far-end retired to null.
+    expect(saved.temperature).toBe(21.7);
+    expect(saved.outdoor_temp).toBe(30);
+    expect(saved.hub_temp).toBeNull();
+    expect(saved.far_end_temp).toBeNull();
+    expect(saved.water_temp_irrigation).toBe(21.5);
+    expect(saved.soil_moisture).toBe(22);
   });
 
-  it('rejects the disconnected 0/0 canopy without dragging the average', async () => {
+  it('writes null greenhouse air when the WH46 is absent, but still logs outdoor/water/soil', async () => {
     const p = JSON.parse(JSON.stringify(PAYLOAD));
-    p.data.temp_and_humidity_ch1 = { temperature: m(0), humidity: m(0) }; // disconnected
-    delete p.data.co2_aqi_combo.temperature; // no canopy fallback either
-    delete p.data.co2_aqi_combo.humidity;
+    delete p.data.t_rh_aqi_combo; // no interior air sensor this cycle
+    // CH1 is present but must NOT be used as a fallback.
     mockEcowitt(p);
     let saved;
     nock(SUPA).post('/rest/v1/readings', (b) => { saved = b; return true; }).reply(201, '');
@@ -105,38 +105,14 @@ describe('api/ecowitt-pull', () => {
     const res = makeRes();
     await pull(makeReq({ headers: authHeaders }), res);
 
-    expect(res.body.zones.canopy.temp).toBeNull();
-    // weighted average = the three valid zones (22,27.8,26), never dragged by 0
-    expect(res.body.temp_weighted).toBe(24.4); // (22*.3+27.8*.15+26*.15)/.6 ≈ 24.45 → 24.4
-    expect(saved.temperature).toBe(0);
-  });
-
-  it('uses the WH46 t_rh_aqi_combo for canopy when no WN31 channel is paired', async () => {
-    // Real-world state with only the WH46D (USB) paired: CO2 under
-    // co2_aqi_combo, its temp/humidity under t_rh_aqi_combo, no WN31 channels.
-    const p = {
-      code: 0, msg: 'success', time: '1',
-      data: {
-        indoor: { temperature: m(24.2), humidity: m(66) },
-        co2_aqi_combo: { co2: m(677) },
-        t_rh_aqi_combo: { temperature: m(24.3), humidity: m(67) },
-      },
-    };
-    mockEcowitt(p);
-    let saved;
-    nock(SUPA).post('/rest/v1/readings', (b) => { saved = b; return true; }).reply(201, '');
-    mockHistory();
-
-    const res = makeRes();
-    await pull(makeReq({ headers: authHeaders }), res);
-
-    expect(res.body.co2).toBe(677);
-    expect(res.body.temp).toBe(24.3);
-    expect(res.body.humidity).toBe(67);
-    expect(res.body.zones.canopy.temp).toBe(24.3);
-    expect(res.body.temp_weighted).toBe(24.3); // only canopy present
-    expect(saved.co2).toBe(677);
-    expect(saved.temperature).toBe(24.3);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.temp).toBeNull();          // CH1 (28.7) is ignored, not a fallback
+    expect(saved.temperature).toBeNull();
+    expect(saved.vpd).toBeNull();
+    expect(saved.cooling_delta).toBeNull();
+    // Outdoor / water / soil still logged so the row is not skipped.
+    expect(saved.outdoor_temp).toBe(30);
+    expect(saved.soil_moisture).toBe(22);
   });
 
   it('skips the insert when the gateway is offline (indoor-only, no sensor data)', async () => {
