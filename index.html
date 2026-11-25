@@ -1946,7 +1946,7 @@ function renderCoolingScore(){
   }
   if(naNote)naNote.style.display='none';
   if(desc)desc.style.display='';
-  if(src)src.textContent=_ar?'حساس الخارج · مباشر':'SwitchBot outdoor sensor · live';
+  if(src)src.textContent=_ar?'حساس الخارج (WN31 CH2) · مباشر':'Outdoor meter (WN31 CH2) · live';
   // When the canopy is already comfortable (cooling is succeeding) or the
   // outside air is mild (no cooling demand — e.g. a cool night), the system is
   // performing as intended. Report 100 rather than a misleading low score
@@ -3064,7 +3064,7 @@ async function askCouncil(){
     {name:'Dr. Climate',emoji:'🌡️',role:'Greenhouse Environment',color:'#E65100',system:'You are Dr. Climate, expert in greenhouse climate management in hot regions. Farm: Al-Waseel Diriyah Riyadh, 30x9m greenhouse, max outside temp 45C, 2000L tank. Give concise expert opinion (3-4 sentences) then note agreement/disagreement.'},
     {name:'Dr. Economics',emoji:'💼',role:'Agricultural Economics',color:'#1565C0',system:'You are Dr. Economics, expert in farm investment and ROI. Farm: Al-Waseel, 97,000 SAR infrastructure, 1000 trial strawberry plants, target 18-25 SAR/kg direct sales. Give concise expert opinion (3-4 sentences) and add economic angle.'},
     {name:'Dr. Market',emoji:'🛒',role:'Marketing & Sales',color:'#6A1B9A',system:'You are Dr. Market, expert in premium agricultural marketing in Saudi Arabia. Farm: Al-Waseel brand, Albion strawberries, hydroponic = competitive edge, target restaurants and direct sales. Give concise expert opinion (3-4 sentences) and add marketing insight.'},
-    {name:'Dr. Tech',emoji:'💻',role:'Digital & Smart Farming',color:'#00695C',isTech:true,system:'You are Dr. Tech, expert in smart farming technology. Farm: Al-Waseel has a live dashboard built by the owner Khalid on Vercel+Supabase+SwitchBot. Your suggestions must be practical dashboard improvements that Khalid can implement himself. Explain each suggestion in simple terms showing its benefit to the farm.'},
+    {name:'Dr. Tech',emoji:'💻',role:'Digital & Smart Farming',color:'#00695C',isTech:true,system:'You are Dr. Tech, expert in smart farming technology. Farm: Al-Waseel has a live dashboard built by the owner Khalid on Vercel+Supabase+Ecowitt (GW3000 gateway with WN31/WN34/WH46/WH51 sensors). Your suggestions must be practical dashboard improvements that Khalid can implement himself. Explain each suggestion in simple terms showing its benefit to the farm.'},
     {name:'Abu AbdulAziz',emoji:'👤',role:'Executive Summary',color:'#8B6914',system:'You are Abu AbdulAziz, owner of Al-Waseel Farm in Diriyah Riyadh. After hearing all experts, write your executive summary in Arabic only. Include: 1) Key agreed points 2) Numbered action steps labeled [TODAY] [THIS WEEK] [THIS MONTH] 3) A direct note to Mohammed the on-site engineer. Be decisive and operational.'}
   ];
   const responses=[];
