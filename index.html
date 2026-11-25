@@ -427,33 +427,33 @@ body.noscroll{overflow:hidden}
     <section id="tempVerdict" style="margin-bottom:14px"></section>
     <div style="font-size:.58rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px 6px"><span class="i18n-en">🌿 Air Zones</span><span class="i18n-ar">🌿 مناطق الهواء</span></div>
     <div class="weighted-row" style="margin-bottom:10px">
-      <div><div class="wt-label">Greenhouse Air (interim)</div><div class="wt-label-ar">هواء البيت المحمي · حسّاس WH46 (مؤقت)</div></div>
+      <div><div class="wt-label">Greenhouse Air · avg of 3 zones</div><div class="wt-label-ar">هواء البيت · متوسط 3 مناطق (بداية · وسط · طرف)</div></div>
       <div style="text-align:right"><div class="wt-val" id="wtTemp">&mdash;&deg;C</div><div class="wt-sub" id="wtHum">Humidity: &mdash;%</div></div>
     </div>
     <div class="zones-grid">
-      <div class="zone-card wet" style="display:none">
-        <div class="zn wet">&#x1F30A; Wet Wall Zone</div><div class="zn-ar">&#x645;&#x646;&#x637;&#x642;&#x629; &#x627;&#x644;&#x62C;&#x62F;&#x627;&#x631; &#x627;&#x644;&#x645;&#x628;&#x644;&#x644; &middot; 30%</div>
+      <div class="zone-card wet">
+        <div class="zn wet">&#x1F30A; Beginning &middot; Wet wall</div><div class="zn-ar">&#x627;&#x644;&#x628;&#x62F;&#x627;&#x64A;&#x629; &middot; &#x627;&#x644;&#x62C;&#x62F;&#x627;&#x631; &#x627;&#x644;&#x631;&#x637;&#x628;</div>
         <div class="z-readings">
           <div class="z-val"><div class="z-num" id="hubTemp">&mdash;</div><div class="z-lbl">&deg;C</div></div>
           <div class="z-val"><div class="z-num" id="hubHum">&mdash;</div><div class="z-lbl">%</div></div>
         </div>
-        <div class="z-src">Meter &middot; Wet wall (cooling wall sensor)</div>
+        <div class="z-src">GW3000 gateway &middot; start of house (pad output)</div>
       </div>
       <div class="zone-card cnp">
-        <div class="zn cnp">&#x1F33F; Greenhouse Air</div><div class="zn-ar">هواء البيت المحمي · WH46 (مؤقت)</div>
+        <div class="zn cnp">&#x1F33F; Middle</div><div class="zn-ar">&#x645;&#x646;&#x62A;&#x635;&#x641; &#x627;&#x644;&#x628;&#x64A;&#x62A;</div>
         <div class="z-readings">
           <div class="z-val"><div class="z-num" id="canTemp">&mdash;</div><div class="z-lbl">&deg;C</div></div>
           <div class="z-val"><div class="z-num" id="canHum">&mdash;</div><div class="z-lbl">%</div></div>
         </div>
-        <div class="z-src">WH46 combo &middot; interim (CH1 removed, location unverified)</div>
+        <div class="z-src">WN31 CH2 &middot; middle of the house</div>
       </div>
       <div class="zone-card" id="farEndCard" style="border-left:3px solid var(--gold)">
-        <div class="zn">&#x1F300; Far End Zone</div><div class="zn-ar">&#x627;&#x644;&#x645;&#x646;&#x637;&#x642;&#x629; &#x627;&#x644;&#x637;&#x631;&#x641;&#x64A;&#x629; &middot; &#x642;&#x631;&#x628; &#x627;&#x644;&#x645;&#x631;&#x648;&#x62D;&#x629;</div>
+        <div class="zn">&#x1F300; Far end</div><div class="zn-ar">&#x627;&#x644;&#x637;&#x631;&#x641; &#x627;&#x644;&#x628;&#x639;&#x64A;&#x62F;</div>
         <div class="z-readings">
           <div class="z-val"><div class="z-num" id="farTemp">&mdash;</div><div class="z-lbl">&deg;C</div></div>
           <div class="z-val"><div class="z-num" id="farHum">&mdash;</div><div class="z-lbl">%</div></div>
         </div>
-        <div class="z-src">Meter &middot; Far end (opposite wet wall)</div>
+        <div class="z-src">WN31 CH3 &middot; far end (opposite the wet wall)</div>
       </div>
     </div>
     <div id="sensorsPending" style="margin:8px 0 12px"></div>
@@ -1010,8 +1010,8 @@ function renderFreshness(){
 // number. A sensor is only flagged after 2 consecutive failed reads, which
 // rides out transient SwitchBot rate-limit blips.
 const SENSORS={
-  canopy:{en:'Greenhouse Air (WH46)',ar:'هواء البيت المحمي (WH46)'},
-  outdoor:{en:'Outdoor Meter (CH2)',ar:'حساس الخارج (CH2)'},
+  canopy:{en:'Greenhouse Air (avg of 3)',ar:'هواء البيت (متوسط 3)'},
+  outdoor:{en:'Outdoor Meter (CH1)',ar:'حساس الخارج (CH1)'},
   farend:{en:'Far-End Meter',ar:'حساس الطرف البعيد'},
   water:{en:'Water Temp Probes',ar:'حساسات حرارة الماء'}
 };
@@ -1376,11 +1376,13 @@ function renderZones(){
   renderTempVerdict();
   renderThermalHealth();
   renderYieldImpact();
-  const{hubTemp,hubHum,temp,hum,tempW,humW,w1}=S.live;
+  const{hubTemp,hubHum,midTemp,midHum,temp,hum,tempW,humW,w1}=S.live;
   if(temp===null||temp===undefined)return;
   $('hubTemp').textContent=hubTemp!=null?Number(hubTemp).toFixed(1):'—';$('hubHum').textContent=hubHum!=null?hubHum:'—';
-  $('canTemp').textContent=Number(temp).toFixed(1);$('canHum').textContent=hum;
-  $('canTemp').style.color=col(getBadge('temp',temp).s);$('canHum').style.color=col(getBadge('hum',hum).s);
+  // Middle card = WN31 CH2 (one of the three children of the headline average).
+  $('canTemp').textContent=midTemp!=null?Number(midTemp).toFixed(1):'—';$('canHum').textContent=midHum!=null?midHum:'—';
+  if(midTemp!=null)$('canTemp').style.color=col(getBadge('temp',midTemp).s);
+  if(midHum!=null)$('canHum').style.color=col(getBadge('hum',midHum).s);
   $('wtTemp').textContent=tempW!==null?tempW.toFixed(1)+'°C':'--°C';
   $('wtHum').textContent=humW!==null?'Humidity: '+humW.toFixed(0)+'%':'Humidity: --%';
   const cv=$('clVal');
@@ -1391,7 +1393,7 @@ function renderZones(){
     cv.style.color=delta>=0?'#16894E':'var(--gold)';
     $('clDesc').innerHTML=(delta>=0?'الداخل أدفأ من الخارج':'الداخل أبرد من الخارج');
   } else {
-    cv.textContent='—';cv.style.color='var(--muted)';$('clDesc').innerHTML='بانتظار حسّاس الخارج (CH2)';
+    cv.textContent='—';cv.style.color='var(--muted)';$('clDesc').innerHTML='بانتظار حسّاس الخارج (CH1)';
   }
   const w1El=$('w1Status');
   if(w1El){w1El.textContent=w1?'🚨 LEAK DETECTED':'✓ No leak';w1El.style.color=w1?'var(--danger)':'#16894E';w1El.style.fontWeight='800';}
@@ -1689,14 +1691,15 @@ async function fetchLive(){
     const fresh=ts?((Date.now()-ts)/60000<=30):false; // "live" only if within 30 min
     const temp=num(r.temperature),hum=num(r.humidity),co2=num(r.co2)??0;
     const vpd=num(r.vpd)??((temp!=null&&hum!=null)?calcVPD(temp,hum):null);
-    const hubTemp=num(r.hub_temp),hubHum=num(r.hub_humidity);
-    // Reconcile the weighted average with the zone cards: recompute it from the
-    // SAME canopy + wet-wall values shown in the zones (not a separately-stored
-    // value that may have used a different-timestamp wet-wall reading).
-    const tempW=(temp!=null)?(hubTemp!=null?weighted(temp,hubTemp):parseFloat(Number(temp).toFixed(1))):num(r.temp_weighted);
-    const humW =(hum!=null) ?(hubHum!=null ?weighted(hum,hubHum)  :parseFloat(Number(hum).toFixed(1))) :num(r.hum_weighted);
+    const hubTemp=num(r.hub_temp),hubHum=num(r.hub_humidity);   // beginning / wet wall
+    const midTemp=num(r.mid_temp),midHum=num(r.mid_humidity);   // middle
+    // Headline = the fair average the collector already stored (mean of the three
+    // interior points: beginning/wet-wall + middle + far end). Use it directly —
+    // the client no longer re-weights canopy vs wet wall.
+    const tempW=num(r.temp_weighted)??(temp!=null?parseFloat(Number(temp).toFixed(1)):null);
+    const humW =num(r.hum_weighted) ??(hum!=null ?parseFloat(Number(hum).toFixed(1)) :null);
     const w1=r.water_leak_1===true||r.water_leak_1==='true';
-    S.live={co2,temp,hum,vpd,hubTemp,hubHum,w1,tempW,humW,
+    S.live={co2,temp,hum,vpd,hubTemp,hubHum,midTemp,midHum,w1,tempW,humW,
       outsideTemp:num(r.outdoor_temp),outsideHumidity:num(r.outdoor_humidity),
       farEndTemp:num(r.far_end_temp),farEndHumidity:num(r.far_end_humidity),
       soil:num(r.soil_moisture)};
@@ -1946,7 +1949,7 @@ function renderCoolingScore(){
   }
   if(naNote)naNote.style.display='none';
   if(desc)desc.style.display='';
-  if(src)src.textContent=_ar?'حساس الخارج (WN31 CH2) · مباشر':'Outdoor meter (WN31 CH2) · live';
+  if(src)src.textContent=_ar?'حساس الخارج (WN31 CH1) · مباشر':'Outdoor meter (WN31 CH1) · live';
   // When the canopy is already comfortable (cooling is succeeding) or the
   // outside air is mild (no cooling demand — e.g. a cool night), the system is
   // performing as intended. Report 100 rather than a misleading low score

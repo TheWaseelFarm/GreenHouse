@@ -24,14 +24,18 @@ const { evaluateCriticals, detectFlatlines, processAlerts } = require('../_lib/a
 
 const MAC = process.env.ECOWITT_MAC || '1C:8F:57:37:33:2F';
 
-// Sensor map — verified Nov 2026 against physical placement:
-//   WH46 (t_rh_aqi_combo) → greenhouse interior air. PROVISIONAL interim source
-//     while the dedicated canopy probe (WN31 CH1) is removed pending a physical
-//     location check — CH1 is intentionally NOT read.
-//   WN31 CH2 (temp_and_humidity_ch2) → OUTDOOR air (confirmed outside the house;
-//     it was previously, wrongly, mapped to a "wet wall" greenhouse zone).
-//   WN34 temp_ch1 → irrigation/working tank; temp_ch2 → supply/storage tank
-//     (confirmed by their daily temperature signatures).
+// Sensor map — physical placement along the greenhouse length (owner-confirmed
+// Nov 2026). Air flows from the wet wall at the beginning toward the far end:
+//   GW3000 `indoor` (gateway built-in)  → BEGINNING / wet wall → hub_temp
+//       The gateway sits at the start by the wet wall; its cool + humid reading
+//       is the evaporative-pad output (the coolest interior point).
+//   WN31 CH2 (temp_and_humidity_ch2)    → MIDDLE of the house   → mid_temp
+//   WN31 CH3 (temp_and_humidity_ch3)    → FAR END               → far_end_temp
+//   WN31 CH1 (temp_and_humidity_ch1)    → OUTDOOR (outside)      → outdoor_temp
+//   The headline greenhouse air (temperature/humidity) is the FAIR (simple)
+//   average of the three interior points above — owner's choice, no weights.
+//   WH46 (co2_aqi_combo)                → CO2 only (its own T/RH no longer used)
+//   WN34 temp_ch1 → irrigation/working tank; temp_ch2 → supply/storage tank.
 //   WH51 soil_ch1 → substrate moisture at Line 4 · Tower 20 · Level 6; the
 //     medium is volcanic rock + perlite, which the capacitance probe does not
 //     reliably couple to, so the value is reported but treated as uncalibrated.
@@ -62,32 +66,47 @@ module.exports = async (req, res) => {
     const val = (o) => { if (!o || o.value == null) return null; const n = parseFloat(o.value); return isNaN(n) ? null : n; };
     const validTemp = (n) => (n !== null && n > 5 && n < 60) ? n : null; // reject the 0/0 disconnected fault
     const pct = (n) => (n !== null && n > 0 && n <= 100) ? n : null;
+    const round1   = (n) => (n === null ? null : parseFloat(n.toFixed(1)));
+    const roundInt = (n) => (n === null ? null : Math.round(n));
 
-    // Greenhouse interior air — PROVISIONAL source: the WH46 combo, whose own
-    // temperature/humidity live under t_rh_aqi_combo (not inside co2_aqi_combo).
-    // The dedicated canopy probe (WN31 CH1) is deliberately not read until its
-    // physical location is verified.
-    const airTH = d.t_rh_aqi_combo || {};
-    const temp     = validTemp(val(airTH.temperature));   // null when the sensor is offline
-    const humidity = pct(val(airTH.humidity));
+    // Three interior air points down the length of the house.
+    //   Beginning / wet wall = the gateway's built-in `indoor` sensor.
+    const gw = d.indoor || {};
+    const hub_temp     = validTemp(val(gw.temperature));   // beginning / wet wall
+    const hub_humidity = pct(val(gw.humidity));
+    //   Middle = WN31 CH2.
+    const ch2 = d.temp_and_humidity_ch2 || {};
+    const mid_temp     = validTemp(val(ch2.temperature));
+    const mid_humidity = pct(val(ch2.humidity));
+    //   Far end = WN31 CH3.
+    const ch3 = d.temp_and_humidity_ch3 || {};
+    const far_end_temp     = validTemp(val(ch3.temperature));
+    const far_end_humidity = pct(val(ch3.humidity));
+
+    // Headline greenhouse air = fair (simple) average of whichever interior
+    // points reported this cycle. No weights — the sensors are spaced evenly
+    // down the house, so the mean approximates the spatial-average air temp.
+    const mean = (arr) => {
+      const v = arr.filter((x) => x !== null);
+      return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+    };
+    const temp     = round1(mean([hub_temp, mid_temp, far_end_temp]));
+    const humidity = roundInt(mean([hub_humidity, mid_humidity, far_end_humidity]));
     const vpd      = (temp !== null && humidity !== null) ? calcVPD(temp, humidity) : null;
-
-    // No zone blend: the former "wet wall" channel was the outdoor sensor (now
-    // mapped below), so the greenhouse figure is the single interior reading.
-    const temp_weighted = temp;
+    const temp_weighted = temp;   // same value — kept for column/back-compat
     const hum_weighted  = humidity;
 
     // CO2 (WH46 reports under co2_aqi_combo).
     const combo = d.co2_aqi_combo || {};
     const co2 = combo.co2 != null ? Math.round(val(combo.co2)) : 0;
 
-    // Outdoor air — WN31 CH2, confirmed physically outside.
-    const ch2 = d.temp_and_humidity_ch2 || {};
-    const outdoor_temp     = validTemp(val(ch2.temperature));
-    const outdoor_humidity = pct(val(ch2.humidity));
+    // Outdoor air — WN31 CH1, physically outside.
+    const ch1 = d.temp_and_humidity_ch1 || {};
+    const outdoor_temp     = validTemp(val(ch1.temperature));
+    const outdoor_humidity = pct(val(ch1.humidity));
 
-    // Inside-vs-outside delta (replaces the old canopy-vs-wetwall "cooling"
-    // gradient, which was meaningless once CH2 was found to be outdoors).
+    // Inside (interior average) vs outside delta. Negative = house is cooler
+    // than outdoors (cooling is working).
     const cooling_delta = (temp !== null && outdoor_temp !== null)
       ? parseFloat((temp - outdoor_temp).toFixed(1)) : null;
 
@@ -113,6 +132,7 @@ module.exports = async (req, res) => {
     // the insert; the dashboard keeps the last real reading and the freshness
     // banner handles the staleness.
     const hasData = temp !== null
+      || hub_temp !== null || mid_temp !== null || far_end_temp !== null
       || (co2 && co2 > 0)
       || water_temp_irrigation !== null || water_temp_outside !== null
       || outdoor_temp !== null || soil_moisture !== null;
@@ -122,11 +142,13 @@ module.exports = async (req, res) => {
 
     const row = {
       co2,
-      temperature: temp,
+      temperature: temp,          // fair average of the three interior points
       humidity,
       vpd,
-      hub_temp: null,            // "wet wall" retired — that channel was outdoor
-      hub_humidity: null,
+      hub_temp,                   // beginning / wet wall (gateway indoor)
+      hub_humidity,
+      mid_temp,                   // middle (WN31 CH2)
+      mid_humidity,
       temp_weighted,
       hum_weighted,
       cooling_delta,
@@ -135,10 +157,10 @@ module.exports = async (req, res) => {
       dew_point,
       abs_humidity,
       plant_stress_index,
-      outdoor_temp,
+      outdoor_temp,               // outdoor (WN31 CH1)
       outdoor_humidity,
-      far_end_temp: null,
-      far_end_humidity: null,
+      far_end_temp,               // far end (WN31 CH3)
+      far_end_humidity,
       tuya_gh_temp: null, tuya_gh_humidity: null,
       tuya_out_temp: null, tuya_out_humidity: null,
       water_temp_irrigation,
@@ -185,10 +207,17 @@ module.exports = async (req, res) => {
     res.status(200).json({
       success: true,
       source: 'ecowitt-api',
-      air: { temp, hum: humidity, source: 'WH46 (provisional)' },
-      outdoor: { temp: outdoor_temp, hum: outdoor_humidity, source: 'WN31 CH2' },
+      air: { temp, hum: humidity, source: 'fair avg of 3 interior points' },
+      zones: {
+        beginning: { temp: hub_temp, hum: hub_humidity, source: 'GW3000 indoor (wet wall)' },
+        middle:    { temp: mid_temp, hum: mid_humidity, source: 'WN31 CH2' },
+        far_end:   { temp: far_end_temp, hum: far_end_humidity, source: 'WN31 CH3' },
+      },
+      outdoor: { temp: outdoor_temp, hum: outdoor_humidity, source: 'WN31 CH1' },
       co2, temp, humidity, vpd,
       temp_weighted, hum_weighted, cooling_delta,
+      hub_temp, hub_humidity, mid_temp, mid_humidity,
+      far_end_temp, far_end_humidity,
       outdoor_temp, outdoor_humidity,
       water_temp_irrigation, water_temp_outside,
       soil_moisture,
